@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 type Team = { id: string; name: string; flag: string; group_name: string };
-type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; venue: string | null; home_score: number | null; away_score: number | null; finished: boolean };
+type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; venue: string | null; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string };
 type KO = { id: string; round: string; position: number; label: string; home_team_id: string | null; away_team_id: string | null; home_source: string | null; away_source: string | null; home_score: number | null; away_score: number | null; kickoff: string | null; venue: string | null; finished: boolean };
@@ -91,7 +91,25 @@ export function AdminPanel() {
       </TabsList>
 
       <TabsContent value="results" className="space-y-2">
-        {matches.map((m) => <ResultRow key={m.id} m={m} teamMap={teamMap} onSet={setScore} />)}
+        <Card className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200">
+          <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-sm">
+              <div className="font-medium">🔄 Sincronização automática de placares</div>
+              <div className="text-xs text-muted-foreground">Preencha o "ID externo" de cada jogo (obtido na API-Football) para que o sistema atualize os placares sozinho.</div>
+            </div>
+            <Button size="sm" onClick={async () => {
+              toast.info("Sincronizando…");
+              const r = await fetch("/api/public/sync-scores", { method: "POST" });
+              const j = await r.json().catch(() => ({}));
+              if (r.ok) { toast.success(`Atualizados: ${j.updated ?? 0}/${j.total ?? 0}`); load(); }
+              else toast.error(j.error ?? "Falha");
+            }}>Sincronizar agora</Button>
+          </CardContent>
+        </Card>
+        {matches.map((m) => <ResultRow key={m.id} m={m} teamMap={teamMap} onSet={setScore} onSetExternal={async (id, ext) => {
+          const { error } = await supabase.from("matches").update({ external_match_id: ext || null }).eq("id", id);
+          if (error) toast.error(error.message); else { toast.success("ID externo salvo"); load(); }
+        }} />)}
       </TabsContent>
 
       <TabsContent value="knockout" className="space-y-2">
@@ -200,23 +218,31 @@ export function AdminPanel() {
   );
 }
 
-function ResultRow({ m, teamMap, onSet }: { m: Match; teamMap: Record<string, Team>; onSet: (id: string, h: number, a: number, finish: boolean) => void }) {
+function ResultRow({ m, teamMap, onSet, onSetExternal }: { m: Match; teamMap: Record<string, Team>; onSet: (id: string, h: number, a: number, finish: boolean) => void; onSetExternal: (id: string, ext: string) => void }) {
   const [h, setH] = useState(m.home_score?.toString() ?? "");
   const [a, setA] = useState(m.away_score?.toString() ?? "");
+  const [ext, setExt] = useState(m.external_match_id ?? "");
   const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
   if (!home || !away) return null;
   return (
     <Card>
-      <CardContent className="p-3 flex items-center gap-2 flex-wrap">
-        <div className="flex-1 text-sm min-w-[200px]">
-          <div>{m.group_name && <Badge variant="secondary" className="mr-2 text-[10px]">G{m.group_name}</Badge>}{home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.flag} {away.name}</div>
-          <div className="text-xs text-muted-foreground">{new Date(m.kickoff).toLocaleString("pt-BR")} {m.finished && "• Encerrado"}</div>
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex-1 text-sm min-w-[200px]">
+            <div>{m.group_name && <Badge variant="secondary" className="mr-2 text-[10px]">G{m.group_name}</Badge>}{home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.flag} {away.name}</div>
+            <div className="text-xs text-muted-foreground">{new Date(m.kickoff).toLocaleString("pt-BR")} {m.finished && "• Encerrado"}</div>
+          </div>
+          <Input className="w-14" type="number" min={0} value={h} onChange={(e) => setH(e.target.value)} />
+          <span>×</span>
+          <Input className="w-14" type="number" min={0} value={a} onChange={(e) => setA(e.target.value)} />
+          <Button size="sm" variant="outline" onClick={() => onSet(m.id, parseInt(h) || 0, parseInt(a) || 0, false)}>Salvar</Button>
+          <Button size="sm" onClick={() => onSet(m.id, parseInt(h) || 0, parseInt(a) || 0, true)}>Encerrar</Button>
         </div>
-        <Input className="w-14" type="number" min={0} value={h} onChange={(e) => setH(e.target.value)} />
-        <span>×</span>
-        <Input className="w-14" type="number" min={0} value={a} onChange={(e) => setA(e.target.value)} />
-        <Button size="sm" variant="outline" onClick={() => onSet(m.id, parseInt(h) || 0, parseInt(a) || 0, false)}>Salvar</Button>
-        <Button size="sm" onClick={() => onSet(m.id, parseInt(h) || 0, parseInt(a) || 0, true)}>Encerrar</Button>
+        <div className="flex items-center gap-2">
+          <Label className="text-[10px] text-muted-foreground whitespace-nowrap">ID API:</Label>
+          <Input className="h-7 text-xs flex-1" placeholder="ex: 1234567 (eventid da RapidAPI)" value={ext} onChange={(e) => setExt(e.target.value)} onBlur={() => { if (ext !== (m.external_match_id ?? "")) onSetExternal(m.id, ext); }} />
+          {m.external_match_id && <Badge variant="outline" className="text-[10px]">🔄 auto</Badge>}
+        </div>
       </CardContent>
     </Card>
   );
