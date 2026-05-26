@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Clock, Lock, Coins, Trophy } from "lucide-react";
+import { FlagImg } from "@/lib/flags";
+import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -23,6 +25,10 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [bets, setBets] = useState<Record<string, IBet>>({});
   const [allBets, setAllBets] = useState<IBet[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [search, setSearch] = useState("");
+  const [group, setGroup] = useState("");
+  const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
+
 
   async function load() {
     const [{ data: ts }, { data: ms }, { data: bs }, { data: all }] = await Promise.all([
@@ -85,7 +91,9 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      {matches.map((m) => {
+      <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
+
+      {visible.map((m) => {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const bet = bets[m.id];
@@ -106,27 +114,27 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                   {locked && <Lock className="h-3 w-3" />}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 text-right">
-                  <div className="text-2xl">{home.flag}</div>
-                  <div className="text-sm font-medium">{home.name}</div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex-1 flex flex-col items-end gap-1 min-w-0">
+                  <FlagImg code={home.code} name={home.name} size={40} />
+                  <div className="text-xs sm:text-sm font-medium text-right truncate w-full">{home.name}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {m.finished ? (
-                    <div className="text-3xl font-bold tabular-nums">{m.home_score} <span className="text-muted-foreground">×</span> {m.away_score}</div>
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{m.home_score}<span className="text-muted-foreground mx-1">×</span>{m.away_score}</div>
                   ) : (
                     <>
-                      <Input className="w-14 text-center text-lg" type="number" min={0} disabled={locked} value={d.h}
+                      <Input className="w-12 sm:w-14 text-center text-lg px-1" type="number" inputMode="numeric" min={0} disabled={locked} value={d.h}
                         onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...d, h: e.target.value } })} />
                       <span className="text-muted-foreground">×</span>
-                      <Input className="w-14 text-center text-lg" type="number" min={0} disabled={locked} value={d.a}
+                      <Input className="w-12 sm:w-14 text-center text-lg px-1" type="number" inputMode="numeric" min={0} disabled={locked} value={d.a}
                         onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...d, a: e.target.value } })} />
                     </>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="text-2xl">{away.flag}</div>
-                  <div className="text-sm font-medium">{away.name}</div>
+                <div className="flex-1 flex flex-col items-start gap-1 min-w-0">
+                  <FlagImg code={away.code} name={away.name} size={40} />
+                  <div className="text-xs sm:text-sm font-medium truncate w-full">{away.name}</div>
                 </div>
               </div>
               <div className="flex items-center justify-between flex-wrap gap-2">

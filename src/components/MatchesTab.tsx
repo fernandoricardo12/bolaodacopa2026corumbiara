@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Clock, Lock, Trophy } from "lucide-react";
+import { FlagImg } from "@/lib/flags";
+import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -27,6 +29,9 @@ export function MatchesTab({ userId }: { userId: string }) {
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [bets, setBets] = useState<Record<string, Bet>>({});
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [search, setSearch] = useState("");
+  const [group, setGroup] = useState("");
+  const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
 
   async function load() {
     const [{ data: ts }, { data: ms }, { data: bs }] = await Promise.all([
@@ -63,8 +68,10 @@ export function MatchesTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
+      <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
-      {matches.map((m) => {
+      {matches.length > 0 && visible.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhum jogo encontrado com esses filtros.</p>}
+      {visible.map((m) => {
         const home = teams[m.home_team_id];
         const away = teams[m.away_team_id];
         if (!home || !away) return null;
@@ -83,27 +90,27 @@ export function MatchesTab({ userId }: { userId: string }) {
                 {locked && <Lock className="h-3 w-3" />}
               </div>
               {m.venue && <p className="text-xs text-muted-foreground">{m.venue}</p>}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 text-right">
-                  <div className="text-2xl">{home.flag}</div>
-                  <div className="text-sm font-medium">{home.name}</div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex-1 flex flex-col items-end gap-1 min-w-0">
+                  <FlagImg code={home.code} name={home.name} size={40} />
+                  <div className="text-xs sm:text-sm font-medium text-right truncate w-full">{home.name}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {m.finished ? (
-                    <div className="text-3xl font-bold tabular-nums">{m.home_score} <span className="text-muted-foreground">×</span> {m.away_score}</div>
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{m.home_score}<span className="text-muted-foreground mx-1">×</span>{m.away_score}</div>
                   ) : (
                     <>
-                      <Input className="w-14 text-center text-lg" type="number" min={0} disabled={locked} value={d.h}
+                      <Input className="w-12 sm:w-14 text-center text-lg px-1" type="number" inputMode="numeric" min={0} disabled={locked} value={d.h}
                         onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...d, h: e.target.value } })} />
                       <span className="text-muted-foreground">×</span>
-                      <Input className="w-14 text-center text-lg" type="number" min={0} disabled={locked} value={d.a}
+                      <Input className="w-12 sm:w-14 text-center text-lg px-1" type="number" inputMode="numeric" min={0} disabled={locked} value={d.a}
                         onChange={(e) => setDrafts({ ...drafts, [m.id]: { ...d, a: e.target.value } })} />
                     </>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="text-2xl">{away.flag}</div>
-                  <div className="text-sm font-medium">{away.name}</div>
+                <div className="flex-1 flex flex-col items-start gap-1 min-w-0">
+                  <FlagImg code={away.code} name={away.name} size={40} />
+                  <div className="text-xs sm:text-sm font-medium truncate w-full">{away.name}</div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
