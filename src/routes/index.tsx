@@ -43,11 +43,6 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground hidden sm:inline">{email}</span>
-            {isAdmin && (
-              <Button asChild size="sm" variant="outline">
-                <Link to="/admin"><Shield className="h-4 w-4 mr-1" />Admin</Link>
-              </Button>
-            )}
             <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
