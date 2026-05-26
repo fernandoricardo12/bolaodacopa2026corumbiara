@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { MatchesTab } from "@/components/MatchesTab";
@@ -10,18 +11,26 @@ import { PaymentTab } from "@/components/PaymentTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Shield, Users, Swords, Coins } from "lucide-react";
+import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
 
 function Index() {
   const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Admin é separado: apenas gerencia, NÃO aposta. Redireciona para /admin.
+  useEffect(() => {
+    if (!loading && user && isAdmin) navigate({ to: "/admin", replace: true });
+  }, [loading, user, isAdmin, navigate]);
+
   if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
-  return <Dashboard userId={user.id} isAdmin={isAdmin} email={user.email ?? ""} />;
+  if (isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Abrindo painel do administrador…</div>;
+  return <Dashboard userId={user.id} email={user.email ?? ""} />;
 }
 
-function Dashboard({ userId, isAdmin, email }: { userId: string; isAdmin: boolean; email: string }) {
+function Dashboard({ userId, email }: { userId: string; email: string }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur">
@@ -34,11 +43,6 @@ function Dashboard({ userId, isAdmin, email }: { userId: string; isAdmin: boolea
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground hidden sm:inline">{email}</span>
-            {isAdmin && (
-              <Button asChild size="sm" variant="outline">
-                <Link to="/admin"><Shield className="h-4 w-4 mr-1" />Admin</Link>
-              </Button>
-            )}
             <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
