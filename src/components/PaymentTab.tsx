@@ -6,17 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 
-type Payment = { id: string; amount: number; status: string; proof_note: string | null; created_at: string; confirmed_at: string | null };
+type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
 const PIX_KEY = "bolao@copa2026.com.br";
-const DEFAULT_AMOUNT = 50;
 
 export function PaymentTab({ userId }: { userId: string }) {
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [amount, setAmount] = useState(String(DEFAULT_AMOUNT));
+  const [mode, setMode] = useState<"points" | "individual">("points");
+  const [amount, setAmount] = useState("50");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -33,29 +34,32 @@ export function PaymentTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
+  function changeMode(m: "points" | "individual") {
+    setMode(m);
+    setAmount(m === "points" ? "50" : "10");
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.from("payments").insert({
-      user_id: userId,
-      amount: parseFloat(amount),
-      proof_note: note || null,
+      user_id: userId, amount: parseFloat(amount), mode, proof_note: note || null,
     });
     setLoading(false);
     if (error) toast.error(error.message);
     else { toast.success("Comprovante enviado! Aguarde confirmação do admin."); setNote(""); }
   }
 
-  const confirmed = payments.some((p) => p.status === "confirmed");
+  const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            Pagamento via PIX {confirmed && <Badge className="bg-emerald-600">Confirmado</Badge>}
+            Pagamento via PIX {pointsConfirmed && <Badge className="bg-emerald-600">Bolão de pontos pago</Badge>}
           </CardTitle>
-          <CardDescription>Envie o pagamento e registre aqui. O admin confirma manualmente.</CardDescription>
+          <CardDescription>Escolha a modalidade, faça o PIX e registre aqui. O admin confirma manualmente.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border bg-muted/40 p-4">
@@ -63,14 +67,28 @@ export function PaymentTab({ userId }: { userId: string }) {
             <p className="font-mono text-sm break-all">{PIX_KEY}</p>
             <Button size="sm" variant="ghost" className="mt-2" onClick={() => { navigator.clipboard.writeText(PIX_KEY); toast.success("Chave copiada"); }}>Copiar chave</Button>
           </div>
+
+          <Tabs value={mode} onValueChange={(v) => changeMode(v as any)}>
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="points">Bolão de pontos (R$ 50)</TabsTrigger>
+              <TabsTrigger value="individual">Palpite individual (R$ 10)</TabsTrigger>
+            </TabsList>
+            <TabsContent value="points" className="text-xs text-muted-foreground pt-2">
+              Pagamento único de R$ 50 para entrar no ranking acumulado da Copa.
+            </TabsContent>
+            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2">
+              Cada R$ 10 corresponde a um palpite individual (ver aba Individual). Registre um pagamento por palpite ou um único pagamento somando vários (descreva quais jogos na observação).
+            </TabsContent>
+          </Tabs>
+
           <form onSubmit={submit} className="space-y-3">
             <div className="space-y-1">
               <Label>Valor (R$)</Label>
               <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label>Observação (opcional)</Label>
-              <Textarea placeholder="Ex: ID da transação, data, etc." value={note} onChange={(e) => setNote(e.target.value)} />
+              <Label>Observação</Label>
+              <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
             <Button type="submit" disabled={loading} className="w-full">Registrar pagamento</Button>
           </form>
@@ -84,8 +102,11 @@ export function PaymentTab({ userId }: { userId: string }) {
           {payments.map((p) => (
             <div key={p.id} className="flex items-center justify-between border rounded-md p-3">
               <div>
-                <div className="font-medium">R$ {Number(p.amount).toFixed(2)}</div>
+                <div className="font-medium flex items-center gap-2">R$ {Number(p.amount).toFixed(2)}
+                  <Badge variant="outline" className="text-[10px]">{p.mode === "individual" ? "Individual" : "Pontos"}</Badge>
+                </div>
                 <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleString("pt-BR")}</div>
+                {p.proof_note && <div className="text-xs text-muted-foreground mt-1">{p.proof_note}</div>}
               </div>
               {p.status === "confirmed" && <Badge className="bg-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1"/> Confirmado</Badge>}
               {p.status === "pending" && <Badge variant="secondary"><Clock className="h-3 w-3 mr-1"/> Pendente</Badge>}
