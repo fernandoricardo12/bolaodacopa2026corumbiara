@@ -55,6 +55,99 @@ export type Database = {
           },
         ]
       }
+      individual_bets: {
+        Row: {
+          amount: number
+          away_score: number
+          created_at: string
+          home_score: number
+          id: string
+          match_id: string
+          paid: boolean
+          payout: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          away_score: number
+          created_at?: string
+          home_score: number
+          id?: string
+          match_id: string
+          paid?: boolean
+          payout?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          away_score?: number
+          created_at?: string
+          home_score?: number
+          id?: string
+          match_id?: string
+          paid?: boolean
+          payout?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      knockout_matches: {
+        Row: {
+          away_score: number | null
+          away_source: string | null
+          away_team_id: string | null
+          created_at: string
+          finished: boolean
+          home_score: number | null
+          home_source: string | null
+          home_team_id: string | null
+          id: string
+          kickoff: string | null
+          label: string
+          position: number
+          round: Database["public"]["Enums"]["ko_round"]
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_source?: string | null
+          away_team_id?: string | null
+          created_at?: string
+          finished?: boolean
+          home_score?: number | null
+          home_source?: string | null
+          home_team_id?: string | null
+          id?: string
+          kickoff?: string | null
+          label: string
+          position: number
+          round: Database["public"]["Enums"]["ko_round"]
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_source?: string | null
+          away_team_id?: string | null
+          created_at?: string
+          finished?: boolean
+          home_score?: number | null
+          home_source?: string | null
+          home_team_id?: string | null
+          id?: string
+          kickoff?: string | null
+          label?: string
+          position?: number
+          round?: Database["public"]["Enums"]["ko_round"]
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           away_score: number | null
@@ -122,6 +215,8 @@ export type Database = {
           confirmed_by: string | null
           created_at: string
           id: string
+          match_id: string | null
+          mode: Database["public"]["Enums"]["bet_mode"]
           proof_note: string | null
           status: Database["public"]["Enums"]["payment_status"]
           user_id: string
@@ -132,6 +227,8 @@ export type Database = {
           confirmed_by?: string | null
           created_at?: string
           id?: string
+          match_id?: string | null
+          mode?: Database["public"]["Enums"]["bet_mode"]
           proof_note?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           user_id: string
@@ -142,6 +239,8 @@ export type Database = {
           confirmed_by?: string | null
           created_at?: string
           id?: string
+          match_id?: string | null
+          mode?: Database["public"]["Enums"]["bet_mode"]
           proof_note?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           user_id?: string
@@ -239,6 +338,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      bet_mode: "points" | "individual"
+      ko_round: "R32" | "R16" | "QF" | "SF" | "THIRD" | "FINAL"
       match_stage: "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final"
       payment_status: "pending" | "confirmed" | "rejected"
     }
@@ -369,6 +470,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      bet_mode: ["points", "individual"],
+      ko_round: ["R32", "R16", "QF", "SF", "THIRD", "FINAL"],
       match_stage: ["group", "r32", "r16", "qf", "sf", "third", "final"],
       payment_status: ["pending", "confirmed", "rejected"],
     },

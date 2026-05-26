@@ -1,16 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { MatchesTab } from "@/components/MatchesTab";
+import { IndividualBetsTab } from "@/components/IndividualBetsTab";
+import { GroupsTab } from "@/components/GroupsTab";
+import { KnockoutTab } from "@/components/KnockoutTab";
 import { RankingTab } from "@/components/RankingTab";
 import { PaymentTab } from "@/components/PaymentTab";
-import { AdminPanel } from "@/components/AdminPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Shield } from "lucide-react";
+import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Shield, Users, Swords, Coins } from "lucide-react";
 
-export const Route = createFileRoute("/")({ component: Index });
+export const Route = createFileRoute("/")({ component: Index, ssr: false });
 
 function Index() {
   const { user, isAdmin, loading } = useAuth();
@@ -23,7 +25,7 @@ function Dashboard({ userId, isAdmin, email }: { userId: string; isAdmin: boolea
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
             <div className="h-8 w-8 rounded-full bg-emerald-600 text-white grid place-items-center">
               <Trophy className="h-4 w-4" />
@@ -32,6 +34,11 @@ function Dashboard({ userId, isAdmin, email }: { userId: string; isAdmin: boolea
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground hidden sm:inline">{email}</span>
+            {isAdmin && (
+              <Button asChild size="sm" variant="outline">
+                <Link to="/admin"><Shield className="h-4 w-4 mr-1" />Admin</Link>
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
@@ -39,22 +46,27 @@ function Dashboard({ userId, isAdmin, email }: { userId: string; isAdmin: boolea
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-4">
-        <Tabs defaultValue="matches" className="space-y-4">
-          <TabsList className={`grid w-full ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
-            <TabsTrigger value="matches"><ListChecks className="h-4 w-4 mr-1" />Jogos</TabsTrigger>
+      <main className="max-w-4xl mx-auto px-4 py-4">
+        <Tabs defaultValue="bolao" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+            <TabsTrigger value="bolao"><ListChecks className="h-4 w-4 mr-1" />Bolão</TabsTrigger>
+            <TabsTrigger value="individual"><Coins className="h-4 w-4 mr-1" />Individual</TabsTrigger>
+            <TabsTrigger value="groups"><Users className="h-4 w-4 mr-1" />Grupos</TabsTrigger>
+            <TabsTrigger value="bracket"><Swords className="h-4 w-4 mr-1" />Mata-mata</TabsTrigger>
             <TabsTrigger value="ranking"><BarChart3 className="h-4 w-4 mr-1" />Ranking</TabsTrigger>
             <TabsTrigger value="payment"><Wallet className="h-4 w-4 mr-1" />Pagar</TabsTrigger>
-            {isAdmin && <TabsTrigger value="admin"><Shield className="h-4 w-4 mr-1" />Admin</TabsTrigger>}
           </TabsList>
-          <TabsContent value="matches"><MatchesTab userId={userId} /></TabsContent>
+          <TabsContent value="bolao"><MatchesTab userId={userId} /></TabsContent>
+          <TabsContent value="individual"><IndividualBetsTab userId={userId} /></TabsContent>
+          <TabsContent value="groups"><GroupsTab /></TabsContent>
+          <TabsContent value="bracket"><KnockoutTab /></TabsContent>
           <TabsContent value="ranking"><RankingTab currentUserId={userId} /></TabsContent>
           <TabsContent value="payment"><PaymentTab userId={userId} /></TabsContent>
-          {isAdmin && <TabsContent value="admin"><AdminPanel /></TabsContent>}
         </Tabs>
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Pontuação: <strong>10</strong> placar exato · <strong>5</strong> vencedor + saldo · <strong>3</strong> só vencedor
-        </p>
+        <div className="text-center text-xs text-muted-foreground mt-8 space-y-1">
+          <p><strong>Bolão de pontos (R$ 50):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar</p>
+          <p><strong>Palpite individual (R$ 10/jogo):</strong> 80% do bolo p/ placar exato · 60% p/ acerto de vencedor · 20% taxa admin</p>
+        </div>
       </main>
     </div>
   );
