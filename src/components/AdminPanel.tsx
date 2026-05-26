@@ -75,7 +75,7 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(b.paid ? "Marcado como não pago" : "Confirmado pago"); load(); }
   }
 
-  async function updateKO(id: string, patch: Record<string, any>) {
+  async function updateKO(id: string, patch: { home_team_id?: string | null; away_team_id?: string | null; home_score?: number | null; away_score?: number | null; kickoff?: string | null; finished?: boolean }) {
     const { error } = await supabase.from("knockout_matches").update(patch).eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Atualizado"); load(); }
   }
