@@ -2,7 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { AdminPanel } from "@/components/AdminPanel";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+
 import { Shield, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
