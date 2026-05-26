@@ -8,10 +8,12 @@ import { GroupsTab } from "@/components/GroupsTab";
 import { KnockoutTab } from "@/components/KnockoutTab";
 import { RankingTab } from "@/components/RankingTab";
 import { PaymentTab } from "@/components/PaymentTab";
+import { Footer } from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
 
@@ -72,6 +74,8 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           <p><strong>Palpite individual (R$ 10/jogo):</strong> 80% do bolo p/ placar exato · 60% p/ acerto de vencedor · 20% taxa admin</p>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
+

@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, MessageCircle } from "lucide-react";
+
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
@@ -47,7 +48,13 @@ export function PaymentTab({ userId }: { userId: string }) {
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else { toast.success("Comprovante enviado! Aguarde confirmação do admin."); setNote(""); }
+    else {
+      toast.success("Comprovante registrado! Envie pelo WhatsApp para confirmação.");
+      const msg = encodeURIComponent(`Olá! Sou *${ (await supabase.auth.getUser()).data.user?.email ?? "" }*. Acabei de registrar um pagamento de R$ ${parseFloat(amount).toFixed(2)} (${mode === "points" ? "Bolão de pontos" : "Palpite individual"}). ${note ? "Obs: " + note : ""} Segue o comprovante em anexo.`);
+      window.open(`https://wa.me/5569984236281?text=${msg}`, "_blank");
+      setNote("");
+    }
+
   }
 
   const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
@@ -90,8 +97,14 @@ export function PaymentTab({ userId }: { userId: string }) {
               <Label>Observação</Label>
               <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
-            <Button type="submit" disabled={loading} className="w-full">Registrar pagamento</Button>
+            <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700">
+              <MessageCircle className="h-4 w-4 mr-2" /> Registrar e enviar comprovante via WhatsApp
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center">
+              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie para <strong>(69) 98423-6281</strong>.
+            </p>
           </form>
+
         </CardContent>
       </Card>
 
