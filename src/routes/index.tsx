@@ -74,6 +74,8 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           <p><strong>Palpite individual (R$ 10/jogo):</strong> 80% do bolo p/ placar exato · 60% p/ acerto de vencedor · 20% taxa admin</p>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
+
