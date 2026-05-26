@@ -48,7 +48,13 @@ export function PaymentTab({ userId }: { userId: string }) {
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else { toast.success("Comprovante enviado! Aguarde confirmação do admin."); setNote(""); }
+    else {
+      toast.success("Comprovante registrado! Envie pelo WhatsApp para confirmação.");
+      const msg = encodeURIComponent(`Olá! Sou *${ (await supabase.auth.getUser()).data.user?.email ?? "" }*. Acabei de registrar um pagamento de R$ ${parseFloat(amount).toFixed(2)} (${mode === "points" ? "Bolão de pontos" : "Palpite individual"}). ${note ? "Obs: " + note : ""} Segue o comprovante em anexo.`);
+      window.open(`https://wa.me/5569984236281?text=${msg}`, "_blank");
+      setNote("");
+    }
+
   }
 
   const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
