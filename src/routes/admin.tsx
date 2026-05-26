@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { AdminPanel } from "@/components/AdminPanel";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shield } from "lucide-react";
+import { Shield, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
@@ -32,10 +32,10 @@ function AdminRoute() {
             Painel do Administrador
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" variant="outline">
-              <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" />Voltar ao app</Link>
+            <span className="text-xs text-muted-foreground hidden sm:inline">{user.email}</span>
+            <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>
+              <LogOut className="h-4 w-4 mr-1" />Sair
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>Sair</Button>
           </div>
         </div>
       </header>
