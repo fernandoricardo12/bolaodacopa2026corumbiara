@@ -97,8 +97,14 @@ export function PaymentTab({ userId }: { userId: string }) {
               <Label>Observação</Label>
               <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
-            <Button type="submit" disabled={loading} className="w-full">Registrar pagamento</Button>
+            <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700">
+              <MessageCircle className="h-4 w-4 mr-2" /> Registrar e enviar comprovante via WhatsApp
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center">
+              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie para <strong>(69) 98423-6281</strong>.
+            </p>
           </form>
+
         </CardContent>
       </Card>
 
