@@ -129,6 +129,8 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
                 {unpaidCount === 0 && <span className="block text-muted-foreground">Nenhum palpite pendente de pagamento.</span>}
               </div>
             </TabsContent>
+          </Tabs>
+
 
 
           <form onSubmit={handleRegister} className="space-y-3">
