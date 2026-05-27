@@ -147,11 +147,6 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
 
 
           <form onSubmit={handleRegister} className="space-y-3">
-            <div className="space-y-1">
-              <Label>Valor (R$)</Label>
-              <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-          <form onSubmit={handleRegister} className="space-y-3">
             {pointsBlocked && (
               <div className="rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-xs text-emerald-900 dark:text-emerald-200">
                 {pointsConfirmed
