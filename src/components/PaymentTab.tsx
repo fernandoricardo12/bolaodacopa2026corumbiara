@@ -110,7 +110,7 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
             </TabsContent>
           </Tabs>
 
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={handleRegister} className="space-y-3">
             <div className="space-y-1">
               <Label>Valor (R$)</Label>
               <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -119,13 +119,31 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
               <Label>Observação</Label>
               <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
-            <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700">
-              <MessageCircle className="h-4 w-4 mr-2" /> Registrar e enviar comprovante via WhatsApp
-            </Button>
+
+            {!hasPhone && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200">
+                ⚠️ O administrador ainda não cadastrou o número de WhatsApp para envio do comprovante. Peça ao admin para configurar em <strong>Configurações → WhatsApp de suporte</strong>.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button type="submit" disabled={loading} variant="outline" className="w-full">
+                {loading ? "Registrando…" : registered ? "✓ Registrado" : "1. Registrar pagamento"}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSendWhatsApp}
+                disabled={!hasPhone}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" /> 2. Enviar comprovante
+              </Button>
+            </div>
             <p className="text-[11px] text-muted-foreground text-center">
-              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie.
+              Primeiro registre o pagamento, depois clique para abrir o WhatsApp e anexar o comprovante.
             </p>
           </form>
+
 
         </CardContent>
       </Card>
