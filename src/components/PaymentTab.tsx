@@ -9,13 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle, MessageCircle } from "lucide-react";
+import { useSettings } from "@/lib/useSettings";
 
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
-const PIX_KEY = "bolao@copa2026.com.br";
-
 export function PaymentTab({ userId }: { userId: string }) {
+  const { settings } = useSettings();
+  const PIX_KEY = settings.pix_key || "—";
+  const supportPhone = (settings.whatsapp_support_phone || "5569984236281").replace(/\D/g, "");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mode, setMode] = useState<"points" | "individual">("points");
   const [amount, setAmount] = useState("50");
