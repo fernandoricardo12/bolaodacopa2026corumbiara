@@ -151,9 +151,21 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
               <Label>Valor (R$)</Label>
               <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
+          <form onSubmit={handleRegister} className="space-y-3">
+            {pointsBlocked && (
+              <div className="rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-xs text-emerald-900 dark:text-emerald-200">
+                {pointsConfirmed
+                  ? "✅ Seu pagamento do bolão de pontos já foi confirmado. Não é necessário registrar novamente."
+                  : "⏳ Você já registrou um pagamento do bolão de pontos. Aguarde a análise do administrador. Caso seja recusado, você poderá registrar novamente."}
+              </div>
+            )}
+            <div className="space-y-1">
+              <Label>Valor (R$)</Label>
+              <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} disabled={pointsBlocked} />
+            </div>
             <div className="space-y-1">
               <Label>Observação</Label>
-              <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} />
+              <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} disabled={pointsBlocked} />
             </div>
 
             {!hasPhone && (
@@ -163,13 +175,13 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button type="submit" disabled={loading} variant="outline" className="w-full">
+              <Button type="submit" disabled={loading || pointsBlocked} variant="outline" className="w-full">
                 {loading ? "Registrando…" : registered ? "✓ Registrado" : "1. Registrar pagamento"}
               </Button>
               <Button
                 type="button"
                 onClick={handleSendWhatsApp}
-                disabled={!hasPhone}
+                disabled={!hasPhone || pointsBlocked}
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
               >
                 <MessageCircle className="h-4 w-4 mr-2" /> 2. Enviar comprovante
@@ -179,6 +191,7 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
               Primeiro registre o pagamento, depois clique para abrir o WhatsApp e anexar o comprovante.
             </p>
           </form>
+
 
 
         </CardContent>
