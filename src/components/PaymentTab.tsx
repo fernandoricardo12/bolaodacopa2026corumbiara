@@ -122,10 +122,14 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
             <TabsContent value="points" className="text-xs text-muted-foreground pt-2">
               Pagamento único de R$ 50 para entrar no ranking acumulado da Copa.
             </TabsContent>
-            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2">
-              Cada R$ 10 corresponde a um palpite individual (ver aba Individual). Registre um pagamento por palpite ou um único pagamento somando vários (descreva quais jogos na observação).
+            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2 space-y-2">
+              <p>Cada palpite individual custa <strong>R$ {PRICE_INDIVIDUAL}</strong>, independente do jogo. Você pode fazer quantos quiser (inclusive vários no mesmo jogo).</p>
+              <div className="rounded-md border bg-muted/40 p-2 text-foreground">
+                Palpites em aberto: <strong>{unpaidCount}</strong> × R$ {PRICE_INDIVIDUAL} = <strong>R$ {unpaidTotal.toFixed(2)}</strong>
+                {unpaidCount === 0 && <span className="block text-muted-foreground">Nenhum palpite pendente de pagamento.</span>}
+              </div>
             </TabsContent>
-          </Tabs>
+
 
           <form onSubmit={handleRegister} className="space-y-3">
             <div className="space-y-1">
