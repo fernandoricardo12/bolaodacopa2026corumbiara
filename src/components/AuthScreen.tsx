@@ -18,20 +18,27 @@ export function AuthScreen() {
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const cleanEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
-    if (error) toast.error(error.message);
+    if (error) {
+      const msg = error.message?.toLowerCase().includes("invalid")
+        ? "Email ou senha incorretos"
+        : error.message;
+      toast.error(msg);
+    }
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     const { error } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName },
+        data: { display_name: displayName.trim() },
       },
     });
     setLoading(false);
