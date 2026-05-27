@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Coins, Trophy, Trash2, Sparkles, Plus } from "lucide-react";
+import { Clock, Lock, Coins, Trophy, Trash2, Sparkles, Plus, Flame, Star } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 import { useSettings } from "@/lib/useSettings";
@@ -15,10 +15,12 @@ type Match = {
   id: string; home_team_id: string; away_team_id: string; kickoff: string;
   group_name: string | null; stage: string; venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
+  featured: boolean;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 
 const PRICE = 10;
+const POOL_HIGHLIGHT_THRESHOLD = 30;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
   const { settings } = useSettings();
@@ -60,14 +62,24 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   }, [myBets]);
 
   const poolByMatch = useMemo(() => {
-    const r: Record<string, { total: number; paid: number }> = {};
+    const r: Record<string, { total: number; paid: number; count: number }> = {};
     allBets.forEach((b) => {
-      r[b.match_id] ||= { total: 0, paid: 0 };
+      r[b.match_id] ||= { total: 0, paid: 0, count: 0 };
       r[b.match_id].total += Number(b.amount);
+      r[b.match_id].count += 1;
       if (b.paid) r[b.match_id].paid += Number(b.amount);
     });
     return r;
   }, [allBets]);
+
+  // Ordena: destaques primeiro, depois por kickoff
+  const sortedVisible = useMemo(() => {
+    return [...visible].sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+    });
+  }, [visible]);
 
   async function addBet(matchId: string) {
     const d = drafts[matchId];
@@ -104,33 +116,53 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
       <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-300">
         <CardContent className="p-3 text-xs flex items-start gap-2">
           <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
-          <div>
-            <strong>Palpite Individual — R$ {PRICE} por palpite.</strong> Você pode fazer <strong>vários palpites por jogo</strong> (cada um vira um pagamento PIX separado). Ao fim do jogo:
-            <strong> 80%</strong> do bolo vai para quem acertou placar exato (proporcional), <strong>60%</strong> para quem só acertou o vencedor, <strong>20%</strong> é taxa de administração.
+          <div className="space-y-1">
+            <div><strong>Palpite Individual — R$ {PRICE} por palpite.</strong> Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
+            <div>
+              🎯 <strong>Placar exato:</strong> 80% do bolo do jogo (dividido se houver mais de um acertador).
+              <br />
+              ✅ <strong>Só o vencedor</strong> (sem placar exato): 60% do bolo do jogo (dividido se houver mais de um acertador).
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
 
-      {visible.map((m) => {
+      {sortedVisible.map((m) => {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
         const locked = m.finished || new Date(m.kickoff) <= new Date();
         const d = drafts[m.id] ?? { h: "", a: "" };
-        const pool = poolByMatch[m.id] ?? { total: 0, paid: 0 };
+        const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
+        const showPool = pool.paid >= POOL_HIGHLIGHT_THRESHOLD;
         return (
-          <Card key={m.id}>
+          <Card
+            key={m.id}
+            className={m.featured ? "border-2 border-yellow-400 shadow-lg ring-2 ring-yellow-200 dark:ring-yellow-900/40" : ""}
+          >
+            {m.featured && (
+              <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-yellow-950 text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg">
+                <Flame className="h-3.5 w-3.5" /> JOGO TOP DA RODADA
+                <Star className="h-3 w-3 ml-auto" />
+              </div>
+            )}
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">
                 <div className="flex gap-2 items-center">
                   {m.group_name && <Badge variant="secondary">Grupo {m.group_name}</Badge>}
                   <Clock className="h-3 w-3" />
                   <span>{new Date(m.kickoff).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span title="Bolo pago do jogo">💰 R$ {pool.paid.toFixed(0)}</span>
+                  {showPool ? (
+                    <Badge className="bg-emerald-600 text-white animate-pulse">
+                      💰 Bolo: R$ {pool.paid.toFixed(0)} · {pool.count} palpite{pool.count !== 1 ? "s" : ""}
+                    </Badge>
+                  ) : (
+                    <span title="Bolo pago do jogo">💰 R$ {pool.paid.toFixed(0)}</span>
+                  )}
                   {locked && <Lock className="h-3 w-3" />}
                 </div>
               </div>
@@ -160,7 +192,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               {!locked && (
                 <div className="flex justify-end">
-                  <Button size="sm" variant="outline" onClick={() => addBet(m.id)}>
+                  <Button size="sm" variant={m.featured ? "default" : "outline"} onClick={() => addBet(m.id)} className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
                     <Plus className="h-3 w-3 mr-1" /> Adicionar palpite (R$ {PRICE})
                   </Button>
                 </div>

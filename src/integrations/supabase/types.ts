@@ -172,6 +172,7 @@ export type Database = {
           away_team_id: string
           created_at: string
           external_match_id: string | null
+          featured: boolean
           finished: boolean
           group_name: string | null
           home_score: number | null
@@ -187,6 +188,7 @@ export type Database = {
           away_team_id: string
           created_at?: string
           external_match_id?: string | null
+          featured?: boolean
           finished?: boolean
           group_name?: string | null
           home_score?: number | null
@@ -202,6 +204,7 @@ export type Database = {
           away_team_id?: string
           created_at?: string
           external_match_id?: string | null
+          featured?: boolean
           finished?: boolean
           group_name?: string | null
           home_score?: number | null

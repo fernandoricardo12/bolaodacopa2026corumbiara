@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Trophy } from "lucide-react";
+import { Clock, Lock, Trophy, Crown } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
+
+const POINTS_POOL_HIGHLIGHT = 200;
+const POINTS_WINNER_SHARE = 0.80;
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -31,17 +34,20 @@ export function MatchesTab({ userId }: { userId: string }) {
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
+  const [pointsPool, setPointsPool] = useState(0);
   const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
 
   async function load() {
-    const [{ data: ts }, { data: ms }, { data: bs }] = await Promise.all([
+    const [{ data: ts }, { data: ms }, { data: bs }, { data: pays }] = await Promise.all([
       supabase.from("teams").select("id,name,flag,code"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("bets").select("match_id,home_score,away_score,points").eq("user_id", userId),
+      supabase.from("payments").select("amount,mode,status").eq("mode", "points").eq("status", "confirmed"),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
     if (ms) setMatches(ms as Match[]);
     if (bs) setBets(Object.fromEntries(bs.map((b) => [b.match_id, b as Bet])));
+    if (pays) setPointsPool(pays.reduce((s, p) => s + Number(p.amount), 0));
   }
 
   useEffect(() => {
@@ -50,9 +56,13 @@ export function MatchesTab({ userId }: { userId: string }) {
       .channel("matches-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "bets", filter: `user_id=eq.${userId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
+
+  const showPrizeBanner = pointsPool >= POINTS_POOL_HIGHLIGHT;
+  const prizeValue = pointsPool * POINTS_WINNER_SHARE;
 
   async function saveBet(matchId: string) {
     const d = drafts[matchId];
@@ -78,6 +88,22 @@ export function MatchesTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
+      {showPrizeBanner && (
+        <Card className="border-2 border-yellow-400 bg-gradient-to-r from-emerald-600 via-emerald-500 to-yellow-400 text-white shadow-lg overflow-hidden">
+          <CardContent className="p-4 flex items-center gap-3">
+            <Crown className="h-10 w-10 text-yellow-200 drop-shadow shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs uppercase tracking-wide opacity-90">Prêmio acumulado · Bolão de pontos (80%)</div>
+              <div className="text-2xl sm:text-3xl font-extrabold tabular-nums drop-shadow">
+                R$ {prizeValue.toFixed(2)}
+              </div>
+              <div className="text-[11px] opacity-90">
+                Bolo total: R$ {pointsPool.toFixed(2)} · Líder do ranking ao fim da Copa leva 80% (dividido em caso de empate).
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
       {matches.length > 0 && visible.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhum jogo encontrado com esses filtros.</p>}

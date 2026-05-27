@@ -8,12 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 
 type Team = { id: string; name: string; flag: string; group_name: string };
-type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null };
+type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
@@ -122,6 +122,12 @@ export function AdminPanel() {
     else { toast.success(`${name} foi excluído`); load(); }
   }
 
+  async function toggleFeatured(m: Match) {
+    const { error } = await supabase.from("matches").update({ featured: !m.featured }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else { toast.success(m.featured ? "Destaque removido" : "Jogo em destaque! 🔥"); load(); }
+  }
+
   async function exportImage() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
@@ -154,9 +160,10 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="flex sm:grid sm:grid-cols-7 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+      <TabsList className="flex sm:grid sm:grid-cols-8 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
         <TabsTrigger value="dashboard" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Dashboard</span></TabsTrigger>
         <TabsTrigger value="jogos" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Activity className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Jogos</span></TabsTrigger>
+        <TabsTrigger value="destaques" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Destaques</span></TabsTrigger>
         <TabsTrigger value="palpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Palpites</span></TabsTrigger>
         <TabsTrigger value="payments" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><DollarSign className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Pagamentos</span></TabsTrigger>
         <TabsTrigger value="ibets" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">A pagar</span></TabsTrigger>
@@ -278,6 +285,55 @@ export function AdminPanel() {
           return <MatchReadOnlyRow key={m.id} m={m} home={home} away={away} onSetExternal={setExternalId} />;
         })}
       </TabsContent>
+
+      {/* ============== DESTAQUES (jogo top da rodada) ============== */}
+      <TabsContent value="destaques" className="space-y-3">
+        <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30 border-yellow-300">
+          <CardContent className="p-3 text-xs flex items-start gap-2">
+            <Flame className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+            <div>
+              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para destacá-los no topo da aba <strong>Individual</strong>.
+              Eles continuam com as mesmas regras (R$ 10 por palpite, 80% / 60%) e entram normalmente na somatória dos palpites individuais — o destaque serve apenas para impulsionar e atrair mais apostas.
+            </div>
+          </CardContent>
+        </Card>
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <Star className="h-3.5 w-3.5 text-yellow-500" />
+          {matches.filter((m) => m.featured).length} jogo(s) em destaque de {matches.length} total
+        </div>
+        {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}
+        {matches.map((m) => {
+          const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
+          if (!home || !away) return null;
+          const matchIbets = ibets.filter((b) => b.match_id === m.id);
+          const paidPool = matchIbets.filter((b) => b.paid).reduce((s, b) => s + Number(b.amount), 0);
+          return (
+            <Card key={m.id} className={m.featured ? "border-2 border-yellow-400 shadow" : ""}>
+              <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-sm min-w-0 flex-1">
+                  <div className="font-medium truncate flex items-center gap-2">
+                    {m.featured && <Flame className="h-4 w-4 text-amber-500 shrink-0" />}
+                    {home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.name} {away.flag}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(m.kickoff).toLocaleString("pt-BR")} · {matchIbets.length} palpite(s) · bolo R$ {paidPool.toFixed(2)}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant={m.featured ? "default" : "outline"}
+                  onClick={() => toggleFeatured(m)}
+                  disabled={m.finished}
+                  className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}
+                >
+                  {m.featured ? <><Star className="h-4 w-4 mr-1 fill-current" /> Em destaque</> : <><Flame className="h-4 w-4 mr-1" /> Destacar jogo</>}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </TabsContent>
+
 
       {/* ============== PALPITES (todos os participantes / todos os jogos) ============== */}
       <TabsContent value="palpites" className="space-y-3">
