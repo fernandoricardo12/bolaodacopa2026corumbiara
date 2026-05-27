@@ -154,11 +154,12 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
+      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="jogos">Jogos</TabsTrigger>
         <TabsTrigger value="payments">Pagamentos</TabsTrigger>
         <TabsTrigger value="ibets">A pagar</TabsTrigger>
+        <TabsTrigger value="users"><UserX className="h-4 w-4 mr-1" />Participantes</TabsTrigger>
         <TabsTrigger value="config"><SettingsIcon className="h-4 w-4 mr-1" />Config</TabsTrigger>
       </TabsList>
 
