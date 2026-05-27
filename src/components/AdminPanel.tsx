@@ -10,8 +10,6 @@ import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown } from "lucide-react";
 import { useSettings, AppSettings } from "@/lib/useSettings";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null };
@@ -121,6 +119,7 @@ export function AdminPanel() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
     try {
+      const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       link.download = `bolao-relatorio-${new Date().toISOString().slice(0, 10)}.png`;
@@ -134,6 +133,7 @@ export function AdminPanel() {
     if (!reportRef.current) return;
     toast.loading("Gerando PDF…", { id: "expp" });
     try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const img = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
