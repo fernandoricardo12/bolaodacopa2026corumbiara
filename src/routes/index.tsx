@@ -68,14 +68,14 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs defaultValue="bolao" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
-            <TabsTrigger value="bolao"><ListChecks className="h-4 w-4 mr-1" />Bolão</TabsTrigger>
-            <TabsTrigger value="individual"><Coins className="h-4 w-4 mr-1" />Individual</TabsTrigger>
-            <TabsTrigger value="minhas"><ClipboardCheck className="h-4 w-4 mr-1" />Minhas</TabsTrigger>
-            <TabsTrigger value="groups"><Users className="h-4 w-4 mr-1" />Grupos</TabsTrigger>
-            <TabsTrigger value="bracket"><Swords className="h-4 w-4 mr-1" />Mata-mata</TabsTrigger>
-            <TabsTrigger value="ranking"><BarChart3 className="h-4 w-4 mr-1" />Ranking</TabsTrigger>
-            <TabsTrigger value="payment"><Wallet className="h-4 w-4 mr-1" />Pagar</TabsTrigger>
+          <TabsList className="flex sm:grid sm:grid-cols-7 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+            <TabsTrigger value="bolao" className="flex-shrink-0 px-2 sm:px-3"><ListChecks className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Bolão</span></TabsTrigger>
+            <TabsTrigger value="individual" className="flex-shrink-0 px-2 sm:px-3"><Coins className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Individual</span></TabsTrigger>
+            <TabsTrigger value="minhas" className="flex-shrink-0 px-2 sm:px-3"><ClipboardCheck className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Minhas</span></TabsTrigger>
+            <TabsTrigger value="groups" className="flex-shrink-0 px-2 sm:px-3"><Users className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Grupos</span></TabsTrigger>
+            <TabsTrigger value="bracket" className="flex-shrink-0 px-2 sm:px-3"><Swords className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Mata-mata</span></TabsTrigger>
+            <TabsTrigger value="ranking" className="flex-shrink-0 px-2 sm:px-3"><BarChart3 className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Ranking</span></TabsTrigger>
+            <TabsTrigger value="payment" className="flex-shrink-0 px-2 sm:px-3"><Wallet className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Pagar</span></TabsTrigger>
           </TabsList>
           <TabsContent value="bolao"><MatchesTab userId={userId} /></TabsContent>
           <TabsContent value="individual"><IndividualBetsTab userId={userId} /></TabsContent>
