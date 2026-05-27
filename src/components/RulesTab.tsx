@@ -199,7 +199,7 @@ export function RulesTab() {
               <p className="font-semibold">Como pagar — passo a passo</p>
               <ol className="text-muted-foreground text-xs list-decimal list-inside space-y-1 mt-1">
                 <li>Vá na aba <strong>Pagar</strong> e copie a chave PIX.</li>
-                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 5 por palpite).</li>
+                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 2 por palpite).</li>
                 <li>Clique em <strong>"1. Registrar pagamento"</strong> informando valor e observação.</li>
                 <li>Clique em <strong>"2. Enviar comprovante"</strong> para abrir o WhatsApp e anexar o print.</li>
                 <li>Aguarde o administrador confirmar — o status muda para <Badge className="bg-emerald-600 text-[10px]">Confirmado</Badge>.</li>
