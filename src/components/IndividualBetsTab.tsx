@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Clock, Lock, Coins, Trophy } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
+import { useSettings } from "@/lib/useSettings";
+import { Sparkles } from "lucide-react";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -20,6 +22,7 @@ type IBet = { id: string; match_id: string; home_score: number; away_score: numb
 const PRICE = 10;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
+  const { settings } = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [bets, setBets] = useState<Record<string, IBet>>({});
