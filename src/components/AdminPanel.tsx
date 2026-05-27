@@ -293,7 +293,7 @@ export function AdminPanel() {
             <Flame className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
             <div>
               Marque jogos como <strong>"Jogo Top da Rodada"</strong> para destacá-los no topo da aba <strong>Individual</strong>.
-              Eles continuam com as mesmas regras (R$ 5 por palpite, 80% / 60%) e entram normalmente na somatória dos palpites individuais — o destaque serve apenas para impulsionar e atrair mais apostas.
+              Eles continuam com as mesmas regras (R$ 2 por palpite, 80% / 60%) e entram normalmente na somatória dos palpites individuais — o destaque serve apenas para impulsionar e atrair mais apostas.
             </div>
           </CardContent>
         </Card>
