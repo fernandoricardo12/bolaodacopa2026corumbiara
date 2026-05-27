@@ -17,12 +17,15 @@ type Payment = { id: string; amount: number; status: string; mode: string; proof
 export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
   const PIX_KEY = settings.pix_key || "—";
-  const supportPhone = (settings.whatsapp_support_phone || "5569984236281").replace(/\D/g, "");
+  const rawPhone = (settings.whatsapp_support_phone || "").replace(/\D/g, "");
+  const supportPhone = rawPhone;
+  const hasPhone = supportPhone.length >= 10;
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mode, setMode] = useState<"points" | "individual">("points");
   const [amount, setAmount] = useState("50");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   async function load() {
     const { data } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false });
@@ -40,30 +43,40 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
   function changeMode(m: "points" | "individual") {
     setMode(m);
     setAmount(m === "points" ? "50" : "10");
+    setRegistered(false);
   }
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    // Abrir o WhatsApp SINCRONICAMENTE (mesma navegação do clique) para
-    // evitar bloqueio de pop-up em navegadores mobile.
-    const valor = parseFloat(amount);
+  function buildWhatsAppUrl() {
+    const valor = parseFloat(amount || "0");
     const modoLabel = mode === "points" ? "Bolão de pontos" : "Palpite individual";
     const msg = encodeURIComponent(
       `Olá! Sou *${email ?? ""}*. Acabei de registrar um pagamento de R$ ${valor.toFixed(2)} (${modoLabel}).${note ? " Obs: " + note : ""} Segue o comprovante em anexo.`
     );
-    const waUrl = `https://wa.me/${supportPhone}?text=${msg}`;
-    // window.open com user-gesture direto funciona; em mobile usamos location.href como fallback
-    const win = window.open(waUrl, "_blank");
-    if (!win) window.location.href = waUrl;
+    return `https://wa.me/${supportPhone}?text=${msg}`;
+  }
 
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
     setLoading(true);
-    supabase.from("payments").insert({
-      user_id: userId, amount: valor, mode, proof_note: note || null,
-    }).then(({ error }) => {
-      setLoading(false);
-      if (error) toast.error(error.message);
-      else { toast.success("Comprovante registrado! Envie o anexo pelo WhatsApp."); setNote(""); }
+    const { error } = await supabase.from("payments").insert({
+      user_id: userId, amount: parseFloat(amount), mode, proof_note: note || null,
     });
+    setLoading(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pagamento registrado! Agora envie o comprovante pelo WhatsApp.");
+      setRegistered(true);
+    }
+  }
+
+  function handleSendWhatsApp() {
+    if (!hasPhone) {
+      toast.error("WhatsApp do administrador ainda não foi cadastrado.");
+      return;
+    }
+    const url = buildWhatsAppUrl();
+    const win = window.open(url, "_blank");
+    if (!win) window.location.href = url;
   }
 
   const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
