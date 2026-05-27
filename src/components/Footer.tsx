@@ -10,8 +10,7 @@ export function Footer() {
     <footer className="mt-8 border-t bg-gradient-to-r from-emerald-50 via-yellow-50 to-emerald-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
       <div className="max-w-5xl mx-auto px-4 py-5 text-center text-xs text-muted-foreground space-y-2">
         <p>
-          Administrador e Desenvolvedor:{" "}
-          <strong className="text-foreground">Fernando Rodrigues Ricardo</strong>
+          Administrador: <strong className="text-foreground">FRR</strong>
         </p>
         <div className="flex flex-wrap gap-2 justify-center">
           {supportPhone && (
