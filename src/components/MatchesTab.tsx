@@ -135,7 +135,12 @@ export function MatchesTab({ userId }: { userId: string }) {
                   </div>
                 ) : <span className="text-xs text-muted-foreground">Sem palpite</span>}
                 {!locked && (
-                  <Button size="sm" onClick={() => saveBet(m.id)}>{bet ? "Atualizar" : "Palpitar"}</Button>
+                  <div className="flex gap-2">
+                    {bet && (
+                      <Button size="sm" variant="outline" onClick={() => deleteBet(m.id)}>Excluir</Button>
+                    )}
+                    <Button size="sm" onClick={() => saveBet(m.id)}>{bet ? "Atualizar" : "Palpitar"}</Button>
+                  </div>
                 )}
               </div>
             </CardContent>
