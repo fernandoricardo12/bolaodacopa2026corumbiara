@@ -79,6 +79,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Palpite nos jogos da Copa do Mundo 2026 e dispute o ranking com seus amigos." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Bolão Copa 2026" },
+      { name: "twitter:description", content: "Palpite nos jogos da Copa do Mundo 2026 e dispute o ranking com seus amigos." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6868c0c1-fc54-4bea-9a02-bcd46c77439c/id-preview-9b6dc7b5--6884546e-c53f-467c-a776-c50d49a56138.lovable.app-1779842967896.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6868c0c1-fc54-4bea-9a02-bcd46c77439c/id-preview-9b6dc7b5--6884546e-c53f-467c-a776-c50d49a56138.lovable.app-1779842967896.png" },
     ],
     links: [
       {
