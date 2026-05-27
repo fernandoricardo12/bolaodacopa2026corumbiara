@@ -36,7 +36,7 @@ export function AdminPanel() {
       supabase.from("teams").select("id,name,flag,group_name").order("name"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,display_name"),
+      supabase.from("profiles").select("id,display_name,phone,pix_key"),
       supabase.from("individual_bets").select("*"),
       supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
     ]);
