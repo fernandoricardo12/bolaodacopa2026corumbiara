@@ -467,9 +467,21 @@ export function AdminPanel() {
           return (
             <Card key={p.id}>
               <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
-                <div className="min-w-0">
+                <div className="min-w-0 space-y-0.5">
                   <div className="font-medium truncate">{p.display_name}</div>
                   <div className="text-xs text-muted-foreground">{totalPts} pts · {totalInd} palpites individuais</div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Tel: </span>
+                    {p.phone ? (
+                      <a href={`https://wa.me/55${p.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
+                    ) : <span className="text-amber-600">não informado</span>}
+                  </div>
+                  <div className="text-xs break-all">
+                    <span className="text-muted-foreground">PIX: </span>
+                    {p.pix_key ? (
+                      <button type="button" onClick={() => { navigator.clipboard.writeText(p.pix_key!); toast.success("Chave PIX copiada"); }} className="font-mono text-foreground hover:underline">{p.pix_key}</button>
+                    ) : <span className="text-amber-600">não informado</span>}
+                  </div>
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
