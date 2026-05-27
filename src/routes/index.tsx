@@ -12,8 +12,9 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins } from "lucide-react";
+import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, ClipboardCheck } from "lucide-react";
 import heroCup from "@/assets/hero-cup.jpg";
+import { MyBetsTab } from "@/components/MyBetsTab";
 
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
@@ -67,9 +68,10 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs defaultValue="bolao" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="bolao"><ListChecks className="h-4 w-4 mr-1" />Bolão</TabsTrigger>
             <TabsTrigger value="individual"><Coins className="h-4 w-4 mr-1" />Individual</TabsTrigger>
+            <TabsTrigger value="minhas"><ClipboardCheck className="h-4 w-4 mr-1" />Minhas</TabsTrigger>
             <TabsTrigger value="groups"><Users className="h-4 w-4 mr-1" />Grupos</TabsTrigger>
             <TabsTrigger value="bracket"><Swords className="h-4 w-4 mr-1" />Mata-mata</TabsTrigger>
             <TabsTrigger value="ranking"><BarChart3 className="h-4 w-4 mr-1" />Ranking</TabsTrigger>
@@ -77,6 +79,7 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           </TabsList>
           <TabsContent value="bolao"><MatchesTab userId={userId} /></TabsContent>
           <TabsContent value="individual"><IndividualBetsTab userId={userId} /></TabsContent>
+          <TabsContent value="minhas"><MyBetsTab userId={userId} /></TabsContent>
           <TabsContent value="groups"><GroupsTab /></TabsContent>
           <TabsContent value="bracket"><KnockoutTab /></TabsContent>
           <TabsContent value="ranking"><RankingTab currentUserId={userId} /></TabsContent>
