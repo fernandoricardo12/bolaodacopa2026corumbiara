@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3 } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 
@@ -154,9 +154,10 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="flex sm:grid sm:grid-cols-6 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+      <TabsList className="flex sm:grid sm:grid-cols-7 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
         <TabsTrigger value="dashboard" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Dashboard</span></TabsTrigger>
         <TabsTrigger value="jogos" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Activity className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Jogos</span></TabsTrigger>
+        <TabsTrigger value="palpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Palpites</span></TabsTrigger>
         <TabsTrigger value="payments" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><DollarSign className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Pagamentos</span></TabsTrigger>
         <TabsTrigger value="ibets" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">A pagar</span></TabsTrigger>
         <TabsTrigger value="users" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><UserX className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Participantes</span></TabsTrigger>
