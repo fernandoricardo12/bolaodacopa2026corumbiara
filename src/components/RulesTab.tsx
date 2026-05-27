@@ -166,7 +166,7 @@ export function RulesTab() {
           </p>
           <p className="text-muted-foreground text-xs">
             Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
-            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 10 por palpite, regras 80% / 60%,
+            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 5 por palpite, regras 80% / 60%,
             e tudo entra na mesma somatória do palpite individual.
           </p>
         </CardContent>
