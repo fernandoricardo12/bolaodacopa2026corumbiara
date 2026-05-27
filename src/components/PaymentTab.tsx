@@ -114,6 +114,8 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
 
   return (
     <div className="space-y-4">
+      <ContactInfoCard userId={userId} />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
