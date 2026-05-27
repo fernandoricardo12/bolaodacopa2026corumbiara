@@ -103,7 +103,7 @@ export function AuthScreen() {
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-4">
               <Wallet className="h-5 w-5 text-yellow-300 mb-2" />
               <h3 className="font-bold text-sm">Bolão de pontos + palpites individuais</h3>
-              <p className="text-xs text-emerald-50/90">R$ 50 no bolão geral ou R$ 10 por palpite avulso. Prêmios para quem acerta!</p>
+              <p className="text-xs text-emerald-50/90">R$ 50 no bolão geral ou R$ 5 por palpite avulso. Prêmios para quem acerta!</p>
             </div>
           </div>
 
