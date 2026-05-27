@@ -327,6 +327,45 @@ export function AdminPanel() {
         })}
       </TabsContent>
 
+      {/* ============== PARTICIPANTES ============== */}
+      <TabsContent value="users" className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Exclui o participante e <strong>todos</strong> os dados dele (palpites, pagamentos, perfil). Útil para remover duplicatas ou redefinir o sistema. Esta ação é irreversível.
+        </p>
+        {Object.values(profiles).length === 0 && <p className="text-sm text-muted-foreground">Nenhum participante.</p>}
+        {Object.values(profiles).map((p) => {
+          const totalPts = bets.filter((b) => b.user_id === p.id).reduce((s, b) => s + (b.points ?? 0), 0);
+          const totalInd = ibets.filter((b) => b.user_id === p.id).length;
+          return (
+            <Card key={p.id}>
+              <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{p.display_name}</div>
+                  <div className="text-xs text-muted-foreground">{totalPts} pts · {totalInd} palpites individuais</div>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Excluir</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir {p.display_name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Vai apagar todos os palpites, pagamentos e o cadastro deste participante. Não dá pra desfazer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteParticipant(p.id, p.display_name)} className="bg-destructive">Excluir definitivamente</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </TabsContent>
+
       {/* ============== CONFIG ============== */}
       <TabsContent value="config">
         <ConfigPanel />
