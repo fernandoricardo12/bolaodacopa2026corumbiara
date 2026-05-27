@@ -259,7 +259,7 @@ export function RulesTab() {
             <AccordionItem value="quantos">
               <AccordionTrigger>Quantos palpites posso fazer por jogo?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 10 e concorre separadamente.
+                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 5 e concorre separadamente.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="desempate">
