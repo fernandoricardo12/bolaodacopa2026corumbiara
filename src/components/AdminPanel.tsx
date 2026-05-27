@@ -286,6 +286,55 @@ export function AdminPanel() {
         })}
       </TabsContent>
 
+      {/* ============== DESTAQUES (jogo top da rodada) ============== */}
+      <TabsContent value="destaques" className="space-y-3">
+        <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30 border-yellow-300">
+          <CardContent className="p-3 text-xs flex items-start gap-2">
+            <Flame className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+            <div>
+              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para destacá-los no topo da aba <strong>Individual</strong>.
+              Eles continuam com as mesmas regras (R$ 10 por palpite, 80% / 60%) e entram normalmente na somatória dos palpites individuais — o destaque serve apenas para impulsionar e atrair mais apostas.
+            </div>
+          </CardContent>
+        </Card>
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <Star className="h-3.5 w-3.5 text-yellow-500" />
+          {matches.filter((m) => m.featured).length} jogo(s) em destaque de {matches.length} total
+        </div>
+        {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}
+        {matches.map((m) => {
+          const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
+          if (!home || !away) return null;
+          const matchIbets = ibets.filter((b) => b.match_id === m.id);
+          const paidPool = matchIbets.filter((b) => b.paid).reduce((s, b) => s + Number(b.amount), 0);
+          return (
+            <Card key={m.id} className={m.featured ? "border-2 border-yellow-400 shadow" : ""}>
+              <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-sm min-w-0 flex-1">
+                  <div className="font-medium truncate flex items-center gap-2">
+                    {m.featured && <Flame className="h-4 w-4 text-amber-500 shrink-0" />}
+                    {home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.name} {away.flag}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(m.kickoff).toLocaleString("pt-BR")} · {matchIbets.length} palpite(s) · bolo R$ {paidPool.toFixed(2)}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant={m.featured ? "default" : "outline"}
+                  onClick={() => toggleFeatured(m)}
+                  disabled={m.finished}
+                  className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}
+                >
+                  {m.featured ? <><Star className="h-4 w-4 mr-1 fill-current" /> Em destaque</> : <><Flame className="h-4 w-4 mr-1" /> Destacar jogo</>}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </TabsContent>
+
+
       {/* ============== PALPITES (todos os participantes / todos os jogos) ============== */}
       <TabsContent value="palpites" className="space-y-3">
         <Card className="bg-slate-50 dark:bg-slate-900/40">
