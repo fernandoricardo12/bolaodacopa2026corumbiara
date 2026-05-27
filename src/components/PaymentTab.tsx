@@ -14,7 +14,7 @@ import { useSettings } from "@/lib/useSettings";
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
-export function PaymentTab({ userId }: { userId: string }) {
+export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
   const PIX_KEY = settings.pix_key || "—";
   const supportPhone = (settings.whatsapp_support_phone || "5569984236281").replace(/\D/g, "");
