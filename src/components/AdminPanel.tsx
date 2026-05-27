@@ -116,6 +116,12 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(b.paid ? "Desmarcado" : "Pago confirmado"); load(); }
   }
 
+  async function deleteParticipant(userId: string, name: string) {
+    const { error } = await supabase.rpc("admin_delete_participant", { _user_id: userId });
+    if (error) toast.error(error.message);
+    else { toast.success(`${name} foi excluído`); load(); }
+  }
+
   async function exportImage() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
