@@ -15,7 +15,7 @@ import { useSettings } from "@/lib/useSettings";
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; paid: boolean };
 
-const PRICE_INDIVIDUAL = 10;
+const PRICE_INDIVIDUAL = 5;
 
 export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
