@@ -18,20 +18,27 @@ export function AuthScreen() {
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const cleanEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
-    if (error) toast.error(error.message);
+    if (error) {
+      const msg = error.message?.toLowerCase().includes("invalid")
+        ? "Email ou senha incorretos"
+        : error.message;
+      toast.error(msg);
+    }
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     const { error } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName },
+        data: { display_name: displayName.trim() },
       },
     });
     setLoading(false);
@@ -68,11 +75,11 @@ export function AuthScreen() {
               <form onSubmit={handleSignIn} className="space-y-3 pt-4">
                 <div className="space-y-1">
                   <Label htmlFor="si-email">Email</Label>
-                  <Input id="si-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input id="si-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="si-pass">Senha</Label>
-                  <Input id="si-pass" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input id="si-pass" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>Entrar</Button>
               </form>
@@ -85,11 +92,11 @@ export function AuthScreen() {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="su-email">Email</Label>
-                  <Input id="su-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input id="su-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="su-pass">Senha</Label>
-                  <Input id="su-pass" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input id="su-pass" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>Criar conta</Button>
               </form>
