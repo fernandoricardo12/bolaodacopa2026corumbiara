@@ -44,10 +44,10 @@ export function RulesTab() {
           </div>
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 p-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 10 por palpite</Badge>
+              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 5 por palpite</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
-              Cada palpite avulso custa <strong>R$ 10</strong>. Você pode fazer
+              Cada palpite avulso custa <strong>R$ 5</strong>. Você pode fazer
               <strong> quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Cada jogo tem o seu próprio bolo —
               quem acertar divide o prêmio daquela partida.
             </p>
