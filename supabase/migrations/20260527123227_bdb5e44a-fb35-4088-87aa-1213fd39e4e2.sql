@@ -1,0 +1,1 @@
+ALTER TABLE public.individual_bets ALTER COLUMN amount SET DEFAULT 5;
