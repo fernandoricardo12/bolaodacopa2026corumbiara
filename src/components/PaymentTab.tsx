@@ -9,13 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle, MessageCircle } from "lucide-react";
+import { useSettings } from "@/lib/useSettings";
 
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
-const PIX_KEY = "bolao@copa2026.com.br";
-
 export function PaymentTab({ userId }: { userId: string }) {
+  const { settings } = useSettings();
+  const PIX_KEY = settings.pix_key || "—";
+  const supportPhone = (settings.whatsapp_support_phone || "5569984236281").replace(/\D/g, "");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mode, setMode] = useState<"points" | "individual">("points");
   const [amount, setAmount] = useState("50");
@@ -51,7 +53,7 @@ export function PaymentTab({ userId }: { userId: string }) {
     else {
       toast.success("Comprovante registrado! Envie pelo WhatsApp para confirmação.");
       const msg = encodeURIComponent(`Olá! Sou *${ (await supabase.auth.getUser()).data.user?.email ?? "" }*. Acabei de registrar um pagamento de R$ ${parseFloat(amount).toFixed(2)} (${mode === "points" ? "Bolão de pontos" : "Palpite individual"}). ${note ? "Obs: " + note : ""} Segue o comprovante em anexo.`);
-      window.open(`https://wa.me/5569984236281?text=${msg}`, "_blank");
+      window.open(`https://wa.me/${supportPhone}?text=${msg}`, "_blank");
       setNote("");
     }
 
@@ -101,7 +103,7 @@ export function PaymentTab({ userId }: { userId: string }) {
               <MessageCircle className="h-4 w-4 mr-2" /> Registrar e enviar comprovante via WhatsApp
             </Button>
             <p className="text-[11px] text-muted-foreground text-center">
-              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie para <strong>(69) 98423-6281</strong>.
+              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie.
             </p>
           </form>
 

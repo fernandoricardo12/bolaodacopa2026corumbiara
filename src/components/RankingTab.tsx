@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal } from "lucide-react";
+import podium from "@/assets/podium.jpg";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
 
@@ -49,8 +50,12 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
     i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-orange-700" : "text-muted-foreground";
 
   return (
-    <Card>
-      <CardContent className="p-0 divide-y">
+    <div className="space-y-3">
+      <div className="rounded-2xl overflow-hidden border-2 border-yellow-400 shadow">
+        <img src={podium} alt="Pódio dos campeões" className="w-full h-28 sm:h-36 object-cover" loading="lazy" width={1280} height={640} />
+      </div>
+      <Card>
+        <CardContent className="p-0 divide-y">
         {rows.length === 0 && <p className="p-6 text-center text-muted-foreground">Sem jogadores ainda.</p>}
         {rows.map((r, i) => (
           <div key={r.user_id} className={`flex items-center gap-3 p-3 ${r.user_id === currentUserId ? "bg-emerald-50 dark:bg-emerald-950/30" : ""}`}>
@@ -75,5 +80,6 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         ))}
       </CardContent>
     </Card>
+    </div>
   );
 }

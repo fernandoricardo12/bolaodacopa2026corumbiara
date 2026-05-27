@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown } from "lucide-react";
+import { useSettings, AppSettings } from "@/lib/useSettings";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null };
@@ -16,6 +19,8 @@ type Payment = { id: string; user_id: string; amount: number; status: string; mo
 type Profile = { id: string; display_name: string };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 type Bet = { id: string; user_id: string; match_id: string; points: number };
+
+const POINTS_WINNER_SHARE = 0.80;
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -25,6 +30,7 @@ export function AdminPanel() {
   const [ibets, setIbets] = useState<IBet[]>([]);
   const [bets, setBets] = useState<Bet[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   async function load() {
     const [t, m, p, pr, ib, b] = await Promise.all([
@@ -46,7 +52,6 @@ export function AdminPanel() {
 
   const teamMap = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
 
-  // === Dashboard analytics ===
   const totalApostadoPontos = useMemo(
     () => payments.filter((p) => p.mode === "points" && p.status === "confirmed").reduce((s, p) => s + Number(p.amount), 0),
     [payments]
@@ -59,6 +64,8 @@ export function AdminPanel() {
     () => ibets.filter((b) => Number(b.payout) > 0).reduce((s, b) => s + Number(b.payout), 0),
     [ibets]
   );
+  const premioFinalPontos = totalApostadoPontos * POINTS_WINNER_SHARE;
+  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE);
   const usuariosUnicos = useMemo(() => new Set([...bets.map((b) => b.user_id), ...ibets.map((b) => b.user_id)]).size, [bets, ibets]);
   const jogosEncerrados = matches.filter((m) => m.finished).length;
 
@@ -67,9 +74,10 @@ export function AdminPanel() {
     bets.forEach((b) => { map[b.user_id] = (map[b.user_id] ?? 0) + (b.points ?? 0); });
     return Object.entries(map)
       .map(([uid, pts]) => ({ user: profiles[uid]?.display_name ?? "—", pontos: pts, user_id: uid }))
-      .sort((a, b) => b.pontos - a.pontos)
-      .slice(0, 10);
+      .sort((a, b) => b.pontos - a.pontos);
   }, [bets, profiles]);
+
+  const liderPontos = rankingPontos[0];
 
   const ganhadoresIndividual = useMemo(
     () => ibets
@@ -109,74 +117,145 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(b.paid ? "Desmarcado" : "Pago confirmado"); load(); }
   }
 
+  async function exportImage() {
+    if (!reportRef.current) return;
+    toast.loading("Gerando imagem…", { id: "exp" });
+    try {
+      const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
+      const link = document.createElement("a");
+      link.download = `bolao-relatorio-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      toast.success("Imagem salva", { id: "exp" });
+    } catch (e) { toast.error("Erro ao gerar imagem", { id: "exp" }); }
+  }
+
+  async function exportPDF() {
+    if (!reportRef.current) return;
+    toast.loading("Gerando PDF…", { id: "expp" });
+    try {
+      const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
+      const img = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const w = pdf.internal.pageSize.getWidth();
+      const h = (canvas.height * w) / canvas.width;
+      pdf.addImage(img, "PNG", 0, 0, w, h);
+      pdf.save(`bolao-relatorio-${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success("PDF salvo", { id: "expp" });
+    } catch (e) { toast.error("Erro ao gerar PDF", { id: "expp" }); }
+  }
+
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-        <TabsTrigger value="jogos">Jogos (auto)</TabsTrigger>
+        <TabsTrigger value="jogos">Jogos</TabsTrigger>
         <TabsTrigger value="payments">Pagamentos</TabsTrigger>
         <TabsTrigger value="ibets">A pagar</TabsTrigger>
+        <TabsTrigger value="config"><SettingsIcon className="h-4 w-4 mr-1" />Config</TabsTrigger>
       </TabsList>
 
       {/* ============== DASHBOARD ============== */}
       <TabsContent value="dashboard" className="space-y-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Total arrecadado (pontos)" value={`R$ ${totalApostadoPontos.toFixed(2)}`} tone="emerald" />
-          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Total arrecadado (individual)" value={`R$ ${totalApostadoIndividual.toFixed(2)}`} tone="blue" />
-          <StatCard icon={<Trophy className="h-4 w-4" />} label="Total a pagar (ganhadores)" value={`R$ ${totalAPagar.toFixed(2)}`} tone="amber" />
-          <StatCard icon={<Users className="h-4 w-4" />} label="Apostadores únicos" value={usuariosUnicos.toString()} tone="violet" />
-          <StatCard icon={<Activity className="h-4 w-4" />} label="Jogos encerrados" value={`${jogosEncerrados} / ${matches.length}`} tone="slate" />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="outline" onClick={exportImage}>
+            <ImageDown className="h-4 w-4 mr-1" /> Exportar imagem
+          </Button>
+          <Button size="sm" onClick={exportPDF} className="bg-emerald-600 hover:bg-emerald-700">
+            <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
+          </Button>
         </div>
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">🏆 Top 10 — Ranking por pontos</CardTitle></CardHeader>
-          <CardContent>
-            {rankingPontos.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados ainda.</p> : (
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={rankingPontos} layout="vertical" margin={{ left: 10, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="user" width={110} tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="pontos" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div ref={reportRef} className="space-y-4 bg-white p-4 rounded-lg">
+          <div className="text-center border-b-2 border-emerald-600 pb-3">
+            <h2 className="text-2xl font-bold text-emerald-700">🏆 Bolão Copa 2026 — Relatório Oficial</h2>
+            <p className="text-xs text-slate-600">Gerado em {new Date().toLocaleString("pt-BR")}</p>
+          </div>
 
-        <Card>
-          <CardHeader><CardTitle className="text-base flex items-center justify-between">
-            <span>💰 Ganhadores individuais — pagamentos pendentes</span>
-            <Badge variant="outline">{ganhadoresIndividual.length}</Badge>
-          </CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {ganhadoresIndividual.length === 0 && <p className="text-sm text-muted-foreground">Nenhum ganhador apurado ainda.</p>}
-            {ganhadoresIndividual.map((g) => (
-              <div key={g.id} className="flex items-center justify-between gap-2 p-2 rounded border bg-card">
-                <div className="text-sm min-w-0">
-                  <div className="font-medium truncate">{g.userName} <span className="text-muted-foreground">— palpitou {g.home_score}×{g.away_score}</span></div>
-                  <div className="text-xs text-muted-foreground truncate">{g.matchLabel}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="font-bold text-emerald-600">R$ {Number(g.payout).toFixed(2)}</div>
-                  <Badge variant={g.paid ? "secondary" : "default"} className="text-[10px]">{g.paid ? "pago" : "pendente"}</Badge>
+          <Card className="bg-gradient-to-r from-emerald-500 to-yellow-400 border-0 text-white shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Crown className="h-10 w-10" />
+                <div className="flex-1">
+                  <div className="text-xs uppercase opacity-90">Prêmio final do bolão de pontos (80%)</div>
+                  <div className="text-3xl font-bold">R$ {premioFinalPontos.toFixed(2)}</div>
+                  <div className="text-xs opacity-90">
+                    Líder atual: <strong>{liderPontos?.user ?? "—"}</strong>
+                    {liderPontos ? ` (${liderPontos.pontos} pts)` : ""} · Taxa admin (20%): R$ {taxaAdminPontos.toFixed(2)}
+                  </div>
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard icon={<DollarSign className="h-4 w-4" />} label="Arrecadado (pontos)" value={`R$ ${totalApostadoPontos.toFixed(2)}`} tone="emerald" />
+            <StatCard icon={<DollarSign className="h-4 w-4" />} label="Arrecadado (individual)" value={`R$ ${totalApostadoIndividual.toFixed(2)}`} tone="blue" />
+            <StatCard icon={<Trophy className="h-4 w-4" />} label="A pagar (ganhadores)" value={`R$ ${totalAPagar.toFixed(2)}`} tone="amber" />
+            <StatCard icon={<Users className="h-4 w-4" />} label="Apostadores únicos" value={usuariosUnicos.toString()} tone="violet" />
+            <StatCard icon={<Activity className="h-4 w-4" />} label="Jogos encerrados" value={`${jogosEncerrados} / ${matches.length}`} tone="slate" />
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">🏆 Ranking completo — Bolão de pontos</CardTitle></CardHeader>
+            <CardContent>
+              {rankingPontos.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados ainda.</p> : (
+                <>
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={rankingPontos.slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="user" width={110} tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="pontos" fill="#10b981" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-3 divide-y border rounded">
+                    {rankingPontos.map((r, i) => (
+                      <div key={r.user_id} className={`flex justify-between items-center p-2 text-sm ${i === 0 ? "bg-yellow-50 font-bold" : ""}`}>
+                        <span>{i + 1}º {i === 0 ? "👑 " : ""}{r.user}</span>
+                        <span className="tabular-nums">{r.pontos} pts</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base flex items-center justify-between">
+              <span>💰 Divisão de prêmios — Palpites individuais</span>
+              <Badge variant="outline">{ganhadoresIndividual.length}</Badge>
+            </CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {ganhadoresIndividual.length === 0 && <p className="text-sm text-muted-foreground">Nenhum ganhador apurado ainda.</p>}
+              {ganhadoresIndividual.map((g) => (
+                <div key={g.id} className="flex items-center justify-between gap-2 p-2 rounded border bg-card">
+                  <div className="text-sm min-w-0">
+                    <div className="font-medium truncate">{g.userName} <span className="text-muted-foreground">— palpitou {g.home_score}×{g.away_score}</span></div>
+                    <div className="text-xs text-muted-foreground truncate">{g.matchLabel}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-bold text-emerald-600">R$ {Number(g.payout).toFixed(2)}</div>
+                    <Badge variant={g.paid ? "secondary" : "default"} className="text-[10px]">{g.paid ? "pago" : "pendente"}</Badge>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
 
-      {/* ============== JOGOS (apenas leitura + ID externo) ============== */}
+      {/* ============== JOGOS ============== */}
       <TabsContent value="jogos" className="space-y-3">
         <Card className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200">
           <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
             <div className="text-sm">
               <div className="font-medium">🔄 Sistema 100% automático</div>
-              <div className="text-xs text-muted-foreground">Os placares são atualizados a cada 2 minutos pela API. Cole o ID do jogo (eventid da RapidAPI) abaixo para ativar a sincronização.</div>
+              <div className="text-xs text-muted-foreground">Placares atualizam a cada 2 minutos via API. Cole o ID do jogo (eventid RapidAPI) para ativar.</div>
             </div>
             <Button size="sm" onClick={syncNow} disabled={syncing}>
               <RefreshCw className={`h-4 w-4 mr-1 ${syncing ? "animate-spin" : ""}`} />
@@ -191,7 +270,7 @@ export function AdminPanel() {
         })}
       </TabsContent>
 
-      {/* ============== PAGAMENTOS DE ENTRADA ============== */}
+      {/* ============== PAGAMENTOS ============== */}
       <TabsContent value="payments" className="space-y-2">
         {payments.length === 0 && <p className="text-sm text-muted-foreground">Sem pagamentos.</p>}
         {payments.map((p) => (
@@ -217,7 +296,7 @@ export function AdminPanel() {
         ))}
       </TabsContent>
 
-      {/* ============== A PAGAR (palpites individuais) ============== */}
+      {/* ============== A PAGAR ============== */}
       <TabsContent value="ibets" className="space-y-2">
         <p className="text-xs text-muted-foreground">Marque quando você efetuar o pagamento do prêmio ao ganhador.</p>
         {ibets.filter((b) => Number(b.payout) > 0).length === 0 && <p className="text-sm text-muted-foreground">Nenhum pagamento pendente.</p>}
@@ -239,7 +318,64 @@ export function AdminPanel() {
           );
         })}
       </TabsContent>
+
+      {/* ============== CONFIG ============== */}
+      <TabsContent value="config">
+        <ConfigPanel />
+      </TabsContent>
     </Tabs>
+  );
+}
+
+function ConfigPanel() {
+  const { settings, reload } = useSettings();
+  const [form, setForm] = useState<AppSettings>(settings);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setForm(settings); }, [settings]);
+
+  async function save() {
+    setSaving(true);
+    const updates = Object.entries(form).map(([key, value]) =>
+      supabase.from("app_settings").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+    );
+    const results = await Promise.all(updates);
+    setSaving(false);
+    const err = results.find((r) => r.error);
+    if (err?.error) toast.error(err.error.message);
+    else { toast.success("Configurações salvas"); reload(); }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <SettingsIcon className="h-4 w-4" /> Configurações da plataforma
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-1">
+          <Label>Chave PIX para recebimento</Label>
+          <Input value={form.pix_key} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} placeholder="email, CPF, telefone ou chave aleatória" />
+        </div>
+        <div className="space-y-1">
+          <Label>Link do grupo do WhatsApp</Label>
+          <Input value={form.whatsapp_group_url} onChange={(e) => setForm({ ...form, whatsapp_group_url: e.target.value })} placeholder="https://chat.whatsapp.com/..." />
+          <p className="text-[11px] text-muted-foreground">Aparecerá como botão no rodapé para os apostadores entrarem no grupo.</p>
+        </div>
+        <div className="space-y-1">
+          <Label>Telefone WhatsApp de suporte (com DDI)</Label>
+          <Input value={form.whatsapp_support_phone} onChange={(e) => setForm({ ...form, whatsapp_support_phone: e.target.value })} placeholder="5569984236281" />
+        </div>
+        <div className="space-y-1">
+          <Label>Texto informativo (aba Individual)</Label>
+          <Input value={form.about_text} onChange={(e) => setForm({ ...form, about_text: e.target.value })} />
+        </div>
+        <Button onClick={save} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
+          {saving ? "Salvando…" : "Salvar configurações"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -280,7 +416,7 @@ function MatchReadOnlyRow({ m, home, away, onSetExternal }: { m: Match; home: Te
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-[10px] text-muted-foreground whitespace-nowrap">ID API:</Label>
-          <Input className="h-7 text-xs flex-1" placeholder="eventid da RapidAPI (ex: 1234567)" value={ext} onChange={(e) => setExt(e.target.value)} onBlur={() => { if (ext !== (m.external_match_id ?? "")) onSetExternal(m.id, ext); }} />
+          <Input className="h-7 text-xs flex-1" placeholder="eventid da RapidAPI" value={ext} onChange={(e) => setExt(e.target.value)} onBlur={() => { if (ext !== (m.external_match_id ?? "")) onSetExternal(m.id, ext); }} />
         </div>
       </CardContent>
     </Card>

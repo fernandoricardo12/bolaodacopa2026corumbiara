@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Clock, Lock, Coins, Trophy } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
+import { useSettings } from "@/lib/useSettings";
+import { Sparkles } from "lucide-react";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -20,6 +22,7 @@ type IBet = { id: string; match_id: string; home_score: number; away_score: numb
 const PRICE = 10;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
+  const { settings } = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [bets, setBets] = useState<Record<string, IBet>>({});
@@ -81,6 +84,13 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
+      <Card className="bg-gradient-to-r from-emerald-500 to-yellow-400 border-0 text-white shadow-md">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
+          <p className="text-sm leading-snug">{settings.about_text}</p>
+        </CardContent>
+      </Card>
+
       <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-300">
         <CardContent className="p-3 text-xs flex items-start gap-2">
           <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
