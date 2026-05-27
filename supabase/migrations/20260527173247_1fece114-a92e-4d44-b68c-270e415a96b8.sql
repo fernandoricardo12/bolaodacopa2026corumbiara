@@ -1,0 +1,1 @@
+ALTER TABLE public.individual_bets ALTER COLUMN amount SET DEFAULT 2; UPDATE public.individual_bets SET amount = 2 WHERE paid = false;
