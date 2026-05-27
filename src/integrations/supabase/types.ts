@@ -345,6 +345,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_participant: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       calc_points: {
         Args: { b_away: number; b_home: number; r_away: number; r_home: number }
         Returns: number
