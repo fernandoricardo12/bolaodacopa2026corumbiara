@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Trophy } from "lucide-react";
+import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react";
+import heroCup from "@/assets/hero-cup.jpg";
 
 export function AuthScreen() {
   const [loading, setLoading] = useState(false);
