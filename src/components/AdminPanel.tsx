@@ -15,7 +15,7 @@ import { useSettings, AppSettings } from "@/lib/useSettings";
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
-type Profile = { id: string; display_name: string };
+type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
