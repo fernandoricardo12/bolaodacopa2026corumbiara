@@ -46,12 +46,22 @@ export function AuthScreen() {
     else toast.success("Conta criada! Faça login.");
   }
 
+  function isInAppBrowser() {
+    const ua = navigator.userAgent || "";
+    return /(FBAN|FBAV|Instagram|Line|MicroMessenger|WhatsApp|Snapchat|Twitter|TikTok)/i.test(ua);
+  }
+
   async function handleGoogle() {
+    if (isInAppBrowser()) {
+      toast.error("Abra este link no navegador (Chrome/Safari) — o Google bloqueia login dentro do WhatsApp/Instagram.");
+      try { await navigator.clipboard.writeText(window.location.href); toast.success("Link copiado — cole no navegador."); } catch {}
+      return;
+    }
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) {
       setLoading(false);
-      toast.error("Falha no login com Google");
+      toast.error("Falha no login com Google. Tente email/senha.");
     }
   }
 

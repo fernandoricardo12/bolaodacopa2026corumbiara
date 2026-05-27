@@ -83,7 +83,7 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           <TabsContent value="groups"><GroupsTab /></TabsContent>
           <TabsContent value="bracket"><KnockoutTab /></TabsContent>
           <TabsContent value="ranking"><RankingTab currentUserId={userId} /></TabsContent>
-          <TabsContent value="payment"><PaymentTab userId={userId} /></TabsContent>
+          <TabsContent value="payment"><PaymentTab userId={userId} email={email} /></TabsContent>
         </Tabs>
         <div className="text-center text-xs text-muted-foreground mt-8 space-y-1">
           <p><strong>Bolão de pontos (R$ 50):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar</p>

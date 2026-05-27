@@ -14,7 +14,7 @@ import { useSettings } from "@/lib/useSettings";
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 
-export function PaymentTab({ userId }: { userId: string }) {
+export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
   const PIX_KEY = settings.pix_key || "—";
   const supportPhone = (settings.whatsapp_support_phone || "5569984236281").replace(/\D/g, "");
@@ -42,21 +42,28 @@ export function PaymentTab({ userId }: { userId: string }) {
     setAmount(m === "points" ? "50" : "10");
   }
 
-  async function submit(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.from("payments").insert({
-      user_id: userId, amount: parseFloat(amount), mode, proof_note: note || null,
-    });
-    setLoading(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Comprovante registrado! Envie pelo WhatsApp para confirmação.");
-      const msg = encodeURIComponent(`Olá! Sou *${ (await supabase.auth.getUser()).data.user?.email ?? "" }*. Acabei de registrar um pagamento de R$ ${parseFloat(amount).toFixed(2)} (${mode === "points" ? "Bolão de pontos" : "Palpite individual"}). ${note ? "Obs: " + note : ""} Segue o comprovante em anexo.`);
-      window.open(`https://wa.me/${supportPhone}?text=${msg}`, "_blank");
-      setNote("");
-    }
+    // Abrir o WhatsApp SINCRONICAMENTE (mesma navegação do clique) para
+    // evitar bloqueio de pop-up em navegadores mobile.
+    const valor = parseFloat(amount);
+    const modoLabel = mode === "points" ? "Bolão de pontos" : "Palpite individual";
+    const msg = encodeURIComponent(
+      `Olá! Sou *${email ?? ""}*. Acabei de registrar um pagamento de R$ ${valor.toFixed(2)} (${modoLabel}).${note ? " Obs: " + note : ""} Segue o comprovante em anexo.`
+    );
+    const waUrl = `https://wa.me/${supportPhone}?text=${msg}`;
+    // window.open com user-gesture direto funciona; em mobile usamos location.href como fallback
+    const win = window.open(waUrl, "_blank");
+    if (!win) window.location.href = waUrl;
 
+    setLoading(true);
+    supabase.from("payments").insert({
+      user_id: userId, amount: valor, mode, proof_note: note || null,
+    }).then(({ error }) => {
+      setLoading(false);
+      if (error) toast.error(error.message);
+      else { toast.success("Comprovante registrado! Envie o anexo pelo WhatsApp."); setNote(""); }
+    });
   }
 
   const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
