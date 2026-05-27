@@ -92,11 +92,11 @@ export function AuthScreen() {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="su-email">Email</Label>
-                  <Input id="su-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input id="su-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="su-pass">Senha</Label>
-                  <Input id="su-pass" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input id="su-pass" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>Criar conta</Button>
               </form>
