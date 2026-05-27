@@ -1,5 +1,18 @@
 import "./lib/error-capture";
 
+// SSR polyfill — supabase client.ts touches localStorage at module load.
+if (typeof globalThis.localStorage === "undefined") {
+  const mem = new Map<string, string>();
+  (globalThis as unknown as { localStorage: Storage }).localStorage = {
+    getItem: (k: string) => mem.get(k) ?? null,
+    setItem: (k: string, v: string) => { mem.set(k, String(v)); },
+    removeItem: (k: string) => { mem.delete(k); },
+    clear: () => { mem.clear(); },
+    key: (i: number) => Array.from(mem.keys())[i] ?? null,
+    get length() { return mem.size; },
+  } as Storage;
+}
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
