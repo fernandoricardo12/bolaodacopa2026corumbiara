@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Trophy, Target, Coins, Wallet, AlertTriangle, Clock, Users,
-  CheckCircle2, MessageCircle, BarChart3, Radio, ShieldCheck, Calculator, Info,
+  CheckCircle2, MessageCircle, BarChart3, Radio, ShieldCheck, Calculator, Info, Flame,
 } from "lucide-react";
 
 export function RulesTab() {
@@ -39,7 +39,7 @@ export function RulesTab() {
             </div>
             <p className="text-muted-foreground mt-1">
               Pagamento único de <strong>R$ 50</strong> que dá direito a palpitar em <strong>todos os jogos da Copa</strong>.
-              A pontuação é acumulada em um ranking geral. Os melhores colocados ao final levam a premiação do bolão de pontos.
+              A pontuação é acumulada em um ranking geral durante toda a competição.
             </p>
           </div>
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 p-3">
@@ -47,9 +47,9 @@ export function RulesTab() {
               <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 10 por palpite</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
-              Cada palpite avulso custa <strong>R$ 10</strong>, independente do jogo. Você pode fazer
-              <strong> quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Funciona como um “bolão por jogo”:
-              quem acertar divide o bolo daquela partida.
+              Cada palpite avulso custa <strong>R$ 10</strong>. Você pode fazer
+              <strong> quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Cada jogo tem o seu próprio bolo —
+              quem acertar divide o prêmio daquela partida.
             </p>
           </div>
           <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground flex gap-2">
@@ -59,7 +59,7 @@ export function RulesTab() {
         </CardContent>
       </Card>
 
-      {/* Pontuação */}
+      {/* Pontuação do bolão de pontos */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -91,41 +91,83 @@ export function RulesTab() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            Exemplo: jogo termina <strong>2 × 1</strong>. Quem cravou 2×1 ganha <strong>20</strong>. Quem palpitou 2×0 (acertou vencedor + um placar) ganha <strong>15</strong>.
-            Quem palpitou 3×1 (acertou vencedor + um placar) ganha <strong>15</strong>. Quem só apontou que o time da casa venceria ganha <strong>10</strong>.
+            Exemplo: jogo termina <strong>2 × 1</strong>. Quem cravou 2×1 ganha <strong>20</strong>. Quem palpitou 2×0 ou 3×1 (acertou vencedor + um placar) ganha <strong>15</strong>.
+            Quem só apontou que o time da casa venceria ganha <strong>10</strong>.
           </p>
         </CardContent>
       </Card>
 
+      {/* Premiação do bolão de pontos */}
+      <Card className="border-2 border-emerald-400">
+        <CardHeader className="bg-emerald-50 dark:bg-emerald-950/30">
+          <CardTitle className="text-base flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+            <Trophy className="h-5 w-5" /> Premiação do bolão de pontos
+          </CardTitle>
+          <CardDescription>Como o prêmio final é distribuído</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm pt-4">
+          <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
+            <p className="font-semibold">🏆 80% do valor acumulado para o campeão</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Ao final da Copa do Mundo, quem fizer <strong>mais pontos no ranking geral</strong> leva
+              <strong> 80% de todo o valor arrecadado</strong> no bolão de pontos.
+            </p>
+          </div>
+          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+            <p className="font-semibold">🤝 Empate técnico = prêmio dividido</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Se dois ou mais participantes terminarem com a <strong>mesma pontuação no topo</strong>,
+              os 80% são <strong>divididos em partes iguais</strong> entre eles.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Palpite individual - premiação */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Coins className="h-5 w-5 text-yellow-600" /> Premiação do palpite individual
+      <Card className="border-2 border-amber-400">
+        <CardHeader className="bg-amber-50 dark:bg-amber-950/30">
+          <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-300">
+            <Coins className="h-5 w-5" /> Premiação do palpite individual
           </CardTitle>
           <CardDescription>Como o bolo de cada jogo é dividido</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">🎯 Placar exato (se houver acertador)</span>
-            <Badge className="bg-emerald-600">80% do bolo</Badge>
+        <CardContent className="space-y-2 text-sm pt-4">
+          <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
+            <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Se <strong>uma pessoa</strong> cravar o placar, ela leva <strong>80% sozinha</strong>.
+              Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
+            </p>
           </div>
-          <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">✅ Vencedor (só se ninguém cravar o placar)</span>
-            <Badge className="bg-yellow-500 text-yellow-950">60% do bolo</Badge>
+          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+            <p className="font-semibold">✅ Acertou só o vencedor → 60% do bolo do jogo</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Vale apenas quando <strong>ninguém</strong> cravou o placar exato. Se <strong>uma pessoa</strong> acertou o vencedor,
+              ela leva <strong>60% sozinha</strong>. Se <strong>duas ou mais</strong> acertaram, os 60% são <strong>divididos em partes iguais</strong>.
+            </p>
           </div>
-          <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">⚙️ Administração (taxa + excedente)</span>
-            <Badge variant="secondary">restante</Badge>
+          <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+            ⚠️ Quem acerta apenas o vencedor <strong>não recebe nada</strong> se houver pelo menos um acertador do placar exato — nesse caso só os 80% do exato são pagos.
           </div>
-          <p className="text-xs text-muted-foreground">
-            <strong>Se houver pelo menos um acertador do placar exato</strong>: 80% do bolo é dividido igualmente entre eles e 20% ficam para a administração. Quem acertou só o vencedor <strong>não recebe nada</strong> nesse caso.
-            <br />
-            <strong>Se ninguém cravar o placar exato</strong> mas houver acertadores do vencedor: 60% do bolo é dividido entre eles e 40% ficam para a administração.
-            <br />
-            <strong>Se ninguém acertar nem o vencedor</strong>: o bolo inteiro daquele jogo fica para a administração.
-            <br />
-            <strong>Não há acúmulo de bolo</strong> para a próxima rodada — todo valor excedente que não obtiver acerto fica para a administração.
+        </CardContent>
+      </Card>
+
+      {/* Jogo Top da Rodada */}
+      <Card className="border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-300">
+            <Flame className="h-5 w-5" /> Jogo Top da Rodada
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <p>
+            A administração pode <strong>destacar jogos em alta</strong> (clássicos, decisões, partidas mais comentadas) marcando-os como
+            <Badge className="ml-1 bg-yellow-500 text-yellow-950">Jogo Top da Rodada</Badge>.
+          </p>
+          <p className="text-muted-foreground text-xs">
+            Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
+            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 10 por palpite, regras 80% / 60%,
+            e tudo entra na mesma somatória do palpite individual.
           </p>
         </CardContent>
       </Card>
@@ -158,8 +200,8 @@ export function RulesTab() {
               <ol className="text-muted-foreground text-xs list-decimal list-inside space-y-1 mt-1">
                 <li>Vá na aba <strong>Pagar</strong> e copie a chave PIX.</li>
                 <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 10 por palpite).</li>
-                <li>Clique em <strong>“1. Registrar pagamento”</strong> informando valor e observação.</li>
-                <li>Clique em <strong>“2. Enviar comprovante”</strong> para abrir o WhatsApp e anexar o print.</li>
+                <li>Clique em <strong>"1. Registrar pagamento"</strong> informando valor e observação.</li>
+                <li>Clique em <strong>"2. Enviar comprovante"</strong> para abrir o WhatsApp e anexar o print.</li>
                 <li>Aguarde o administrador confirmar — o status muda para <Badge className="bg-emerald-600 text-[10px]">Confirmado</Badge>.</li>
               </ol>
             </div>
@@ -220,6 +262,12 @@ export function RulesTab() {
                 No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 10 e concorre separadamente.
               </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="desempate">
+              <AccordionTrigger>Como funciona o desempate no ranking?</AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground">
+                Se houver empate na pontuação final: (1) mais placares exatos, (2) mais acertos de vencedor, (3) prêmio dividido entre os empatados.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </CardContent>
       </Card>
@@ -235,7 +283,7 @@ export function RulesTab() {
         <CardContent className="space-y-2 text-sm">
           {[
             { icon: <Target className="h-4 w-4" />, name: "Bolão", desc: "Faça 1 palpite por jogo. Pontuação acumulada vale para o ranking geral (R$ 50)." },
-            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 10 e concorre ao bolo daquele jogo." },
+            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 10 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
             { icon: <CheckCircle2 className="h-4 w-4" />, name: "Minhas", desc: "Veja, edite ou exclua todos os seus palpites em um só lugar (enquanto o jogo não começou)." },
             { icon: <Users className="h-4 w-4" />, name: "Grupos", desc: "Acompanhe a fase de grupos da Copa, classificação e jogos por grupo." },
             { icon: <Trophy className="h-4 w-4" />, name: "Mata-mata", desc: "Veja o chaveamento das oitavas em diante e palpite nos classificados." },
@@ -264,9 +312,8 @@ export function RulesTab() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>• Os resultados são atualizados em <strong>tempo real</strong> assim que o jogo termina e o admin confirma o placar oficial.</p>
-          <p>• O ranking do <strong>bolão de pontos</strong> é apurado ao fim da Copa. Os prêmios são distribuídos entre os top colocados conforme regra divulgada pelo administrador.</p>
+          <p>• O <strong>bolão de pontos</strong> é apurado ao fim da Copa: 80% para o líder do ranking (ou divididos em caso de empate).</p>
           <p>• Os prêmios do <strong>palpite individual</strong> são pagos via PIX em até <strong>48h</strong> após o término do jogo.</p>
-          <p>• Em caso de empate na pontuação final, o critério de desempate é: (1) mais placares exatos, (2) mais acertos de vencedor, (3) sorteio entre empatados.</p>
         </CardContent>
       </Card>
 
