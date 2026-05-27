@@ -17,7 +17,7 @@ type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: 
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
-type Bet = { id: string; user_id: string; match_id: string; points: number };
+type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
 const POINTS_WINNER_SHARE = 0.80;
 
@@ -38,7 +38,7 @@ export function AdminPanel() {
       supabase.from("payments").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,display_name"),
       supabase.from("individual_bets").select("*"),
-      supabase.from("bets").select("id,user_id,match_id,points"),
+      supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
     ]);
     if (t.data) setTeams(t.data);
     if (m.data) setMatches(m.data as Match[]);
@@ -307,7 +307,24 @@ export function AdminPanel() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 pt-0 space-y-3">
-                <MatchBetsBlock title={`🏆 Bolão de pontos (${matchBets.length})`} matchId={m.id} profiles={profiles} />
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-1">🏆 Bolão de pontos ({matchBets.length})</div>
+                  {matchBets.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">Nenhum palpite.</p>
+                  ) : (
+                    <div className="divide-y border rounded">
+                      {matchBets.map((b) => (
+                        <div key={b.id} className="flex items-center justify-between gap-2 p-2 text-xs">
+                          <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
+                          <span className="flex items-center gap-2 shrink-0">
+                            <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
+                            {m.finished && <Badge variant="secondary" className="text-[9px]">{b.points} pts</Badge>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground mb-1">💰 Palpites individuais ({matchIbets.length})</div>
                   {matchIbets.length === 0 ? (
