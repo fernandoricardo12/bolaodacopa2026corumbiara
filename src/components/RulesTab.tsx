@@ -283,7 +283,7 @@ export function RulesTab() {
         <CardContent className="space-y-2 text-sm">
           {[
             { icon: <Target className="h-4 w-4" />, name: "Bolão", desc: "Faça 1 palpite por jogo. Pontuação acumulada vale para o ranking geral (R$ 50)." },
-            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 5 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
+            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 2 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
             { icon: <CheckCircle2 className="h-4 w-4" />, name: "Minhas", desc: "Veja, edite ou exclua todos os seus palpites em um só lugar (enquanto o jogo não começou)." },
             { icon: <Users className="h-4 w-4" />, name: "Grupos", desc: "Acompanhe a fase de grupos da Copa, classificação e jogos por grupo." },
             { icon: <Trophy className="h-4 w-4" />, name: "Mata-mata", desc: "Veja o chaveamento das oitavas em diante e palpite nos classificados." },
