@@ -12,8 +12,9 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins } from "lucide-react";
+import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, ClipboardCheck } from "lucide-react";
 import heroCup from "@/assets/hero-cup.jpg";
+import { MyBetsTab } from "@/components/MyBetsTab";
 
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
