@@ -292,7 +292,7 @@ export function AdminPanel() {
           if (!home || !away) return null;
           const matchBets = bets.filter((b) => b.match_id === m.id);
           const matchIbets = ibets.filter((b) => b.match_id === m.id);
-          const matchBetsFull = bets.filter((b) => b.match_id === m.id) as (Bet & { home_score?: number; away_score?: number })[];
+          
           return (
             <Card key={m.id}>
               <CardHeader className="p-3 pb-2">
