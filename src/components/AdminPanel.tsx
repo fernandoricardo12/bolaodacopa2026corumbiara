@@ -15,7 +15,7 @@ import { useSettings, AppSettings } from "@/lib/useSettings";
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
-type Profile = { id: string; display_name: string };
+type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
@@ -36,7 +36,7 @@ export function AdminPanel() {
       supabase.from("teams").select("id,name,flag,group_name").order("name"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,display_name"),
+      supabase.from("profiles").select("id,display_name,phone,pix_key"),
       supabase.from("individual_bets").select("*"),
       supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
     ]);
@@ -467,9 +467,21 @@ export function AdminPanel() {
           return (
             <Card key={p.id}>
               <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
-                <div className="min-w-0">
+                <div className="min-w-0 space-y-0.5">
                   <div className="font-medium truncate">{p.display_name}</div>
                   <div className="text-xs text-muted-foreground">{totalPts} pts · {totalInd} palpites individuais</div>
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Tel: </span>
+                    {p.phone ? (
+                      <a href={`https://wa.me/55${p.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
+                    ) : <span className="text-amber-600">não informado</span>}
+                  </div>
+                  <div className="text-xs break-all">
+                    <span className="text-muted-foreground">PIX: </span>
+                    {p.pix_key ? (
+                      <button type="button" onClick={() => { navigator.clipboard.writeText(p.pix_key!); toast.success("Chave PIX copiada"); }} className="font-mono text-foreground hover:underline">{p.pix_key}</button>
+                    ) : <span className="text-amber-600">não informado</span>}
+                  </div>
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

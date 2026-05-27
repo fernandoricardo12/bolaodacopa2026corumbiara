@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle, MessageCircle } from "lucide-react";
 import { useSettings } from "@/lib/useSettings";
+import { ContactInfoCard } from "@/components/ContactInfoCard";
 
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
@@ -113,6 +114,8 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
 
   return (
     <div className="space-y-4">
+      <ContactInfoCard userId={userId} />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
