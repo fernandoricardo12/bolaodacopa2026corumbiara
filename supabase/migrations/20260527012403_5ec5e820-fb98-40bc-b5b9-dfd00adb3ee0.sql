@@ -1,0 +1,1 @@
+ALTER TABLE public.individual_bets DROP CONSTRAINT IF EXISTS individual_bets_user_id_match_id_key;
