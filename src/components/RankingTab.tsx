@@ -80,5 +80,6 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         ))}
       </CardContent>
     </Card>
+    </div>
   );
 }
