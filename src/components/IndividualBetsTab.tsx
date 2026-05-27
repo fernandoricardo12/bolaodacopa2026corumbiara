@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Coins, Trophy } from "lucide-react";
+import { Clock, Lock, Coins, Trophy, Trash2, Sparkles, Plus } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 import { useSettings } from "@/lib/useSettings";
-import { Sparkles } from "lucide-react";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -25,13 +24,12 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const { settings } = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
-  const [bets, setBets] = useState<Record<string, IBet>>({});
+  const [myBets, setMyBets] = useState<IBet[]>([]);
   const [allBets, setAllBets] = useState<IBet[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
   const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
-
 
   async function load() {
     const [{ data: ts }, { data: ms }, { data: bs }, { data: all }] = await Promise.all([
@@ -42,7 +40,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
     if (ms) setMatches(ms as Match[]);
-    if (bs) setBets(Object.fromEntries((bs as IBet[]).map((b) => [b.match_id, b])));
+    if (bs) setMyBets(bs as IBet[]);
     if (all) setAllBets(all as IBet[]);
   }
 
@@ -55,6 +53,12 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
+  const betsByMatch = useMemo(() => {
+    const r: Record<string, IBet[]> = {};
+    myBets.forEach((b) => { (r[b.match_id] ||= []).push(b); });
+    return r;
+  }, [myBets]);
+
   const poolByMatch = useMemo(() => {
     const r: Record<string, { total: number; paid: number }> = {};
     allBets.forEach((b) => {
@@ -65,21 +69,27 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     return r;
   }, [allBets]);
 
-  async function saveBet(matchId: string) {
+  async function addBet(matchId: string) {
     const d = drafts[matchId];
     if (!d || d.h === "" || d.a === "") return toast.error("Preencha o placar");
     const h = parseInt(d.h), a = parseInt(d.a);
     if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
-    const existing = bets[matchId];
-    if (existing) {
-      const { error } = await supabase.from("individual_bets")
-        .update({ home_score: h, away_score: a }).eq("id", existing.id);
-      if (error) toast.error(error.message); else toast.success("Palpite atualizado");
-    } else {
-      const { error } = await supabase.from("individual_bets")
-        .insert({ user_id: userId, match_id: matchId, home_score: h, away_score: a, amount: PRICE });
-      if (error) toast.error(error.message); else toast.success(`Palpite registrado (R$ ${PRICE} a pagar no PIX)`);
+    const dup = (betsByMatch[matchId] ?? []).some((b) => b.home_score === h && b.away_score === a);
+    if (dup) return toast.error("Você já tem um palpite com esse placar neste jogo");
+    const { error } = await supabase.from("individual_bets")
+      .insert({ user_id: userId, match_id: matchId, home_score: h, away_score: a, amount: PRICE });
+    if (error) toast.error(error.message);
+    else {
+      toast.success(`Palpite registrado (R$ ${PRICE} a pagar no PIX)`);
+      setDrafts((p) => ({ ...p, [matchId]: { h: "", a: "" } }));
     }
+  }
+
+  async function deleteBet(bet: IBet) {
+    if (bet.paid) return toast.error("Palpite já pago não pode ser excluído");
+    if (!confirm(`Excluir o palpite ${bet.home_score}×${bet.away_score}?`)) return;
+    const { error } = await supabase.from("individual_bets").delete().eq("id", bet.id);
+    if (error) toast.error(error.message); else toast.success("Palpite excluído");
   }
 
   return (
@@ -95,8 +105,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         <CardContent className="p-3 text-xs flex items-start gap-2">
           <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
           <div>
-            <strong>Palpite Individual — R$ {PRICE} por jogo.</strong> Cada palpite vira pagamento PIX separado (aba Pagar → modalidade Individual). Ao fim do jogo:
-            <strong> 80%</strong> do bolo do jogo vai para quem acertou placar exato (proporcional), <strong>60%</strong> para quem só acertou o vencedor, <strong>20%</strong> é taxa de administração.
+            <strong>Palpite Individual — R$ {PRICE} por palpite.</strong> Você pode fazer <strong>vários palpites por jogo</strong> (cada um vira um pagamento PIX separado). Ao fim do jogo:
+            <strong> 80%</strong> do bolo vai para quem acertou placar exato (proporcional), <strong>60%</strong> para quem só acertou o vencedor, <strong>20%</strong> é taxa de administração.
           </div>
         </CardContent>
       </Card>
@@ -106,9 +116,9 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
       {visible.map((m) => {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
-        const bet = bets[m.id];
+        const userBets = betsByMatch[m.id] ?? [];
         const locked = m.finished || new Date(m.kickoff) <= new Date();
-        const d = drafts[m.id] ?? { h: bet?.home_score?.toString() ?? "", a: bet?.away_score?.toString() ?? "" };
+        const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0 };
         return (
           <Card key={m.id}>
@@ -147,23 +157,40 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                   <div className="text-xs sm:text-sm font-medium truncate w-full">{away.name}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                {bet ? (
-                  <div className="text-xs">
-                    Seu palpite: <strong>{bet.home_score}×{bet.away_score}</strong>
-                    {" · "}
-                    {bet.paid ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge> : <Badge variant="secondary" className="text-[10px]">pagamento pendente</Badge>}
-                    {m.finished && bet.payout > 0 && (
-                      <span className="ml-2 inline-flex items-center gap-1 text-emerald-700 font-semibold">
-                        <Trophy className="h-3 w-3" /> ganhou R$ {Number(bet.payout).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                ) : <span className="text-xs text-muted-foreground">Sem palpite individual</span>}
-                {!locked && (
-                  <Button size="sm" variant="outline" onClick={() => saveBet(m.id)}>{bet ? "Atualizar" : `Palpitar (R$ ${PRICE})`}</Button>
-                )}
-              </div>
+
+              {!locked && (
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => addBet(m.id)}>
+                    <Plus className="h-3 w-3 mr-1" /> Adicionar palpite (R$ {PRICE})
+                  </Button>
+                </div>
+              )}
+
+              {userBets.length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t">
+                  <div className="text-[11px] font-semibold text-muted-foreground uppercase">Seus palpites ({userBets.length})</div>
+                  {userBets.map((bet) => (
+                    <div key={bet.id} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
+                        {bet.paid
+                          ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
+                          : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
+                        {m.finished && bet.payout > 0 && (
+                          <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                            <Trophy className="h-3 w-3" /> R$ {Number(bet.payout).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      {!locked && !bet.paid && (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteBet(bet)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         );
