@@ -97,6 +97,10 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
   }
 
   const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
+  const pointsPending = payments.some((p) => p.mode === "points" && p.status === "pending");
+  const pointsBlocked = mode === "points" && (pointsConfirmed || pointsPending);
+
+
 
   return (
     <div className="space-y-4">
