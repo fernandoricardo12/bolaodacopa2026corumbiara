@@ -53,7 +53,7 @@ export function PaymentTab({ userId }: { userId: string }) {
     else {
       toast.success("Comprovante registrado! Envie pelo WhatsApp para confirmação.");
       const msg = encodeURIComponent(`Olá! Sou *${ (await supabase.auth.getUser()).data.user?.email ?? "" }*. Acabei de registrar um pagamento de R$ ${parseFloat(amount).toFixed(2)} (${mode === "points" ? "Bolão de pontos" : "Palpite individual"}). ${note ? "Obs: " + note : ""} Segue o comprovante em anexo.`);
-      window.open(`https://wa.me/5569984236281?text=${msg}`, "_blank");
+      window.open(`https://wa.me/${supportPhone}?text=${msg}`, "_blank");
       setNote("");
     }
 
