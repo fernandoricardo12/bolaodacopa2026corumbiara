@@ -103,7 +103,7 @@ export function PaymentTab({ userId }: { userId: string }) {
               <MessageCircle className="h-4 w-4 mr-2" /> Registrar e enviar comprovante via WhatsApp
             </Button>
             <p className="text-[11px] text-muted-foreground text-center">
-              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie para <strong>(69) 98423-6281</strong>.
+              O WhatsApp será aberto com mensagem pré-preenchida. Anexe o comprovante e envie.
             </p>
           </form>
 
