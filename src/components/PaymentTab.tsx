@@ -74,6 +74,14 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "points" && (pointsConfirmed || pointsPending)) {
+      toast.error(
+        pointsConfirmed
+          ? "Você já tem um pagamento do bolão de pontos confirmado."
+          : "Você já possui um registro pendente. Aguarde a análise do administrador."
+      );
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.from("payments").insert({
       user_id: userId, amount: parseFloat(amount), mode, proof_note: note || null,
@@ -85,6 +93,7 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
       setRegistered(true);
     }
   }
+
 
   function handleSendWhatsApp() {
     if (!hasPhone) {
