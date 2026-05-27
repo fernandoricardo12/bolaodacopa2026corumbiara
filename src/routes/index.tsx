@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins } from "lucide-react";
+import heroCup from "@/assets/hero-cup.jpg";
 
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
@@ -34,23 +35,35 @@ function Index() {
 
 function Dashboard({ userId, email }: { userId: string; email: string }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <header className="sticky top-0 z-10 border-b-2 border-yellow-400 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
-            <div className="h-8 w-8 rounded-full bg-emerald-600 text-white grid place-items-center">
+            <div className="h-8 w-8 rounded-full bg-yellow-400 text-emerald-800 grid place-items-center shadow">
               <Trophy className="h-4 w-4" />
             </div>
             Bolão Copa 2026
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground hidden sm:inline">{email}</span>
-            <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()}>
+            <span className="text-xs text-emerald-50 hidden sm:inline">{email}</span>
+            <Button size="sm" variant="ghost" className="text-white hover:bg-emerald-800" onClick={() => supabase.auth.signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </header>
+
+      <div className="max-w-4xl mx-auto px-4 pt-4">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg border-2 border-yellow-400">
+          <img src={heroCup} alt="Troféu Copa 2026" className="w-full h-32 sm:h-48 object-cover" width={1536} height={768} />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/80 via-emerald-700/40 to-transparent flex items-center px-5">
+            <div className="text-white">
+              <h1 className="text-xl sm:text-3xl font-bold drop-shadow">Vamos pra cima, Copa 2026! 🏆</h1>
+              <p className="text-xs sm:text-sm text-yellow-200 drop-shadow">Aposte, acompanhe o ranking e dispute prêmios com os amigos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs defaultValue="bolao" className="space-y-4">
