@@ -13,6 +13,9 @@ import { useSettings } from "@/lib/useSettings";
 
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
+type IBet = { id: string; match_id: string; home_score: number; away_score: number; paid: boolean };
+
+const PRICE_INDIVIDUAL = 10;
 
 export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
@@ -21,30 +24,44 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
   const supportPhone = rawPhone;
   const hasPhone = supportPhone.length >= 10;
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [unpaidBets, setUnpaidBets] = useState<IBet[]>([]);
   const [mode, setMode] = useState<"points" | "individual">("points");
   const [amount, setAmount] = useState("50");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
 
+  const unpaidCount = unpaidBets.length;
+  const unpaidTotal = unpaidCount * PRICE_INDIVIDUAL;
+
   async function load() {
-    const { data } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false });
-    if (data) setPayments(data as Payment[]);
+    const [{ data: pays }, { data: bets }] = await Promise.all([
+      supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("individual_bets").select("id,match_id,home_score,away_score,paid").eq("user_id", userId).eq("paid", false),
+    ]);
+    if (pays) setPayments(pays as Payment[]);
+    if (bets) setUnpaidBets(bets as IBet[]);
   }
 
   useEffect(() => {
     load();
     const ch = supabase.channel("pay-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `user_id=eq.${userId}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "individual_bets", filter: `user_id=eq.${userId}` }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
+  useEffect(() => {
+    if (mode === "individual") setAmount(String(unpaidTotal || PRICE_INDIVIDUAL));
+  }, [mode, unpaidTotal]);
+
   function changeMode(m: "points" | "individual") {
     setMode(m);
-    setAmount(m === "points" ? "50" : "10");
+    setAmount(m === "points" ? "50" : String(unpaidTotal || PRICE_INDIVIDUAL));
     setRegistered(false);
   }
+
 
   function buildWhatsAppUrl() {
     const valor = parseFloat(amount || "0");
@@ -105,10 +122,16 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
             <TabsContent value="points" className="text-xs text-muted-foreground pt-2">
               Pagamento único de R$ 50 para entrar no ranking acumulado da Copa.
             </TabsContent>
-            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2">
-              Cada R$ 10 corresponde a um palpite individual (ver aba Individual). Registre um pagamento por palpite ou um único pagamento somando vários (descreva quais jogos na observação).
+            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2 space-y-2">
+              <p>Cada palpite individual custa <strong>R$ {PRICE_INDIVIDUAL}</strong>, independente do jogo. Você pode fazer quantos quiser (inclusive vários no mesmo jogo).</p>
+              <div className="rounded-md border bg-muted/40 p-2 text-foreground">
+                Palpites em aberto: <strong>{unpaidCount}</strong> × R$ {PRICE_INDIVIDUAL} = <strong>R$ {unpaidTotal.toFixed(2)}</strong>
+                {unpaidCount === 0 && <span className="block text-muted-foreground">Nenhum palpite pendente de pagamento.</span>}
+              </div>
             </TabsContent>
           </Tabs>
+
+
 
           <form onSubmit={handleRegister} className="space-y-3">
             <div className="space-y-1">
