@@ -154,13 +154,13 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
-        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-        <TabsTrigger value="jogos">Jogos</TabsTrigger>
-        <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-        <TabsTrigger value="ibets">A pagar</TabsTrigger>
-        <TabsTrigger value="users"><UserX className="h-4 w-4 mr-1" />Participantes</TabsTrigger>
-        <TabsTrigger value="config"><SettingsIcon className="h-4 w-4 mr-1" />Config</TabsTrigger>
+      <TabsList className="flex sm:grid sm:grid-cols-6 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+        <TabsTrigger value="dashboard" className="flex-shrink-0 px-2 sm:px-3"><BarChart3 className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Dashboard</span></TabsTrigger>
+        <TabsTrigger value="jogos" className="flex-shrink-0 px-2 sm:px-3"><Activity className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Jogos</span></TabsTrigger>
+        <TabsTrigger value="payments" className="flex-shrink-0 px-2 sm:px-3"><DollarSign className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Pagamentos</span></TabsTrigger>
+        <TabsTrigger value="ibets" className="flex-shrink-0 px-2 sm:px-3"><Wallet className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">A pagar</span></TabsTrigger>
+        <TabsTrigger value="users" className="flex-shrink-0 px-2 sm:px-3"><UserX className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Participantes</span></TabsTrigger>
+        <TabsTrigger value="config" className="flex-shrink-0 px-2 sm:px-3"><SettingsIcon className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Config</span></TabsTrigger>
       </TabsList>
 
       {/* ============== DASHBOARD ============== */}
