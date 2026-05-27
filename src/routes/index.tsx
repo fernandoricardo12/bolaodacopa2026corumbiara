@@ -69,13 +69,13 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs defaultValue="bolao" className="space-y-4">
           <TabsList className="flex sm:grid sm:grid-cols-7 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
-            <TabsTrigger value="bolao" className="flex-shrink-0 px-2 sm:px-3"><ListChecks className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Bolão</span></TabsTrigger>
-            <TabsTrigger value="individual" className="flex-shrink-0 px-2 sm:px-3"><Coins className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Individual</span></TabsTrigger>
-            <TabsTrigger value="minhas" className="flex-shrink-0 px-2 sm:px-3"><ClipboardCheck className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Minhas</span></TabsTrigger>
-            <TabsTrigger value="groups" className="flex-shrink-0 px-2 sm:px-3"><Users className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Grupos</span></TabsTrigger>
-            <TabsTrigger value="bracket" className="flex-shrink-0 px-2 sm:px-3"><Swords className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Mata-mata</span></TabsTrigger>
-            <TabsTrigger value="ranking" className="flex-shrink-0 px-2 sm:px-3"><BarChart3 className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Ranking</span></TabsTrigger>
-            <TabsTrigger value="payment" className="flex-shrink-0 px-2 sm:px-3"><Wallet className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Pagar</span></TabsTrigger>
+            <TabsTrigger value="bolao" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Bolão</span></TabsTrigger>
+            <TabsTrigger value="individual" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Coins className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Individual</span></TabsTrigger>
+            <TabsTrigger value="minhas" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ClipboardCheck className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Minhas</span></TabsTrigger>
+            <TabsTrigger value="groups" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Users className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Grupos</span></TabsTrigger>
+            <TabsTrigger value="bracket" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Swords className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Mata-mata</span></TabsTrigger>
+            <TabsTrigger value="ranking" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Ranking</span></TabsTrigger>
+            <TabsTrigger value="payment" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Pagar</span></TabsTrigger>
           </TabsList>
           <TabsContent value="bolao"><MatchesTab userId={userId} /></TabsContent>
           <TabsContent value="individual"><IndividualBetsTab userId={userId} /></TabsContent>
