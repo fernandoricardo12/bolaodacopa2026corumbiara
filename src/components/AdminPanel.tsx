@@ -122,6 +122,12 @@ export function AdminPanel() {
     else { toast.success(`${name} foi excluído`); load(); }
   }
 
+  async function toggleFeatured(m: Match) {
+    const { error } = await supabase.from("matches").update({ featured: !m.featured }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else { toast.success(m.featured ? "Destaque removido" : "Jogo em destaque! 🔥"); load(); }
+  }
+
   async function exportImage() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
