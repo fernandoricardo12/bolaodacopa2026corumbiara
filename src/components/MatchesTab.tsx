@@ -66,6 +66,16 @@ export function MatchesTab({ userId }: { userId: string }) {
     if (error) toast.error(error.message); else toast.success("Palpite salvo!");
   }
 
+  async function deleteBet(matchId: string) {
+    if (!confirm("Excluir seu palpite deste jogo?")) return;
+    const { error } = await supabase.from("bets").delete().eq("user_id", userId).eq("match_id", matchId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Palpite excluído");
+      setDrafts((p) => ({ ...p, [matchId]: { h: "", a: "" } }));
+    }
+  }
+
   return (
     <div className="space-y-3">
       <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
@@ -125,7 +135,12 @@ export function MatchesTab({ userId }: { userId: string }) {
                   </div>
                 ) : <span className="text-xs text-muted-foreground">Sem palpite</span>}
                 {!locked && (
-                  <Button size="sm" onClick={() => saveBet(m.id)}>{bet ? "Atualizar" : "Palpitar"}</Button>
+                  <div className="flex gap-2">
+                    {bet && (
+                      <Button size="sm" variant="outline" onClick={() => deleteBet(m.id)}>Excluir</Button>
+                    )}
+                    <Button size="sm" onClick={() => saveBet(m.id)}>{bet ? "Atualizar" : "Palpitar"}</Button>
+                  </div>
                 )}
               </div>
             </CardContent>
