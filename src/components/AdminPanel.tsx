@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 
 type Team = { id: string; name: string; flag: string; group_name: string };
@@ -115,6 +116,12 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(b.paid ? "Desmarcado" : "Pago confirmado"); load(); }
   }
 
+  async function deleteParticipant(userId: string, name: string) {
+    const { error } = await supabase.rpc("admin_delete_participant", { _user_id: userId });
+    if (error) toast.error(error.message);
+    else { toast.success(`${name} foi excluído`); load(); }
+  }
+
   async function exportImage() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
@@ -147,11 +154,12 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
+      <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="jogos">Jogos</TabsTrigger>
         <TabsTrigger value="payments">Pagamentos</TabsTrigger>
         <TabsTrigger value="ibets">A pagar</TabsTrigger>
+        <TabsTrigger value="users"><UserX className="h-4 w-4 mr-1" />Participantes</TabsTrigger>
         <TabsTrigger value="config"><SettingsIcon className="h-4 w-4 mr-1" />Config</TabsTrigger>
       </TabsList>
 
@@ -313,6 +321,45 @@ export function AdminPanel() {
                   <div className="text-sm font-bold text-emerald-600 mt-1">Pagar: R$ {Number(b.payout).toFixed(2)}</div>
                 </div>
                 <Button size="sm" variant={b.paid ? "secondary" : "default"} onClick={() => toggleIbetPaid(b)}>{b.paid ? "Pago ✓" : "Confirmar pagamento"}</Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </TabsContent>
+
+      {/* ============== PARTICIPANTES ============== */}
+      <TabsContent value="users" className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Exclui o participante e <strong>todos</strong> os dados dele (palpites, pagamentos, perfil). Útil para remover duplicatas ou redefinir o sistema. Esta ação é irreversível.
+        </p>
+        {Object.values(profiles).length === 0 && <p className="text-sm text-muted-foreground">Nenhum participante.</p>}
+        {Object.values(profiles).map((p) => {
+          const totalPts = bets.filter((b) => b.user_id === p.id).reduce((s, b) => s + (b.points ?? 0), 0);
+          const totalInd = ibets.filter((b) => b.user_id === p.id).length;
+          return (
+            <Card key={p.id}>
+              <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{p.display_name}</div>
+                  <div className="text-xs text-muted-foreground">{totalPts} pts · {totalInd} palpites individuais</div>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Excluir</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir {p.display_name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Vai apagar todos os palpites, pagamentos e o cadastro deste participante. Não dá pra desfazer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteParticipant(p.id, p.display_name)} className="bg-destructive">Excluir definitivamente</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardContent>
             </Card>
           );
