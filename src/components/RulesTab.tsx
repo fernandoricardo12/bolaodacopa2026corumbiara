@@ -107,20 +107,25 @@ export function RulesTab() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">🎯 Placar exato</span>
+            <span className="font-medium">🎯 Placar exato (se houver acertador)</span>
             <Badge className="bg-emerald-600">80% do bolo</Badge>
           </div>
           <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">✅ Acerto do vencedor (sem placar)</span>
+            <span className="font-medium">✅ Vencedor (só se ninguém cravar o placar)</span>
             <Badge className="bg-yellow-500 text-yellow-950">60% do bolo</Badge>
           </div>
           <div className="flex justify-between items-center rounded-md border p-3">
-            <span className="font-medium">⚙️ Taxa de administração</span>
-            <Badge variant="secondary">20%</Badge>
+            <span className="font-medium">⚙️ Administração (taxa + excedente)</span>
+            <Badge variant="secondary">restante</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Se houver mais de um vencedor na mesma categoria, o valor é dividido igualmente entre eles. Se ninguém acertar o placar exato,
-            o valor acumula para a categoria de vencedor. Se ninguém acertar nem o vencedor, o bolo é mantido para a próxima rodada.
+            <strong>Se houver pelo menos um acertador do placar exato</strong>: 80% do bolo é dividido igualmente entre eles e 20% ficam para a administração. Quem acertou só o vencedor <strong>não recebe nada</strong> nesse caso.
+            <br />
+            <strong>Se ninguém cravar o placar exato</strong> mas houver acertadores do vencedor: 60% do bolo é dividido entre eles e 40% ficam para a administração.
+            <br />
+            <strong>Se ninguém acertar nem o vencedor</strong>: o bolo inteiro daquele jogo fica para a administração.
+            <br />
+            <strong>Não há acúmulo de bolo</strong> para a próxima rodada — todo valor excedente que não obtiver acerto fica para a administração.
           </p>
         </CardContent>
       </Card>
