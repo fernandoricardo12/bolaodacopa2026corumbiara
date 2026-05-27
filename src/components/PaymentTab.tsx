@@ -15,7 +15,7 @@ import { useSettings } from "@/lib/useSettings";
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; paid: boolean };
 
-const PRICE_INDIVIDUAL = 10;
+const PRICE_INDIVIDUAL = 5;
 
 export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
@@ -117,7 +117,7 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
           <Tabs value={mode} onValueChange={(v) => changeMode(v as any)}>
             <TabsList className="grid grid-cols-1 sm:grid-cols-2 w-full h-auto gap-1">
               <TabsTrigger value="points" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Bolão de pontos (R$ 50)</TabsTrigger>
-              <TabsTrigger value="individual" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Palpite individual (R$ 10)</TabsTrigger>
+              <TabsTrigger value="individual" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Palpite individual (R$ 5)</TabsTrigger>
             </TabsList>
             <TabsContent value="points" className="text-xs text-muted-foreground pt-2">
               Pagamento único de R$ 50 para entrar no ranking acumulado da Copa.

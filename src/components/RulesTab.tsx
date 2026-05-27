@@ -44,10 +44,10 @@ export function RulesTab() {
           </div>
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 p-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 10 por palpite</Badge>
+              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 5 por palpite</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
-              Cada palpite avulso custa <strong>R$ 10</strong>. Você pode fazer
+              Cada palpite avulso custa <strong>R$ 5</strong>. Você pode fazer
               <strong> quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Cada jogo tem o seu próprio bolo —
               quem acertar divide o prêmio daquela partida.
             </p>
@@ -166,7 +166,7 @@ export function RulesTab() {
           </p>
           <p className="text-muted-foreground text-xs">
             Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
-            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 10 por palpite, regras 80% / 60%,
+            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 5 por palpite, regras 80% / 60%,
             e tudo entra na mesma somatória do palpite individual.
           </p>
         </CardContent>
@@ -199,7 +199,7 @@ export function RulesTab() {
               <p className="font-semibold">Como pagar — passo a passo</p>
               <ol className="text-muted-foreground text-xs list-decimal list-inside space-y-1 mt-1">
                 <li>Vá na aba <strong>Pagar</strong> e copie a chave PIX.</li>
-                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 10 por palpite).</li>
+                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 5 por palpite).</li>
                 <li>Clique em <strong>"1. Registrar pagamento"</strong> informando valor e observação.</li>
                 <li>Clique em <strong>"2. Enviar comprovante"</strong> para abrir o WhatsApp e anexar o print.</li>
                 <li>Aguarde o administrador confirmar — o status muda para <Badge className="bg-emerald-600 text-[10px]">Confirmado</Badge>.</li>
@@ -259,7 +259,7 @@ export function RulesTab() {
             <AccordionItem value="quantos">
               <AccordionTrigger>Quantos palpites posso fazer por jogo?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 10 e concorre separadamente.
+                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 5 e concorre separadamente.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="desempate">
@@ -283,7 +283,7 @@ export function RulesTab() {
         <CardContent className="space-y-2 text-sm">
           {[
             { icon: <Target className="h-4 w-4" />, name: "Bolão", desc: "Faça 1 palpite por jogo. Pontuação acumulada vale para o ranking geral (R$ 50)." },
-            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 10 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
+            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 5 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
             { icon: <CheckCircle2 className="h-4 w-4" />, name: "Minhas", desc: "Veja, edite ou exclua todos os seus palpites em um só lugar (enquanto o jogo não começou)." },
             { icon: <Users className="h-4 w-4" />, name: "Grupos", desc: "Acompanhe a fase de grupos da Copa, classificação e jogos por grupo." },
             { icon: <Trophy className="h-4 w-4" />, name: "Mata-mata", desc: "Veja o chaveamento das oitavas em diante e palpite nos classificados." },
