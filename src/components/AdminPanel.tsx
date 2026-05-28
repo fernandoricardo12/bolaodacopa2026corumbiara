@@ -91,6 +91,52 @@ export function AdminPanel() {
     [ibets, matches, teamMap, profiles]
   );
 
+  // Lucro do administrador
+  const totalPagoIndividual = useMemo(
+    () => ibets.filter((b) => b.paid).reduce((s, b) => s + Number(b.payout || 0), 0),
+    [ibets]
+  );
+  const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
+  const lucroAdmin = taxaAdminPontos + sobraIndividual;
+
+  // Destaques de participantes (com base em jogos finalizados)
+  const destaques = useMemo(() => {
+    const finishedMatchIds = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+
+    // Pontos por usuário (bolão de pontos)
+    const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
+    const ensure = (uid: string) => {
+      stats[uid] ??= { name: profiles[uid]?.display_name ?? "—", pts: 0, total: 0, hits: 0, exact: 0, iwins: 0, iCount: 0 };
+      return stats[uid];
+    };
+
+    for (const b of bets) {
+      if (!finishedMatchIds.has(b.match_id)) continue;
+      const s = ensure(b.user_id);
+      s.pts += b.points || 0;
+      s.total += 1;
+      if (b.points > 0) s.hits += 1;
+      if (b.points === 20) s.exact += 1;
+    }
+    for (const ib of ibets) {
+      if (!finishedMatchIds.has(ib.match_id) || !ib.paid) continue;
+      const s = ensure(ib.user_id);
+      s.iCount += 1;
+      if (Number(ib.payout) > 0) s.iwins += 1;
+    }
+
+    const arr = Object.entries(stats).map(([uid, v]) => ({ uid, ...v, rate: v.total > 0 ? v.hits / v.total : 0 }));
+
+    const topPontos = [...arr].filter((x) => x.total > 0).sort((a, b) => b.pts - a.pts)[0];
+    const bolaMurcha = [...arr].filter((x) => x.total >= 3).sort((a, b) => a.pts - b.pts)[0];
+    const sabeTudo = [...arr].filter((x) => x.exact > 0).sort((a, b) => b.exact - a.exact || b.pts - a.pts)[0];
+    const altoIndice = [...arr].filter((x) => x.total >= 3).sort((a, b) => b.rate - a.rate || b.pts - a.pts)[0];
+    const topIndividual = [...arr].filter((x) => x.iCount > 0).sort((a, b) => b.iwins - a.iwins || b.iCount - a.iCount)[0];
+
+    return { topPontos, topIndividual, bolaMurcha, sabeTudo, altoIndice };
+  }, [bets, ibets, matches, profiles]);
+
+
   async function setExternalId(id: string, ext: string) {
     const { error } = await supabase.from("matches").update({ external_match_id: ext || null }).eq("id", id);
     if (error) toast.error(error.message); else { toast.success("ID salvo"); load(); }
@@ -132,30 +178,49 @@ export function AdminPanel() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
     try {
-      const html2canvas = (await import("html2canvas")).default;
+      const html2canvas = (await import("html2canvas-pro")).default;
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       link.download = `bolao-relatorio-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
       toast.success("Imagem salva", { id: "exp" });
-    } catch (e) { toast.error("Erro ao gerar imagem", { id: "exp" }); }
+    } catch (e: any) {
+      console.error("export image", e);
+      toast.error(`Erro: ${e?.message ?? "ao gerar imagem"}`, { id: "exp" });
+    }
   }
 
   async function exportPDF() {
     if (!reportRef.current) return;
     toast.loading("Gerando PDF…", { id: "expp" });
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import("html2canvas-pro"),
+        import("jspdf"),
+      ]);
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const img = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const w = pdf.internal.pageSize.getWidth();
-      const h = (canvas.height * w) / canvas.width;
-      pdf.addImage(img, "PNG", 0, 0, w, h);
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgH = (canvas.height * pageW) / canvas.width;
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+        heightLeft -= pageH;
+      }
       pdf.save(`bolao-relatorio-${new Date().toISOString().slice(0, 10)}.pdf`);
       toast.success("PDF salvo", { id: "expp" });
-    } catch (e) { toast.error("Erro ao gerar PDF", { id: "expp" }); }
+    } catch (e: any) {
+      console.error("export pdf", e);
+      toast.error(`Erro: ${e?.message ?? "ao gerar PDF"}`, { id: "expp" });
+    }
   }
 
   return (
@@ -211,6 +276,55 @@ export function AdminPanel() {
             <StatCard icon={<Users className="h-4 w-4" />} label="Apostadores únicos" value={usuariosUnicos.toString()} tone="violet" />
             <StatCard icon={<Activity className="h-4 w-4" />} label="Jogos encerrados" value={`${jogosEncerrados} / ${matches.length}`} tone="slate" />
           </div>
+
+          {/* Lucro do administrador */}
+          <Card className="border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <DollarSign className="h-10 w-10 text-emerald-600" />
+                <div className="flex-1 min-w-[200px]">
+                  <div className="text-xs uppercase text-emerald-700 font-semibold">💼 Lucro do administrador</div>
+                  <div className="text-3xl font-bold text-emerald-700">R$ {lucroAdmin.toFixed(2)}</div>
+                  <div className="text-xs text-emerald-800/80 mt-1">
+                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> + Sobra individual (sem ganhadores): <strong>R$ {sobraIndividual.toFixed(2)}</strong>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Destaques de participantes */}
+          <Card>
+            <CardHeader><CardTitle className="text-base">⭐ Destaques dos participantes</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <HighlightCard
+                emoji="🥇" title="Mestre dos pontos" tone="amber"
+                name={destaques.topPontos?.name ?? "—"}
+                detail={destaques.topPontos ? `${destaques.topPontos.pts} pts em ${destaques.topPontos.total} palpites` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="💰" title="Rei do individual" tone="emerald"
+                name={destaques.topIndividual?.name ?? "—"}
+                detail={destaques.topIndividual ? `${destaques.topIndividual.iwins} prêmio(s) em ${destaques.topIndividual.iCount} apostas` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="🎯" title="Sabe-tudo (placar exato)" tone="violet"
+                name={destaques.sabeTudo?.name ?? "—"}
+                detail={destaques.sabeTudo ? `${destaques.sabeTudo.exact} placar(es) exato(s)` : "Ninguém acertou ainda"}
+              />
+              <HighlightCard
+                emoji="🔥" title="Alto índice de acerto" tone="blue"
+                name={destaques.altoIndice?.name ?? "—"}
+                detail={destaques.altoIndice ? `${(destaques.altoIndice.rate * 100).toFixed(0)}% (${destaques.altoIndice.hits}/${destaques.altoIndice.total})` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="🎈" title="Bola murcha" tone="slate"
+                name={destaques.bolaMurcha?.name ?? "—"}
+                detail={destaques.bolaMurcha ? `Apenas ${destaques.bolaMurcha.pts} pts em ${destaques.bolaMurcha.total} palpites` : "Sem dados"}
+              />
+            </CardContent>
+          </Card>
+
 
           <Card>
             <CardHeader><CardTitle className="text-base">🏆 Ranking completo — Bolão de pontos</CardTitle></CardHeader>
@@ -583,6 +697,27 @@ function StatCard({ icon, label, value, tone }: { icon: React.ReactNode; label: 
     </Card>
   );
 }
+
+function HighlightCard({ emoji, title, name, detail, tone }: { emoji: string; title: string; name: string; detail: string; tone: string }) {
+  const tones: Record<string, string> = {
+    emerald: "border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30",
+    blue: "border-blue-300 bg-blue-50 dark:bg-blue-950/30",
+    amber: "border-amber-300 bg-amber-50 dark:bg-amber-950/30",
+    violet: "border-violet-300 bg-violet-50 dark:bg-violet-950/30",
+    slate: "border-slate-300 bg-slate-100 dark:bg-slate-800/50",
+  };
+  return (
+    <div className={`rounded-lg border-2 p-3 ${tones[tone]}`}>
+      <div className="text-xs font-semibold uppercase opacity-80 flex items-center gap-1">
+        <span className="text-base">{emoji}</span>{title}
+      </div>
+      <div className="text-base font-bold mt-1 truncate">{name}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{detail}</div>
+    </div>
+  );
+}
+
+
 
 function MatchReadOnlyRow({ m, home, away, onSetExternal }: { m: Match; home: Team; away: Team; onSetExternal: (id: string, ext: string) => void }) {
   const [ext, setExt] = useState(m.external_match_id ?? "");
