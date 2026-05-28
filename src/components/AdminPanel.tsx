@@ -132,30 +132,49 @@ export function AdminPanel() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
     try {
-      const html2canvas = (await import("html2canvas")).default;
+      const html2canvas = (await import("html2canvas-pro")).default;
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const link = document.createElement("a");
       link.download = `bolao-relatorio-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
       toast.success("Imagem salva", { id: "exp" });
-    } catch (e) { toast.error("Erro ao gerar imagem", { id: "exp" }); }
+    } catch (e: any) {
+      console.error("export image", e);
+      toast.error(`Erro: ${e?.message ?? "ao gerar imagem"}`, { id: "exp" });
+    }
   }
 
   async function exportPDF() {
     if (!reportRef.current) return;
     toast.loading("Gerando PDF…", { id: "expp" });
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import("html2canvas-pro"),
+        import("jspdf"),
+      ]);
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#ffffff", scale: 2 });
       const img = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const w = pdf.internal.pageSize.getWidth();
-      const h = (canvas.height * w) / canvas.width;
-      pdf.addImage(img, "PNG", 0, 0, w, h);
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgH = (canvas.height * pageW) / canvas.width;
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+        heightLeft -= pageH;
+      }
       pdf.save(`bolao-relatorio-${new Date().toISOString().slice(0, 10)}.pdf`);
       toast.success("PDF salvo", { id: "expp" });
-    } catch (e) { toast.error("Erro ao gerar PDF", { id: "expp" }); }
+    } catch (e: any) {
+      console.error("export pdf", e);
+      toast.error(`Erro: ${e?.message ?? "ao gerar PDF"}`, { id: "expp" });
+    }
   }
 
   return (
