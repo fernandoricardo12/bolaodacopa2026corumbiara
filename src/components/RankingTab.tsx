@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal } from "lucide-react";
 import podium from "@/assets/podium.jpg";
+import { HighlightsSection } from "@/components/HighlightsSection";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
 
