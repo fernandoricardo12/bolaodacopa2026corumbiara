@@ -91,6 +91,52 @@ export function AdminPanel() {
     [ibets, matches, teamMap, profiles]
   );
 
+  // Lucro do administrador
+  const totalPagoIndividual = useMemo(
+    () => ibets.filter((b) => b.paid).reduce((s, b) => s + Number(b.payout || 0), 0),
+    [ibets]
+  );
+  const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
+  const lucroAdmin = taxaAdminPontos + sobraIndividual;
+
+  // Destaques de participantes (com base em jogos finalizados)
+  const destaques = useMemo(() => {
+    const finishedMatchIds = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+
+    // Pontos por usuário (bolão de pontos)
+    const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
+    const ensure = (uid: string) => {
+      stats[uid] ??= { name: profiles[uid]?.display_name ?? "—", pts: 0, total: 0, hits: 0, exact: 0, iwins: 0, iCount: 0 };
+      return stats[uid];
+    };
+
+    for (const b of bets) {
+      if (!finishedMatchIds.has(b.match_id)) continue;
+      const s = ensure(b.user_id);
+      s.pts += b.points || 0;
+      s.total += 1;
+      if (b.points > 0) s.hits += 1;
+      if (b.points === 20) s.exact += 1;
+    }
+    for (const ib of ibets) {
+      if (!finishedMatchIds.has(ib.match_id) || !ib.paid) continue;
+      const s = ensure(ib.user_id);
+      s.iCount += 1;
+      if (Number(ib.payout) > 0) s.iwins += 1;
+    }
+
+    const arr = Object.entries(stats).map(([uid, v]) => ({ uid, ...v, rate: v.total > 0 ? v.hits / v.total : 0 }));
+
+    const topPontos = [...arr].filter((x) => x.total > 0).sort((a, b) => b.pts - a.pts)[0];
+    const bolaMurcha = [...arr].filter((x) => x.total >= 3).sort((a, b) => a.pts - b.pts)[0];
+    const sabeTudo = [...arr].filter((x) => x.exact > 0).sort((a, b) => b.exact - a.exact || b.pts - a.pts)[0];
+    const altoIndice = [...arr].filter((x) => x.total >= 3).sort((a, b) => b.rate - a.rate || b.pts - a.pts)[0];
+    const topIndividual = [...arr].filter((x) => x.iCount > 0).sort((a, b) => b.iwins - a.iwins || b.iCount - a.iCount)[0];
+
+    return { topPontos, topIndividual, bolaMurcha, sabeTudo, altoIndice };
+  }, [bets, ibets, matches, profiles]);
+
+
   async function setExternalId(id: string, ext: string) {
     const { error } = await supabase.from("matches").update({ external_match_id: ext || null }).eq("id", id);
     if (error) toast.error(error.message); else { toast.success("ID salvo"); load(); }
