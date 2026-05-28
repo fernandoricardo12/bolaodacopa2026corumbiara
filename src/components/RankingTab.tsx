@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal } from "lucide-react";
 import podium from "@/assets/podium.jpg";
+import { HighlightsSection } from "@/components/HighlightsSection";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
 
@@ -54,6 +55,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       <div className="rounded-2xl overflow-hidden border-2 border-yellow-400 shadow">
         <img src={podium} alt="Pódio dos campeões" className="w-full h-28 sm:h-36 object-cover" loading="lazy" width={1280} height={640} />
       </div>
+      <HighlightsSection />
       <Card>
         <CardContent className="p-0 divide-y">
         {rows.length === 0 && <p className="p-6 text-center text-muted-foreground">Sem jogadores ainda.</p>}
