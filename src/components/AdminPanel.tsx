@@ -698,6 +698,27 @@ function StatCard({ icon, label, value, tone }: { icon: React.ReactNode; label: 
   );
 }
 
+function HighlightCard({ emoji, title, name, detail, tone }: { emoji: string; title: string; name: string; detail: string; tone: string }) {
+  const tones: Record<string, string> = {
+    emerald: "border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30",
+    blue: "border-blue-300 bg-blue-50 dark:bg-blue-950/30",
+    amber: "border-amber-300 bg-amber-50 dark:bg-amber-950/30",
+    violet: "border-violet-300 bg-violet-50 dark:bg-violet-950/30",
+    slate: "border-slate-300 bg-slate-100 dark:bg-slate-800/50",
+  };
+  return (
+    <div className={`rounded-lg border-2 p-3 ${tones[tone]}`}>
+      <div className="text-xs font-semibold uppercase opacity-80 flex items-center gap-1">
+        <span className="text-base">{emoji}</span>{title}
+      </div>
+      <div className="text-base font-bold mt-1 truncate">{name}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{detail}</div>
+    </div>
+  );
+}
+
+
+
 function MatchReadOnlyRow({ m, home, away, onSetExternal }: { m: Match; home: Team; away: Team; onSetExternal: (id: string, ext: string) => void }) {
   const [ext, setExt] = useState(m.external_match_id ?? "");
   return (
