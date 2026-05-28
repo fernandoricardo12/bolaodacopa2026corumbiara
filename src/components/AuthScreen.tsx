@@ -59,10 +59,13 @@ export function AuthScreen() {
       return;
     }
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+      extraParams: { prompt: "select_account" },
+    });
     if (result.error) {
       setLoading(false);
-      toast.error("Falha no login com Google. Tente email/senha.");
+      toast.error(result.error.message || "Falha no login com Google. Tente email/senha.");
     }
   }
 
