@@ -277,6 +277,55 @@ export function AdminPanel() {
             <StatCard icon={<Activity className="h-4 w-4" />} label="Jogos encerrados" value={`${jogosEncerrados} / ${matches.length}`} tone="slate" />
           </div>
 
+          {/* Lucro do administrador */}
+          <Card className="border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <DollarSign className="h-10 w-10 text-emerald-600" />
+                <div className="flex-1 min-w-[200px]">
+                  <div className="text-xs uppercase text-emerald-700 font-semibold">💼 Lucro do administrador</div>
+                  <div className="text-3xl font-bold text-emerald-700">R$ {lucroAdmin.toFixed(2)}</div>
+                  <div className="text-xs text-emerald-800/80 mt-1">
+                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> + Sobra individual (sem ganhadores): <strong>R$ {sobraIndividual.toFixed(2)}</strong>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Destaques de participantes */}
+          <Card>
+            <CardHeader><CardTitle className="text-base">⭐ Destaques dos participantes</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <HighlightCard
+                emoji="🥇" title="Mestre dos pontos" tone="amber"
+                name={destaques.topPontos?.name ?? "—"}
+                detail={destaques.topPontos ? `${destaques.topPontos.pts} pts em ${destaques.topPontos.total} palpites` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="💰" title="Rei do individual" tone="emerald"
+                name={destaques.topIndividual?.name ?? "—"}
+                detail={destaques.topIndividual ? `${destaques.topIndividual.iwins} prêmio(s) em ${destaques.topIndividual.iCount} apostas` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="🎯" title="Sabe-tudo (placar exato)" tone="violet"
+                name={destaques.sabeTudo?.name ?? "—"}
+                detail={destaques.sabeTudo ? `${destaques.sabeTudo.exact} placar(es) exato(s)` : "Ninguém acertou ainda"}
+              />
+              <HighlightCard
+                emoji="🔥" title="Alto índice de acerto" tone="blue"
+                name={destaques.altoIndice?.name ?? "—"}
+                detail={destaques.altoIndice ? `${(destaques.altoIndice.rate * 100).toFixed(0)}% (${destaques.altoIndice.hits}/${destaques.altoIndice.total})` : "Sem dados"}
+              />
+              <HighlightCard
+                emoji="🎈" title="Bola murcha" tone="slate"
+                name={destaques.bolaMurcha?.name ?? "—"}
+                detail={destaques.bolaMurcha ? `Apenas ${destaques.bolaMurcha.pts} pts em ${destaques.bolaMurcha.total} palpites` : "Sem dados"}
+              />
+            </CardContent>
+          </Card>
+
+
           <Card>
             <CardHeader><CardTitle className="text-base">🏆 Ranking completo — Bolão de pontos</CardTitle></CardHeader>
             <CardContent>
