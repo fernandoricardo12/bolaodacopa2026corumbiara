@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
@@ -29,9 +29,17 @@ function Index() {
   useEffect(() => { setMounted(true); }, []);
 
   const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (mounted && !loading && user && isAdmin) {
+      navigate({ to: "/admin", replace: true });
+    }
+  }, [mounted, loading, user, isAdmin, navigate]);
 
   if (!mounted || loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
+  if (isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Abrindo painel do administrador…</div>;
   return <Dashboard userId={user.id} email={user.email ?? ""} isAdmin={isAdmin} />;
 }
 
