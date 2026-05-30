@@ -83,6 +83,8 @@ export type Database = {
           match_id: string
           paid: boolean
           payout: number
+          payout_paid: boolean
+          payout_paid_at: string | null
           updated_at: string
           user_id: string
         }
@@ -95,6 +97,8 @@ export type Database = {
           match_id: string
           paid?: boolean
           payout?: number
+          payout_paid?: boolean
+          payout_paid_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -107,6 +111,8 @@ export type Database = {
           match_id?: string
           paid?: boolean
           payout?: number
+          payout_paid?: boolean
+          payout_paid_at?: string | null
           updated_at?: string
           user_id?: string
         }
