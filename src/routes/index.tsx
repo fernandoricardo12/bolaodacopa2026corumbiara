@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
@@ -29,19 +29,13 @@ function Index() {
   useEffect(() => { setMounted(true); }, []);
 
   const { user, isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (mounted && !loading && user && isAdmin) navigate({ to: "/admin", replace: true });
-  }, [mounted, loading, user, isAdmin, navigate]);
 
   if (!mounted || loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
-  if (isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Abrindo painel do administrador…</div>;
-  return <Dashboard userId={user.id} email={user.email ?? ""} />;
+  return <Dashboard userId={user.id} email={user.email ?? ""} isAdmin={isAdmin} />;
 }
 
-function Dashboard({ userId, email }: { userId: string; email: string }) {
+function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; isAdmin: boolean }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <header className="sticky top-0 z-10 border-b-2 border-yellow-400 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white backdrop-blur">
@@ -54,6 +48,11 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-emerald-50 hidden sm:inline">{email}</span>
+            {isAdmin && (
+              <Button size="sm" variant="ghost" className="text-white hover:bg-emerald-800" asChild>
+                <Link to="/admin">Admin</Link>
+              </Button>
+            )}
             <Button size="sm" variant="ghost" className="text-white hover:bg-emerald-800" onClick={() => supabase.auth.signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
