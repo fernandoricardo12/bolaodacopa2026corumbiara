@@ -81,25 +81,28 @@ export function useAuth(): AuthState {
       setRoleLoading(false);
       return;
     }
-    setRoleLoading(true);
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data, error }) => {
+    async function loadRole() {
+      setRoleLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
         if (cancelled) return;
         if (error) throw error;
         setIsAdmin(!!data);
         setRoleLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("[Auth] falha ao verificar permissões:", error);
         if (cancelled) return;
         setIsAdmin(false);
         setRoleLoading(false);
-      });
+      }
+    }
+    loadRole();
     return () => { cancelled = true; };
   }, [session?.user?.id]);
 
