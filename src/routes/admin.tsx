@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { AdminPanel } from "@/components/AdminPanel";
@@ -16,15 +16,22 @@ function AdminRoute() {
   useEffect(() => { setMounted(true); }, []);
 
   const { user, isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (mounted && !loading && user && !isAdmin) navigate({ to: "/" });
-  }, [mounted, loading, user, isAdmin, navigate]);
 
   if (!mounted || loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
-  if (!isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Acesso restrito</div>;
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background px-4 text-center">
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-foreground">Acesso restrito</p>
+          <p className="text-xs text-muted-foreground">Sua conta não tem permissão de administrador.</p>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/">Voltar para o bolão</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
