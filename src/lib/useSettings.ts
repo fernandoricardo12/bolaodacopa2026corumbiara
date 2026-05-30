@@ -19,7 +19,40 @@ export function useSettings() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const { data } = await supabase.from("app_settings").select("key,value");
+        if (cancelled) return;
+        if (data) {
+          const merged = { ...DEFAULTS };
+          for (const row of data) {
+            if (row.key in merged && row.value !== null) {
+              (merged as Record<string, string>)[row.key] = row.value;
+            }
+          }
+          setSettings(merged);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    const ch = supabase
+      .channel("app-settings-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, load)
+      .subscribe();
+    return () => {
+      cancelled = true;
+      try { supabase.removeChannel(ch); } catch {}
+    };
+  }, []);
+
+  async function reload() {
+    setLoading(true);
     const { data } = await supabase.from("app_settings").select("key,value");
     if (data) {
       const merged = { ...DEFAULTS };
@@ -33,14 +66,5 @@ export function useSettings() {
     setLoading(false);
   }
 
-  useEffect(() => {
-    load();
-    const ch = supabase
-      .channel(`app-settings-rt-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, load)
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, []);
-
-  return { settings, loading, reload: load };
+  return { settings, loading, reload };
 }
