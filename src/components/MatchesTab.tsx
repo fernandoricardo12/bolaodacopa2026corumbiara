@@ -46,7 +46,7 @@ export function MatchesTab({ userId }: { userId: string }) {
       supabase.from("payments").select("amount,mode,status").eq("mode", "points").eq("status", "confirmed"),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
-    if (ms) setMatches(ms as Match[]);
+    if (ms) setMatches((ms as Match[]).filter((m) => !m.is_friendly));
     if (bs) setBets(Object.fromEntries(bs.map((b) => [b.match_id, b as Bet])));
     if (pays) setPointsPool(pays.reduce((s, p) => s + Number(p.amount), 0));
   }
