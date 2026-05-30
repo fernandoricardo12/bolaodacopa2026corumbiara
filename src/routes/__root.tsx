@@ -75,6 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Bolão Copa 2026" },
       { name: "description", content: "Palpite nos jogos da Copa do Mundo 2026 e dispute o ranking com seus amigos." },
+      { name: "google", content: "notranslate" },
       { property: "og:title", content: "Bolão Copa 2026" },
       { property: "og:description", content: "Palpite nos jogos da Copa do Mundo 2026 e dispute o ranking com seus amigos." },
       { property: "og:type", content: "website" },
@@ -99,11 +100,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" translate="no" suppressHydrationWarning>
+    <html lang="pt-BR" className="notranslate" translate="no" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body translate="no" suppressHydrationWarning>
+      <body className="notranslate" translate="no" suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
