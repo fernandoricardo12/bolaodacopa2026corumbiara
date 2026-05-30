@@ -16,7 +16,7 @@ type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null };
-type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
+type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean; payout_paid_at?: string | null };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
 const POINTS_WINNER_SHARE = 0.80;
@@ -170,9 +170,13 @@ export function AdminPanel() {
     load();
   }
 
-  async function toggleIbetPaid(b: IBet) {
-    const { error } = await supabase.from("individual_bets").update({ paid: !b.paid }).eq("id", b.id);
-    if (error) toast.error(error.message); else { toast.success(b.paid ? "Desmarcado" : "Pago confirmado"); load(); }
+  async function togglePayoutPaid(b: IBet) {
+    const nextPaid = !b.payout_paid;
+    const { error } = await (supabase as any)
+      .from("individual_bets")
+      .update({ payout_paid: nextPaid, payout_paid_at: nextPaid ? new Date().toISOString() : null })
+      .eq("id", b.id);
+    if (error) toast.error(error.message); else { toast.success(nextPaid ? "Prêmio marcado como pago" : "Prêmio reaberto"); load(); }
   }
 
   async function deleteParticipant(userId: string, name: string) {
