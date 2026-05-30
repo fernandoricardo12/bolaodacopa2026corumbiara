@@ -579,7 +579,7 @@ export function AdminPanel() {
                   <div className="text-xs text-muted-foreground truncate">{h?.flag} {h?.name} × {a?.name} {a?.flag}</div>
                   <div className="text-sm font-bold text-emerald-600 mt-1">Pagar: R$ {Number(b.payout).toFixed(2)}</div>
                 </div>
-                <Button size="sm" variant={b.paid ? "secondary" : "default"} onClick={() => toggleIbetPaid(b)}>{b.paid ? "Pago ✓" : "Confirmar pagamento"}</Button>
+                <Button size="sm" variant={b.payout_paid ? "secondary" : "default"} onClick={() => togglePayoutPaid(b)}>{b.payout_paid ? "Prêmio pago ✓" : "Marcar prêmio pago"}</Button>
               </CardContent>
             </Card>
           );
