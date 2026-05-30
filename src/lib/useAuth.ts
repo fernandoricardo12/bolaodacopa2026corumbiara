@@ -81,13 +81,14 @@ export function useAuth(): AuthState {
       setRoleLoading(false);
       return;
     }
+    const userId = session.user.id;
     async function loadRole() {
       setRoleLoading(true);
       try {
         const { data, error } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", session.user.id)
+          .eq("user_id", userId)
           .eq("role", "admin")
           .maybeSingle();
 
