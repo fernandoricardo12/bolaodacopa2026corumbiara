@@ -41,13 +41,8 @@ export function useSettings() {
     }
 
     load();
-    const ch = supabase
-      .channel("app-settings-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, load)
-      .subscribe();
     return () => {
       cancelled = true;
-      try { supabase.removeChannel(ch); } catch {}
     };
   }, []);
 
