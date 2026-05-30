@@ -7,19 +7,22 @@ import { Button } from "@/components/ui/button";
 
 import { Shield, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/admin")({ component: AdminRoute, ssr: false });
 
 function AdminRoute() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user && !isAdmin) navigate({ to: "/" });
-  }, [loading, user, isAdmin, navigate]);
+    if (mounted && !loading && user && !isAdmin) navigate({ to: "/" });
+  }, [mounted, loading, user, isAdmin, navigate]);
 
-  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
+  if (!mounted || loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
   if (!isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Acesso restrito</div>;
 
