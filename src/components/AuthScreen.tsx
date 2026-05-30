@@ -87,6 +87,37 @@ export function AuthScreen() {
             </div>
           </div>
 
+          {/* Destaque do amistoso Brasil x Panamá */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-yellow-300">
+            <div className="grid grid-cols-2">
+              {/* Lado Brasil: verde e amarelo */}
+              <div className="bg-gradient-to-br from-emerald-600 via-emerald-500 to-yellow-400 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
+                <span className="text-3xl sm:text-4xl drop-shadow">🇧🇷</span>
+                <div className="text-xs sm:text-sm font-extrabold text-emerald-950 mt-1 tracking-wide">BRASIL</div>
+              </div>
+              {/* Lado Panamá: vermelho, azul e branco */}
+              <div className="relative bg-white p-4 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1/2 bg-red-600" />
+                <div className="absolute inset-y-0 right-0 w-1/2 bg-blue-700" />
+                <div className="relative">
+                  <span className="text-3xl sm:text-4xl drop-shadow">🇵🇦</span>
+                  <div className="text-xs sm:text-sm font-extrabold text-white mt-1 tracking-wide drop-shadow">PANAMÁ</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-emerald-700 via-yellow-500 to-emerald-700 px-4 py-3 text-center text-emerald-950">
+              <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2 py-0.5 text-[10px] font-extrabold mb-1">
+                🔥 AMANHÃ · AMISTOSO
+              </div>
+              <div className="text-base sm:text-lg font-extrabold leading-tight">Brasil × Panamá</div>
+              <div className="text-xs sm:text-sm font-semibold">Domingo, 31/05 · 18:30 (BRT) · Maracanã</div>
+              <div className="text-[11px] sm:text-xs mt-1 font-medium">
+                Entre agora e dê seu palpite: <strong>R$ 2</strong> · 80% pra quem cravar o placar exato!
+              </div>
+            </div>
+          </div>
+
+
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-4">
               <Radio className="h-5 w-5 text-yellow-300 mb-2" />
