@@ -41,7 +41,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
       supabase.from("individual_bets").select("match_id,paid,amount"),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
-    if (ms) setMatches(ms as Match[]);
+    if (ms) setMatches((ms as Match[]).filter((m) => !m.is_friendly));
     if (bs) setMyBets(bs as IBet[]);
     if (all) setAllBets(all as IBet[]);
   }
