@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.recalculate_individual_payouts_for_match(uuid) FROM PUBLIC, anon, authenticated;
