@@ -144,17 +144,13 @@ export function FriendlyTab({ userId }: { userId: string }) {
               </div>
 
               <div className="rounded-md border border-emerald-300 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="font-semibold text-emerald-800 dark:text-emerald-200">💰 Valendo agora</span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Bolo: <strong className="tabular-nums">R$ {pool.paid.toFixed(2)}</strong> · {pool.count} palpite{pool.count !== 1 ? "s" : ""}
-                  </span>
-                </div>
+                <div className="font-semibold text-emerald-800 dark:text-emerald-200">💰 Valendo agora</div>
                 <div className="flex items-center justify-between gap-2 flex-wrap tabular-nums">
                   <span>🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8).toFixed(2)}</strong></span>
                   <span>✅ Só vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.6).toFixed(2)}</strong></span>
                 </div>
               </div>
+
 
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex-1 flex flex-col items-end gap-1 min-w-0">
