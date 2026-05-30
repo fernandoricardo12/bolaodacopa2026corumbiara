@@ -15,7 +15,7 @@ type Match = {
   id: string; home_team_id: string; away_team_id: string; kickoff: string;
   group_name: string | null; stage: string; venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
-  featured: boolean;
+  featured: boolean; is_friendly?: boolean;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 
