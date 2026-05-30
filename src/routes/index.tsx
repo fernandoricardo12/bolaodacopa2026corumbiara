@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { MatchesTab } from "@/components/MatchesTab";
@@ -22,15 +22,20 @@ import { FriendlyTab } from "@/components/FriendlyTab";
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
 
 function Index() {
+  // Gate de hidratação: durante SSR/prerender e na primeira render do cliente
+  // mostramos o mesmo loader. Evita mismatch que estava deixando a tela branca
+  // em alguns navegadores quando o usuário já estava logado.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Admin é separado: apenas gerencia, NÃO aposta. Redireciona para /admin.
   useEffect(() => {
-    if (!loading && user && isAdmin) navigate({ to: "/admin", replace: true });
-  }, [loading, user, isAdmin, navigate]);
+    if (mounted && !loading && user && isAdmin) navigate({ to: "/admin", replace: true });
+  }, [mounted, loading, user, isAdmin, navigate]);
 
-  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
+  if (!mounted || loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando…</div>;
   if (!user) return <AuthScreen />;
   if (isAdmin) return <div className="min-h-screen grid place-items-center text-muted-foreground">Abrindo painel do administrador…</div>;
   return <Dashboard userId={user.id} email={user.email ?? ""} />;
