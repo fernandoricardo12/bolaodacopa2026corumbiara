@@ -69,7 +69,7 @@ function Dashboard({ userId, email }: { userId: string; email: string }) {
       </div>
 
       <main className="max-w-4xl mx-auto px-4 py-4">
-        <Tabs defaultValue="bolao" className="space-y-4">
+        <Tabs defaultValue="amistoso" className="space-y-4">
           <TabsList className="flex sm:grid sm:grid-cols-9 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
             <TabsTrigger value="amistoso" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🇧🇷 Amistoso</span></TabsTrigger>
             <TabsTrigger value="bolao" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Bolão</span></TabsTrigger>
