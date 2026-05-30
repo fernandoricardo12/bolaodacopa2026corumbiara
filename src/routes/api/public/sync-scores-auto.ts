@@ -28,18 +28,19 @@ export const Route = createFileRoute("/api/public/sync-scores-auto")({
 
 async function handle() {
   try {
-    // 1) Busca placares ao vivo na ESPN
-    const res = await fetch(ESPN_URL, {
-      headers: { "user-agent": "Mozilla/5.0 BolaoCopa2026" },
-    });
-    if (!res.ok) {
-      return Response.json(
-        { error: "espn_fetch_failed", status: res.status },
-        { status: 502 },
-      );
+    // 1) Busca placares ao vivo na ESPN (Copa + amistosos)
+    const events: any[] = [];
+    for (const url of ESPN_URLS) {
+      try {
+        const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 BolaoCopa2026" } });
+        if (!res.ok) continue;
+        const json: any = await res.json();
+        if (Array.isArray(json?.events)) events.push(...json.events);
+      } catch { /* ignora endpoint quebrado */ }
     }
-    const json: any = await res.json();
-    const events: any[] = Array.isArray(json?.events) ? json.events : [];
+    if (events.length === 0) {
+      return Response.json({ error: "espn_fetch_failed" }, { status: 502 });
+    }
 
     // 2) Pega jogos do banco que ainda não terminaram
     const { data: matches, error } = await supabaseAdmin
