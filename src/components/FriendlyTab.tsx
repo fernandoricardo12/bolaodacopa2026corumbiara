@@ -112,8 +112,11 @@ export function FriendlyTab({ userId }: { userId: string }) {
           <p className="text-xs leading-snug">
             <strong>R$ {PRICE} por palpite</strong> · vários palpites por jogo (cada um vira um PIX separado).
             <br />
-            🎯 <strong>Placar exato:</strong> 80% do bolo · ✅ <strong>Só o vencedor:</strong> 60% do bolo
-            (dividido se houver mais de um acertador). Sincronização automática do placar ao vivo.
+            🎯 <strong>Placar exato:</strong> leva 80% do bolo (dividido entre quem acertou).
+            <br />
+            ✅ <strong>Só o vencedor:</strong> leva 60% do bolo — <em>apenas se ninguém acertar o placar exato</em>.
+            <br />
+            Sincronização automática do placar ao vivo.
           </p>
         </CardContent>
       </Card>
