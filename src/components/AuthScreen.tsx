@@ -110,9 +110,9 @@ export function AuthScreen() {
                 🔥 AMANHÃ · AMISTOSO
               </div>
               <div className="text-base sm:text-lg font-extrabold leading-tight">Brasil × Panamá</div>
-              <div className="text-xs sm:text-sm font-semibold">Domingo, 31/05 · 18:30 (BRT) · Maracanã</div>
+              <div className="text-xs sm:text-sm font-semibold">Domingo, 31/05 · 17:30 (horário de Rondônia)</div>
               <div className="text-[11px] sm:text-xs mt-1 font-medium">
-                Entre agora e dê seu palpite: <strong>R$ 2</strong> · 80% pra quem cravar o placar exato!
+                Entre agora e dê seu palpite por apenas <strong>R$ 2</strong>!
               </div>
             </div>
           </div>
