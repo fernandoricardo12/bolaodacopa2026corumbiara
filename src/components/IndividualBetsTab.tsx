@@ -136,7 +136,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const locked = m.finished || new Date(m.kickoff) <= new Date();
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
-        const showPool = pool.paid >= POOL_HIGHLIGHT_THRESHOLD;
+        const prizeExact = pool.paid * 0.8;
+        const prizeWinner = pool.paid * 0.6;
         return (
           <Card
             key={m.id}
@@ -155,17 +156,24 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                   <Clock className="h-3 w-3" />
                   <span>{new Date(m.kickoff).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {showPool ? (
-                    <Badge className="bg-emerald-600 text-white animate-pulse">
-                      💰 Bolo: R$ {pool.paid.toFixed(0)} · {pool.count} palpite{pool.count !== 1 ? "s" : ""}
-                    </Badge>
-                  ) : (
-                    <span title="Bolo pago do jogo">💰 R$ {pool.paid.toFixed(0)}</span>
-                  )}
-                  {locked && <Lock className="h-3 w-3" />}
+                {locked && <Lock className="h-3 w-3" />}
+              </div>
+
+              <div className="rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
+                    💰 Valendo agora
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Bolo: <strong className="tabular-nums">R$ {pool.paid.toFixed(2)}</strong> · {pool.count} palpite{pool.count !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap tabular-nums">
+                  <span>🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></span>
+                  <span>✅ Só vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></span>
                 </div>
               </div>
+
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex-1 flex flex-col items-end gap-1 min-w-0">
                   <FlagImg code={home.code} name={home.name} size={40} />
