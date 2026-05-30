@@ -153,34 +153,19 @@ export function AdminPanel() {
   }
 
   async function confirmPayment(id: string, status: "confirmed" | "rejected") {
-    const payment = payments.find((p) => p.id === id);
-    const { error } = await supabase.from("payments").update({ status, confirmed_at: new Date().toISOString() }).eq("id", id);
+    const { data, error } = await (supabase as any).rpc("admin_set_payment_status", {
+      _payment_id: id,
+      _status: status,
+    });
     if (error) { toast.error(error.message); return; }
 
-    // Ao confirmar pagamento de palpites individuais, marca automaticamente os palpites em aberto do usuário como pagos (R$ 2 cada, mais antigos primeiro).
-    if (status === "confirmed" && payment && payment.mode === "individual") {
-      const qty = Math.floor(Number(payment.amount) / 2);
-      if (qty > 0) {
-        const { data: pending } = await supabase
-          .from("individual_bets")
-          .select("id")
-          .eq("user_id", payment.user_id)
-          .eq("paid", false)
-          .order("created_at", { ascending: true })
-          .limit(qty);
-        const ids = (pending ?? []).map((b: any) => b.id);
-        if (ids.length > 0) {
-          const { error: upErr } = await supabase.from("individual_bets").update({ paid: true }).in("id", ids);
-          if (upErr) toast.error(`Pagamento confirmado, mas falhou marcar palpites: ${upErr.message}`);
-          else toast.success(`Pagamento confirmado · ${ids.length} palpite(s) marcado(s) como pago(s)`);
-        } else {
-          toast.success("Pagamento confirmado (nenhum palpite pendente)");
-        }
-      } else {
-        toast.success("Atualizado");
-      }
+    const result = Array.isArray(data) ? data[0] : data;
+    if (status === "confirmed" && result?.marked_bets > 0) {
+      toast.success(`Pagamento confirmado · ${result.marked_bets} palpite(s) pago(s) · bolo +R$ ${Number(result.credited_amount ?? 0).toFixed(2)}`);
+    } else if (status === "confirmed" && result?.unapplied_amount > 0) {
+      toast.warning("Pagamento confirmado, mas não havia palpites pendentes suficientes para usar todo o valor.");
     } else {
-      toast.success("Atualizado");
+      toast.success(status === "confirmed" ? "Pagamento confirmado" : "Pagamento rejeitado");
     }
     load();
   }
