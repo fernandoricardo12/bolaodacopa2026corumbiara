@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,59 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, XCircle, MessageCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, MessageCircle, AlertTriangle } from "lucide-react";
 import { useSettings } from "@/lib/useSettings";
 import { ContactInfoCard } from "@/components/ContactInfoCard";
-
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; paid: boolean };
 
 const PRICE_INDIVIDUAL = 2;
 
-export function PaymentTab({ userId, email }: { userId: string; email?: string }) {
+/** Boundary local — evita que um erro dentro da aba mostre "página não encontrada" no app inteiro. */
+class PaymentBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error) { console.error("[PaymentTab] erro de render:", error); }
+  reset = () => this.setState({ error: null });
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            Não consegui carregar a tela de pagamento
+          </CardTitle>
+          <CardDescription>Tente recarregar. Se persistir, fale com o administrador no WhatsApp.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground break-all">{String(this.state.error?.message ?? this.state.error)}</p>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={this.reset}>Tentar novamente</Button>
+            <Button size="sm" variant="outline" onClick={() => window.location.reload()}>Recarregar página</Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+}
+
+export function PaymentTab(props: { userId: string; email?: string }) {
+  return (
+    <PaymentBoundary>
+      <PaymentTabInner {...props} />
+    </PaymentBoundary>
+  );
+}
+
+function PaymentTabInner({ userId, email }: { userId: string; email?: string }) {
   const { settings } = useSettings();
-  const PIX_KEY = settings.pix_key || "—";
-  const rawPhone = (settings.whatsapp_support_phone || "").replace(/\D/g, "");
+  const PIX_KEY = settings?.pix_key || "—";
+  const rawPhone = (settings?.whatsapp_support_phone || "").replace(/\D/g, "");
   const supportPhone = rawPhone;
   const hasPhone = supportPhone.length >= 10;
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [unpaidBets, setUnpaidBets] = useState<IBet[]>([]);
   const [mode, setMode] = useState<"points" | "individual">("points");
@@ -35,22 +72,33 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
   const unpaidCount = unpaidBets.length;
   const unpaidTotal = unpaidCount * PRICE_INDIVIDUAL;
 
+  // Derivados — declarados ANTES dos handlers para evitar leitura em TDZ.
+  const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
+  const pointsPending = payments.some((p) => p.mode === "points" && p.status === "pending");
+  const pointsBlocked = mode === "points" && (pointsConfirmed || pointsPending);
+
   async function load() {
-    const [{ data: pays }, { data: bets }] = await Promise.all([
-      supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("individual_bets").select("id,match_id,home_score,away_score,paid").eq("user_id", userId).eq("paid", false),
-    ]);
-    if (pays) setPayments(pays as Payment[]);
-    if (bets) setUnpaidBets(bets as IBet[]);
+    try {
+      const [paysRes, betsRes] = await Promise.all([
+        supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+        supabase.from("individual_bets").select("id,match_id,home_score,away_score,paid").eq("user_id", userId).eq("paid", false),
+      ]);
+      if (paysRes.data) setPayments(paysRes.data as Payment[]);
+      if (betsRes.data) setUnpaidBets(betsRes.data as IBet[]);
+    } catch (err) {
+      console.error("[PaymentTab] load erro:", err);
+    }
   }
 
   useEffect(() => {
+    if (!userId) return;
     load();
-    const ch = supabase.channel("pay-rt")
+    const ch = supabase.channel(`pay-rt-${userId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `user_id=eq.${userId}` }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "individual_bets", filter: `user_id=eq.${userId}` }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { try { supabase.removeChannel(ch); } catch {} };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   useEffect(() => {
@@ -63,14 +111,14 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
     setRegistered(false);
   }
 
-
   function buildWhatsAppUrl() {
     const valor = parseFloat(amount || "0");
     const modoLabel = mode === "points" ? "Bolão de pontos" : "Palpite individual";
     const msg = encodeURIComponent(
       `Olá! Sou *${email ?? ""}*. Acabei de registrar um pagamento de R$ ${valor.toFixed(2)} (${modoLabel}).${note ? " Obs: " + note : ""} Segue o comprovante em anexo.`
     );
-    return `https://wa.me/${supportPhone}?text=${msg}`;
+    // api.whatsapp.com/send funciona melhor que wa.me em webviews (Instagram, Facebook, etc.)
+    return `https://api.whatsapp.com/send?phone=${supportPhone}&text=${msg}`;
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -95,22 +143,19 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
     }
   }
 
-
   function handleSendWhatsApp() {
     if (!hasPhone) {
       toast.error("WhatsApp do administrador ainda não foi cadastrado.");
       return;
     }
     const url = buildWhatsAppUrl();
-    const win = window.open(url, "_blank");
-    if (!win) window.location.href = url;
+    try {
+      const win = window.open(url, "_blank", "noopener,noreferrer");
+      if (!win) window.location.href = url;
+    } catch {
+      window.location.href = url;
+    }
   }
-
-  const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
-  const pointsPending = payments.some((p) => p.mode === "points" && p.status === "pending");
-  const pointsBlocked = mode === "points" && (pointsConfirmed || pointsPending);
-
-
 
   return (
     <div className="space-y-4">
@@ -127,10 +172,10 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
           <div className="rounded-lg border bg-muted/40 p-4">
             <p className="text-xs text-muted-foreground mb-1">Chave PIX</p>
             <p className="font-mono text-sm break-all">{PIX_KEY}</p>
-            <Button size="sm" variant="ghost" className="mt-2" onClick={() => { navigator.clipboard.writeText(PIX_KEY); toast.success("Chave copiada"); }}>Copiar chave</Button>
+            <Button size="sm" variant="ghost" className="mt-2" onClick={() => { navigator.clipboard?.writeText(PIX_KEY).then(() => toast.success("Chave copiada")).catch(() => toast.error("Não foi possível copiar")); }}>Copiar chave</Button>
           </div>
 
-          <Tabs value={mode} onValueChange={(v) => changeMode(v as any)}>
+          <Tabs value={mode} onValueChange={(v) => changeMode(v as "points" | "individual")}>
             <TabsList className="grid grid-cols-1 sm:grid-cols-2 w-full h-auto gap-1">
               <TabsTrigger value="points" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Bolão de pontos (R$ 50)</TabsTrigger>
               <TabsTrigger value="individual" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Palpite individual (R$ 2)</TabsTrigger>
@@ -146,8 +191,6 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
               </div>
             </TabsContent>
           </Tabs>
-
-
 
           <form onSubmit={handleRegister} className="space-y-3">
             {pointsBlocked && (
@@ -189,9 +232,6 @@ export function PaymentTab({ userId, email }: { userId: string; email?: string }
               Primeiro registre o pagamento, depois clique para abrir o WhatsApp e anexar o comprovante.
             </p>
           </form>
-
-
-
         </CardContent>
       </Card>
 
