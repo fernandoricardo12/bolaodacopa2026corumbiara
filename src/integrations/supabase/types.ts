@@ -235,6 +235,42 @@ export type Database = {
           },
         ]
       }
+      payment_bet_allocations: {
+        Row: {
+          amount: number
+          created_at: string
+          individual_bet_id: string
+          payment_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          individual_bet_id: string
+          payment_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          individual_bet_id?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_bet_allocations_individual_bet_id_fkey"
+            columns: ["individual_bet_id"]
+            isOneToOne: true
+            referencedRelation: "individual_bets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_bet_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -361,6 +397,19 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      admin_set_payment_status: {
+        Args: {
+          _payment_id: string
+          _status: Database["public"]["Enums"]["payment_status"]
+        }
+        Returns: {
+          credited_amount: number
+          marked_bets: number
+          new_status: Database["public"]["Enums"]["payment_status"]
+          payment_id: string
+          unapplied_amount: number
+        }[]
+      }
       calc_points: {
         Args: { b_away: number; b_home: number; r_away: number; r_home: number }
         Returns: number
@@ -371,6 +420,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      recalculate_individual_payouts_for_match: {
+        Args: { _match_id: string }
+        Returns: undefined
       }
     }
     Enums: {
