@@ -178,6 +178,7 @@ export type Database = {
           home_score: number | null
           home_team_id: string
           id: string
+          is_friendly: boolean
           kickoff: string
           stage: Database["public"]["Enums"]["match_stage"]
           updated_at: string
@@ -194,6 +195,7 @@ export type Database = {
           home_score?: number | null
           home_team_id: string
           id?: string
+          is_friendly?: boolean
           kickoff: string
           stage?: Database["public"]["Enums"]["match_stage"]
           updated_at?: string
@@ -210,6 +212,7 @@ export type Database = {
           home_score?: number | null
           home_team_id?: string
           id?: string
+          is_friendly?: boolean
           kickoff?: string
           stage?: Database["public"]["Enums"]["match_stage"]
           updated_at?: string
