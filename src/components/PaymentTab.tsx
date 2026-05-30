@@ -49,7 +49,9 @@ class PaymentBoundary extends Component<{ children: ReactNode }, { error: Error 
 export function PaymentTab(props: { userId: string; email?: string }) {
   return (
     <PaymentBoundary>
-      <PaymentTabInner {...props} />
+      <div translate="no" suppressHydrationWarning>
+        <PaymentTabInner {...props} />
+      </div>
     </PaymentBoundary>
   );
 }
@@ -158,7 +160,7 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" translate="no" suppressHydrationWarning>
       <ContactInfoCard userId={userId} />
 
       <Card>
