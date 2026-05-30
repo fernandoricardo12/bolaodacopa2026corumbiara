@@ -24,6 +24,7 @@ type Match = {
   home_score: number | null;
   away_score: number | null;
   finished: boolean;
+  is_friendly?: boolean;
 };
 type Bet = { match_id: string; home_score: number; away_score: number; points: number };
 
