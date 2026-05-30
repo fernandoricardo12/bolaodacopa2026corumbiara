@@ -3,8 +3,11 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Sincronização automática usando a API pública da ESPN (sem chave).
 // Casa pelos códigos FIFA das seleções + data do jogo (janela de 36h).
-const ESPN_URL =
-  "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard";
+const ESPN_URLS = [
+  "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard",
+  "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard",
+  "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly.w/scoreboard",
+];
 
 const FINISHED_STATUSES = new Set([
   "STATUS_FINAL",
