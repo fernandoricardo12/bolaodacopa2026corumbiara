@@ -153,8 +153,36 @@ export function AdminPanel() {
   }
 
   async function confirmPayment(id: string, status: "confirmed" | "rejected") {
+    const payment = payments.find((p) => p.id === id);
     const { error } = await supabase.from("payments").update({ status, confirmed_at: new Date().toISOString() }).eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Atualizado"); load(); }
+    if (error) { toast.error(error.message); return; }
+
+    // Ao confirmar pagamento de palpites individuais, marca automaticamente os palpites em aberto do usuário como pagos (R$ 2 cada, mais antigos primeiro).
+    if (status === "confirmed" && payment && payment.mode === "individual") {
+      const qty = Math.floor(Number(payment.amount) / 2);
+      if (qty > 0) {
+        const { data: pending } = await supabase
+          .from("individual_bets")
+          .select("id")
+          .eq("user_id", payment.user_id)
+          .eq("paid", false)
+          .order("created_at", { ascending: true })
+          .limit(qty);
+        const ids = (pending ?? []).map((b: any) => b.id);
+        if (ids.length > 0) {
+          const { error: upErr } = await supabase.from("individual_bets").update({ paid: true }).in("id", ids);
+          if (upErr) toast.error(`Pagamento confirmado, mas falhou marcar palpites: ${upErr.message}`);
+          else toast.success(`Pagamento confirmado · ${ids.length} palpite(s) marcado(s) como pago(s)`);
+        } else {
+          toast.success("Pagamento confirmado (nenhum palpite pendente)");
+        }
+      } else {
+        toast.success("Atualizado");
+      }
+    } else {
+      toast.success("Atualizado");
+    }
+    load();
   }
 
   async function toggleIbetPaid(b: IBet) {
