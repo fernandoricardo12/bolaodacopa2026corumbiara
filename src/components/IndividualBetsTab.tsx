@@ -235,7 +235,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 </div>
                 <div className="tabular-nums">🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
                 <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
-                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato.</div>
+                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio não acumula entre jogos.</div>
               </div>
 
 
