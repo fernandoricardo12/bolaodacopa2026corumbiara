@@ -247,7 +247,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                     </span>
                     Ao vivo
-                    {m.live_clock && <span className="tabular-nums">· {m.live_clock}</span>}
+                    {liveClockDisplay(m) && <span className="tabular-nums">· {liveClockDisplay(m)}</span>}
                     {m.live_period != null && (
                       <span>· {m.live_period === 1 ? "1º tempo" : m.live_period === 2 ? "2º tempo" : `${m.live_period}º período`}</span>
                     )}
