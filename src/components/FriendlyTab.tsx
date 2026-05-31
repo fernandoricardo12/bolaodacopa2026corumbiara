@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Trophy, Trash2, Plus, Flame } from "lucide-react";
+import { Clock, Lock, Trophy, Trash2, Plus, Flame, MessageCircle, Copy } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
+import { useSettings } from "@/lib/useSettings";
+import { useAuth } from "@/lib/useAuth";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
