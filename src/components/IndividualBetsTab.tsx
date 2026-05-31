@@ -191,7 +191,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
             <div>
               🎯 <strong>Placar exato:</strong> 80% do bolo do jogo (dividido se houver mais de um acertador).
               <br />
-              ✅ <strong>Só o vencedor</strong> (sem placar exato): 60% do bolo do jogo (dividido se houver mais de um acertador).
+              🚫 <strong>Sem acertador do placar exato:</strong> ninguém ganha — o bolão acumula para o próximo jogo.
             </div>
           </div>
         </CardContent>
