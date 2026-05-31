@@ -253,6 +253,49 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   ))}
                 </div>
               )}
+
+              {(() => {
+                const unpaid = userBets.filter((b) => !b.paid);
+                if (unpaid.length === 0) return null;
+                const total = unpaid.length * PRICE;
+                const label = `${home.name} × ${away.name}`;
+                const isPaying = !!paying[m.id];
+                const wasRegistered = !!registeredFor[m.id];
+                return (
+                  <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2">
+                    <div className="text-xs font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
+                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} × R$ {PRICE} =
+                      <strong className="tabular-nums">R$ {total.toFixed(2)}</strong>
+                    </div>
+                    {pixKey && (
+                      <div className="rounded-md bg-white dark:bg-background border px-2 py-1.5 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-[10px] text-muted-foreground uppercase">Chave PIX</div>
+                          <div className="font-mono text-xs truncate">{pixKey}</div>
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={copyPix}>
+                          <Copy className="h-3 w-3 mr-1" /> Copiar
+                        </Button>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Button size="sm" variant="outline" disabled={isPaying || wasRegistered}
+                        onClick={() => registerPayment(m.id, unpaid, label)}>
+                        {isPaying ? "Registrando…" : wasRegistered ? "✓ Registrado" : `1. Registrar R$ ${total.toFixed(2)}`}
+                      </Button>
+                      <Button size="sm" disabled={!hasPhone}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => sendWhatsApp(m.id, unpaid, label)}>
+                        <MessageCircle className="h-3.5 w-3.5 mr-1" /> 2. Enviar comprovante
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-emerald-900/70 dark:text-emerald-100/70 text-center">
+                      Faça o PIX, registre aqui e envie o comprovante pelo WhatsApp. O admin confirma manualmente.
+                    </p>
+                  </div>
+                );
+              })()}
+              )}
             </CardContent>
           </Card>
         );
