@@ -54,7 +54,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
       const brazilId = brazil?.id;
       setMatches(
         (ms as Match[]).filter(
-          (m) => !m.is_friendly && brazilId && (m.home_team_id === brazilId || m.away_team_id === brazilId),
+          (m) => brazilId && (m.home_team_id === brazilId || m.away_team_id === brazilId),
         ),
       );
     }
