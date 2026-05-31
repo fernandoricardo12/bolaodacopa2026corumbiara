@@ -41,7 +41,15 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
       supabase.from("individual_bets").select("match_id,paid,amount"),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
-    if (ms) setMatches((ms as Match[]).filter((m) => !m.is_friendly));
+    if (ms) {
+      const brazil = ts?.find((t) => t.code === "BRA");
+      const brazilId = brazil?.id;
+      setMatches(
+        (ms as Match[]).filter(
+          (m) => !m.is_friendly && brazilId && (m.home_team_id === brazilId || m.away_team_id === brazilId),
+        ),
+      );
+    }
     if (bs) setMyBets(bs as IBet[]);
     if (all) setAllBets(all as IBet[]);
   }
