@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Coins, Trophy, Trash2, Sparkles, Plus, Flame, Star } from "lucide-react";
+import { Clock, Lock, Coins, Trophy, Trash2, Sparkles, Plus, Flame, Star, MessageCircle, Copy } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 import { useSettings } from "@/lib/useSettings";
+import { useAuth } from "@/lib/useAuth";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -24,6 +25,11 @@ const POOL_HIGHLIGHT_THRESHOLD = 30;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
   const { settings } = useSettings();
+  const { user } = useAuth();
+  const email = user?.email ?? "";
+  const pixKey = settings?.pix_key || "";
+  const supportPhone = (settings?.whatsapp_support_phone || "").replace(/\D/g, "");
+  const hasPhone = supportPhone.length >= 10;
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [myBets, setMyBets] = useState<IBet[]>([]);
@@ -31,6 +37,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
+  const [paying, setPaying] = useState<Record<string, boolean>>({});
+  const [registeredFor, setRegisteredFor] = useState<Record<string, boolean>>({});
   const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
 
   async function load() {
@@ -110,6 +118,45 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     if (!confirm(`Excluir o palpite ${bet.home_score}×${bet.away_score}?`)) return;
     const { error } = await supabase.from("individual_bets").delete().eq("id", bet.id);
     if (error) toast.error(error.message); else toast.success("Palpite excluído");
+  }
+
+  async function registerPayment(matchId: string, unpaid: IBet[], label: string) {
+    if (unpaid.length === 0) return;
+    setPaying((p) => ({ ...p, [matchId]: true }));
+    const total = unpaid.length * PRICE;
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const { error } = await supabase.from("payments").insert({
+      user_id: userId,
+      amount: total,
+      mode: "individual",
+      match_id: matchId,
+      proof_note: `${label} — palpites: ${scores}`,
+    });
+    setPaying((p) => ({ ...p, [matchId]: false }));
+    if (error) return toast.error(error.message);
+    setRegisteredFor((p) => ({ ...p, [matchId]: true }));
+    toast.success("Pagamento registrado! Agora envie o comprovante pelo WhatsApp.");
+  }
+
+  function sendWhatsApp(matchId: string, unpaid: IBet[], label: string) {
+    if (!hasPhone) return toast.error("WhatsApp do administrador ainda não cadastrado.");
+    const total = unpaid.length * PRICE;
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const msg = encodeURIComponent(
+      `Olá! Sou *${email}*. Acabei de registrar um pagamento de R$ ${total.toFixed(2)} (palpite individual) referente ao jogo *${label}* — palpites: ${scores}. Segue o comprovante em anexo.`,
+    );
+    const url = `https://api.whatsapp.com/send?phone=${supportPhone}&text=${msg}`;
+    try {
+      const win = window.open(url, "_blank", "noopener,noreferrer");
+      if (!win) window.location.href = url;
+    } catch { window.location.href = url; }
+  }
+
+  function copyPix() {
+    if (!pixKey) return toast.error("Chave PIX não cadastrada");
+    navigator.clipboard?.writeText(pixKey)
+      .then(() => toast.success("Chave PIX copiada"))
+      .catch(() => toast.error("Não foi possível copiar"));
   }
 
   return (
@@ -235,6 +282,57 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                   ))}
                 </div>
               )}
+
+              {(() => {
+                const unpaid = userBets.filter((b) => !b.paid);
+                if (unpaid.length === 0) return null;
+                const total = unpaid.length * PRICE;
+                const label = `${home.name} × ${away.name}`;
+                const isPaying = !!paying[m.id];
+                const wasRegistered = !!registeredFor[m.id];
+                return (
+                  <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2">
+                    <div className="text-xs font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
+                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} × R$ {PRICE} =
+                      <strong className="tabular-nums">R$ {total.toFixed(2)}</strong>
+                    </div>
+
+                    {pixKey && (
+                      <div className="rounded-md bg-white dark:bg-background border px-2 py-1.5 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-[10px] text-muted-foreground uppercase">Chave PIX</div>
+                          <div className="font-mono text-xs truncate">{pixKey}</div>
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={copyPix}>
+                          <Copy className="h-3 w-3 mr-1" /> Copiar
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isPaying || wasRegistered}
+                        onClick={() => registerPayment(m.id, unpaid, label)}
+                      >
+                        {isPaying ? "Registrando…" : wasRegistered ? "✓ Registrado" : `1. Registrar R$ ${total.toFixed(2)}`}
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={!hasPhone}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => sendWhatsApp(m.id, unpaid, label)}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5 mr-1" /> 2. Enviar comprovante
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-emerald-900/70 dark:text-emerald-100/70 text-center">
+                      Faça o PIX, registre aqui e envie o comprovante pelo WhatsApp. O admin confirma manualmente.
+                    </p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         );
