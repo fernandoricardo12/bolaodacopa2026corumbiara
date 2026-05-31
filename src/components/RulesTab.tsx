@@ -139,15 +139,12 @@ export function RulesTab() {
               Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
             </p>
           </div>
-          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
-            <p className="font-semibold">✅ Acertou só o vencedor → 60% do bolo do jogo</p>
+          <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
+            <p className="font-semibold">🚫 Ninguém cravou o placar exato → ninguém ganha</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Vale apenas quando <strong>ninguém</strong> cravou o placar exato. Se <strong>uma pessoa</strong> acertou o vencedor,
-              ela leva <strong>60% sozinha</strong>. Se <strong>duas ou mais</strong> acertaram, os 60% são <strong>divididos em partes iguais</strong>.
+              Se <strong>nenhum apostador</strong> cravar o placar exato, <strong>ninguém recebe prêmio</strong> nesse jogo.
+              O bolo fica <strong>acumulado</strong> e segue para os próximos jogos. Só ganha quem cravar o placar exato.
             </p>
-          </div>
-          <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-            ⚠️ Quem acerta apenas o vencedor <strong>não recebe nada</strong> se houver pelo menos um acertador do placar exato — nesse caso só os 80% do exato são pagos.
           </div>
         </CardContent>
       </Card>
@@ -166,7 +163,7 @@ export function RulesTab() {
           </p>
           <p className="text-muted-foreground text-xs">
             Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
-            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 2 por palpite, regras 80% / 60%,
+            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 2 por palpite, só paga quem crava o placar exato (80% do bolo),
             e tudo entra na mesma somatória do palpite individual.
           </p>
         </CardContent>

@@ -191,7 +191,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
             <div>
               🎯 <strong>Placar exato:</strong> 80% do bolo do jogo (dividido se houver mais de um acertador).
               <br />
-              ✅ <strong>Só o vencedor</strong> (sem placar exato): 60% do bolo do jogo (dividido se houver mais de um acertador).
+              🚫 <strong>Sem acertador do placar exato:</strong> ninguém ganha — o bolão acumula para o próximo jogo.
             </div>
           </div>
         </CardContent>
@@ -207,7 +207,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const prizeExact = pool.paid * 0.8;
-        const prizeWinner = pool.paid * 0.6;
+        const prizeWinner = 0; void prizeWinner;
         return (
           <Card
             key={m.id}
@@ -231,12 +231,10 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               <div className="rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
-                  💰 Valendo agora
+                  💰 Bolão acumulado
                 </div>
-                <div className="flex items-center justify-between gap-2 flex-wrap tabular-nums">
-                  <span>🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></span>
-                  <span>✅ Só vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></span>
-                </div>
+                <div className="tabular-nums">🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
+                <div className="text-[10px] text-muted-foreground">* Só paga se alguém cravar o placar exato. Sem acertador, acumula.</div>
               </div>
 
 
