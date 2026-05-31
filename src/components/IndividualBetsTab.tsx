@@ -207,7 +207,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const prizeExact = pool.paid * 0.8;
-        const prizeWinner = 0; void prizeWinner;
+        const prizeWinner = pool.paid * 0.6;
         return (
           <Card
             key={m.id}
