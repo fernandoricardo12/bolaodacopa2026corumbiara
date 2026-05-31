@@ -186,6 +186,9 @@ export type Database = {
           id: string
           is_friendly: boolean
           kickoff: string
+          live_clock: string | null
+          live_period: number | null
+          live_status_detail: string | null
           stage: Database["public"]["Enums"]["match_stage"]
           updated_at: string
           venue: string | null
@@ -203,6 +206,9 @@ export type Database = {
           id?: string
           is_friendly?: boolean
           kickoff: string
+          live_clock?: string | null
+          live_period?: number | null
+          live_status_detail?: string | null
           stage?: Database["public"]["Enums"]["match_stage"]
           updated_at?: string
           venue?: string | null
@@ -220,6 +226,9 @@ export type Database = {
           id?: string
           is_friendly?: boolean
           kickoff?: string
+          live_clock?: string | null
+          live_period?: number | null
+          live_status_detail?: string | null
           stage?: Database["public"]["Enums"]["match_stage"]
           updated_at?: string
           venue?: string | null
