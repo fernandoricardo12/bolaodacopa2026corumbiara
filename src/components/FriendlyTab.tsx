@@ -22,11 +22,19 @@ type IBet = { id: string; match_id: string; home_score: number; away_score: numb
 const PRICE = 2;
 
 export function FriendlyTab({ userId }: { userId: string }) {
+  const { settings } = useSettings();
+  const { user } = useAuth();
+  const email = user?.email ?? "";
+  const pixKey = settings?.pix_key || "";
+  const supportPhone = (settings?.whatsapp_support_phone || "").replace(/\D/g, "");
+  const hasPhone = supportPhone.length >= 10;
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [myBets, setMyBets] = useState<IBet[]>([]);
   const [allBets, setAllBets] = useState<IBet[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [paying, setPaying] = useState<Record<string, boolean>>({});
+  const [registeredFor, setRegisteredFor] = useState<Record<string, boolean>>({});
 
   async function load() {
     const [{ data: ts }, { data: ms }, { data: bs }, { data: all }] = await Promise.all([
