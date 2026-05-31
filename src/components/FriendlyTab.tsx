@@ -16,6 +16,7 @@ type Match = {
   venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
   is_friendly?: boolean;
+  live_clock?: string | null; live_period?: number | null; live_status_detail?: string | null;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 
@@ -208,9 +209,26 @@ export function FriendlyTab({ userId }: { userId: string }) {
             </div>
             <CardContent className="p-4 space-y-3">
               {hasLiveScore && (
-                <div className="rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-2 flex items-center justify-center gap-3 shadow-md">
-                  <span className="text-xs font-bold uppercase tracking-wide opacity-90">Placar ao vivo</span>
-                  <span className="text-3xl font-extrabold tabular-nums">{m.home_score}<span className="opacity-70 mx-2">×</span>{m.away_score}</span>
+                <div className="rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-3 shadow-md space-y-1">
+                  <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider opacity-90">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                    </span>
+                    Ao vivo
+                    {m.live_clock && <span className="tabular-nums">· {m.live_clock}</span>}
+                    {m.live_period != null && (
+                      <span>· {m.live_period === 1 ? "1º tempo" : m.live_period === 2 ? "2º tempo" : `${m.live_period}º período`}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-sm font-semibold truncate max-w-[35%] text-right">{home.name}</span>
+                    <span className="text-3xl font-extrabold tabular-nums">{m.home_score}<span className="opacity-70 mx-2">×</span>{m.away_score}</span>
+                    <span className="text-sm font-semibold truncate max-w-[35%]">{away.name}</span>
+                  </div>
+                  {m.live_status_detail && (
+                    <div className="text-center text-[11px] opacity-90">{m.live_status_detail}</div>
+                  )}
                 </div>
               )}
               <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">

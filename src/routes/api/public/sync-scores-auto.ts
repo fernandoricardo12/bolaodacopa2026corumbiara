@@ -86,6 +86,15 @@ async function handle() {
       const statusName: string =
         ev?.status?.type?.name ?? comp?.status?.type?.name ?? "";
       const isFinished = FINISHED_STATUSES.has(statusName);
+      const clock: string | null =
+        ev?.status?.displayClock ?? comp?.status?.displayClock ?? null;
+      const periodRaw = ev?.status?.period ?? comp?.status?.period ?? null;
+      const period = Number.isFinite(Number(periodRaw)) ? Number(periodRaw) : null;
+      const detail: string | null =
+        ev?.status?.type?.shortDetail ??
+        ev?.status?.type?.detail ??
+        comp?.status?.type?.shortDetail ??
+        null;
 
       const competitors = comp.competitors ?? [];
       const findScore = (code: string) => {
@@ -100,18 +109,15 @@ async function handle() {
       const a = findScore(awayCode);
       if (h === null || a === null) continue;
 
-      // Só atualiza se mudou algo
-      if (h === m.home_score && a === m.away_score && isFinished === m.finished) {
-        results.push({ id: m.id, skipped: "no-change", status: statusName });
-        continue;
-      }
-
       const { error: uerr } = await supabaseAdmin
         .from("matches")
         .update({
           home_score: h,
           away_score: a,
           finished: isFinished,
+          live_clock: isFinished ? null : clock,
+          live_period: isFinished ? null : period,
+          live_status_detail: isFinished ? null : detail,
         })
         .eq("id", m.id);
 
@@ -125,6 +131,8 @@ async function handle() {
           away: a,
           finished: isFinished,
           status: statusName,
+          clock,
+          period,
         });
       }
     }
