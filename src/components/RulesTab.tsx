@@ -139,11 +139,16 @@ export function RulesTab() {
               Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
             </p>
           </div>
-          <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
-            <p className="font-semibold">🚫 Ninguém cravou o placar exato → ninguém ganha</p>
+          <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-3">
+            <p className="font-semibold">🏆 Acertou só o vencedor → 60% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>nenhum apostador</strong> cravar o placar exato, <strong>ninguém recebe prêmio</strong> nesse jogo.
-              O bolo fica <strong>acumulado</strong> e segue para os próximos jogos. Só ganha quem cravar o placar exato.
+              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor da partida divide <strong>60% do bolo</strong> em partes iguais.
+            </p>
+          </div>
+          <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
+            <p className="font-semibold">🚫 Ninguém acertou nem o vencedor → acumula</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Se nem o vencedor for acertado (ex.: empate inesperado), o bolo fica <strong>acumulado</strong> para os próximos jogos.
             </p>
           </div>
         </CardContent>
