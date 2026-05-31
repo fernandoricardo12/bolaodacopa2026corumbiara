@@ -25,6 +25,11 @@ const POOL_HIGHLIGHT_THRESHOLD = 30;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
   const { settings } = useSettings();
+  const { user } = useAuth();
+  const email = user?.email ?? "";
+  const pixKey = settings?.pix_key || "";
+  const supportPhone = (settings?.whatsapp_support_phone || "").replace(/\D/g, "");
+  const hasPhone = supportPhone.length >= 10;
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [myBets, setMyBets] = useState<IBet[]>([]);
@@ -32,6 +37,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
+  const [paying, setPaying] = useState<Record<string, boolean>>({});
+  const [registeredFor, setRegisteredFor] = useState<Record<string, boolean>>({});
   const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
 
   async function load() {
