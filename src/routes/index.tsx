@@ -108,7 +108,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
         </Tabs>
         <div className="text-center text-xs text-muted-foreground mt-8 space-y-1">
           <p><strong>Bolão de pontos (R$ 50):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar — líder leva 80% do acumulado ao fim da Copa.</p>
-          <p><strong>Palpite individual (R$ 2/palpite):</strong> só ganha quem cravar o placar exato — leva 80% do bolo do jogo (dividido se houver mais de um acertador). Sem acertador, o bolão acumula.</p>
+          <p><strong>Palpite individual (R$ 2/palpite):</strong> placar exato leva 80% do bolo do jogo; se ninguém cravar, quem acertou só o vencedor divide 60%. Sem acertos, acumula.</p>
         </div>
       </main>
       <Footer />
