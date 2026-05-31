@@ -71,6 +71,21 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
+  // Auto-sync de placares enquanto houver jogo ao vivo (kickoff até +3h, não finalizado).
+  useEffect(() => {
+    const hasLive = matches.some((m) => {
+      if (m.finished) return false;
+      const ko = new Date(m.kickoff).getTime();
+      const now = Date.now();
+      return ko <= now && now - ko < 3 * 60 * 60 * 1000;
+    });
+    if (!hasLive) return;
+    const tick = () => { fetch("/api/public/sync-scores-auto", { method: "POST" }).catch(() => {}); };
+    tick();
+    const id = setInterval(tick, 45_000);
+    return () => clearInterval(id);
+  }, [matches]);
+
   const betsByMatch = useMemo(() => {
     const r: Record<string, IBet[]> = {};
     myBets.forEach((b) => { (r[b.match_id] ||= []).push(b); });
