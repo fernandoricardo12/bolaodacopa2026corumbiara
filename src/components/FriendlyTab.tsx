@@ -17,6 +17,7 @@ type Match = {
   home_score: number | null; away_score: number | null; finished: boolean;
   is_friendly?: boolean;
   live_clock?: string | null; live_period?: number | null; live_status_detail?: string | null;
+  updated_at?: string | null;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 
@@ -73,6 +74,36 @@ export function FriendlyTab({ userId }: { userId: string }) {
     const id = setInterval(tick, 45_000);
     return () => clearInterval(id);
   }, [matches]);
+
+  // Ticker local: avança o cronômetro 1s a 1s entre as sincronizações do servidor.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const hasLive = matches.some((m) => {
+      if (m.finished) return false;
+      const ko = new Date(m.kickoff).getTime();
+      const now = Date.now();
+      return ko <= now && now - ko < 3 * 60 * 60 * 1000;
+    });
+    if (!hasLive) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [matches]);
+
+  function liveClockDisplay(m: Match): string | null {
+    if (!m.live_clock || !m.updated_at) return m.live_clock ?? null;
+    const match = m.live_clock.match(/(\d+)(?:\+(\d+))?'?/);
+    if (!match) return m.live_clock;
+    const baseMin = parseInt(match[1], 10);
+    const extra = match[2] ? parseInt(match[2], 10) : 0;
+    const elapsedSec = Math.max(0, Math.floor((Date.now() - new Date(m.updated_at).getTime()) / 1000));
+    const totalSec = baseMin * 60 + extra * 60 + elapsedSec;
+    const mm = Math.floor(totalSec / 60);
+    const ss = totalSec % 60;
+    return extra > 0
+      ? `${baseMin}'+${Math.max(extra, Math.floor(elapsedSec / 60))}` // tempo de acréscimo
+      : `${mm}:${ss.toString().padStart(2, "0")}`;
+  }
+  void tick; // força re-render via state acima
 
   const friendlyMatchIds = useMemo(() => new Set(matches.map((m) => m.id)), [matches]);
   const myFriendlyBets = useMemo(() => myBets.filter((b) => friendlyMatchIds.has(b.match_id)), [myBets, friendlyMatchIds]);
@@ -216,7 +247,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                     </span>
                     Ao vivo
-                    {m.live_clock && <span className="tabular-nums">· {m.live_clock}</span>}
+                    {liveClockDisplay(m) && <span className="tabular-nums">· {liveClockDisplay(m)}</span>}
                     {m.live_period != null && (
                       <span>· {m.live_period === 1 ? "1º tempo" : m.live_period === 2 ? "2º tempo" : `${m.live_period}º período`}</span>
                     )}
