@@ -146,9 +146,9 @@ export function RulesTab() {
             </p>
           </div>
           <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
-            <p className="font-semibold">🚫 Ninguém acertou nem o vencedor → acumula</p>
+            <p className="font-semibold">🚫 Ninguém acertou nem o vencedor</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se nem o vencedor for acertado (ex.: empate inesperado), o bolo fica <strong>acumulado</strong> para os próximos jogos.
+              Caso ninguém acerte placar exato nem vencedor (ex.: empate inesperado), <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
             </p>
           </div>
         </CardContent>
