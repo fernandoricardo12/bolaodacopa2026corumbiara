@@ -85,7 +85,8 @@ export function AdminPanel() {
         const m = matches.find((x) => x.id === b.match_id);
         const h = m ? teamMap[m.home_team_id] : null;
         const a = m ? teamMap[m.away_team_id] : null;
-        return { ...b, matchLabel: h && a ? `${h.flag} ${h.name} ${m?.home_score}×${m?.away_score} ${a.name} ${a.flag}` : "—", userName: profiles[b.user_id]?.display_name ?? "—" };
+        const isExact = !!m && b.home_score === m.home_score && b.away_score === m.away_score;
+        return { ...b, matchLabel: h && a ? `${h.flag} ${h.name} ${m?.home_score}×${m?.away_score} ${a.name} ${a.flag}` : "—", userName: profiles[b.user_id]?.display_name ?? "—", prizeRule: isExact ? "Placar exato · 80%" : "Só vencedor · 60%" };
       })
       .sort((a, b) => Number(b.payout) - Number(a.payout)),
     [ibets, matches, teamMap, profiles]
