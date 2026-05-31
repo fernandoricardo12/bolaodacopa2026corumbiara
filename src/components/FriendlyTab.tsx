@@ -58,6 +58,21 @@ export function FriendlyTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
+  // Auto-sync de placares enquanto houver jogo ao vivo (entre kickoff e +3h, não finalizado).
+  useEffect(() => {
+    const hasLive = matches.some((m) => {
+      if (m.finished) return false;
+      const ko = new Date(m.kickoff).getTime();
+      const now = Date.now();
+      return ko <= now && now - ko < 3 * 60 * 60 * 1000;
+    });
+    if (!hasLive) return;
+    const tick = () => { fetch("/api/public/sync-scores-auto", { method: "POST" }).catch(() => {}); };
+    tick();
+    const id = setInterval(tick, 45_000);
+    return () => clearInterval(id);
+  }, [matches]);
+
   const friendlyMatchIds = useMemo(() => new Set(matches.map((m) => m.id)), [matches]);
   const myFriendlyBets = useMemo(() => myBets.filter((b) => friendlyMatchIds.has(b.match_id)), [myBets, friendlyMatchIds]);
   const allFriendlyBets = useMemo(() => allBets.filter((b) => friendlyMatchIds.has(b.match_id)), [allBets, friendlyMatchIds]);
