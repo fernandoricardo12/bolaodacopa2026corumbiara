@@ -295,7 +295,6 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   </div>
                 );
               })()}
-              )}
             </CardContent>
           </Card>
         );
