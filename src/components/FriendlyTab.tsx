@@ -276,13 +276,15 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 const lh = m.home_score, la = m.away_score;
                 const hasScore = lh !== null && la !== null;
                 const exactWinners = hasScore ? matchBets.filter((b) => b.home_score === lh && b.away_score === la) : [];
+                const winnerOnly = hasScore ? matchBets.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number)) && !(b.home_score === lh && b.away_score === la)) : [];
 
                 if (!hasScore) {
                   return (
                     <div className="rounded-md border border-emerald-300 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
-                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">💰 Bolão acumulado</div>
+                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">💰 Valendo agora</div>
                       <div className="tabular-nums">🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8).toFixed(2)}</strong></div>
-                      <div className="text-[10px] text-muted-foreground">* Só é pago se alguém cravar o placar exato. Sem acertador, o bolão acumula para o próximo jogo.</div>
+                      <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.6).toFixed(2)}</strong></div>
+                      <div className="text-[10px] text-muted-foreground">* O prêmio do "só vencedor" só é pago se ninguém cravar o placar exato.</div>
                     </div>
                   );
                 }
@@ -291,16 +293,27 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   const prize = (pool.paid * 0.8) / exactWinners.length;
                   return (
                     <div className="rounded-md border border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
-                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato no momento</div>
+                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato no momento (80%)</div>
                       <div className="tabular-nums">{exactWinners.length} apostador{exactWinners.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada (se terminar assim)</div>
+                    </div>
+                  );
+                }
+
+                if (winnerOnly.length > 0) {
+                  const prize = (pool.paid * 0.6) / winnerOnly.length;
+                  return (
+                    <div className="rounded-md border border-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs space-y-1">
+                      <div className="font-semibold text-amber-800 dark:text-amber-200">🏆 Só o vencedor no momento (60%)</div>
+                      <div className="tabular-nums">{winnerOnly.length} apostador{winnerOnly.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada (se terminar assim)</div>
+                      <div className="text-[10px] text-muted-foreground">* Ninguém cravou o placar exato ainda.</div>
                     </div>
                   );
                 }
 
                 return (
                   <div className="rounded-md border border-muted bg-muted/40 px-3 py-2 text-xs">
-                    <div className="font-semibold">Ninguém cravou o placar atual</div>
-                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar o placar exato até o fim, não há prêmio (acumula).</div>
+                    <div className="font-semibold">Nenhum vencedor no placar atual</div>
+                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar até o fim, acumula.</div>
                   </div>
                 );
               })()}
