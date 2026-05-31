@@ -102,6 +102,40 @@ export function FriendlyTab({ userId }: { userId: string }) {
     if (error) toast.error(error.message); else toast.success("Palpite excluído");
   }
 
+  async function registerPayment(matchId: string, unpaid: IBet[], label: string) {
+    if (unpaid.length === 0) return;
+    setPaying((p) => ({ ...p, [matchId]: true }));
+    const total = unpaid.length * PRICE;
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const { error } = await supabase.from("payments").insert({
+      user_id: userId, amount: total, mode: "individual", match_id: matchId,
+      proof_note: `${label} — palpites: ${scores}`,
+    });
+    setPaying((p) => ({ ...p, [matchId]: false }));
+    if (error) return toast.error(error.message);
+    setRegisteredFor((p) => ({ ...p, [matchId]: true }));
+    toast.success("Pagamento registrado! Agora envie o comprovante pelo WhatsApp.");
+  }
+
+  function sendWhatsApp(matchId: string, unpaid: IBet[], label: string) {
+    if (!hasPhone) return toast.error("WhatsApp do administrador ainda não cadastrado.");
+    const total = unpaid.length * PRICE;
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const msg = encodeURIComponent(
+      `Olá! Sou *${email}*. Acabei de registrar um pagamento de R$ ${total.toFixed(2)} (amistoso) referente a *${label}* — palpites: ${scores}. Segue o comprovante em anexo.`,
+    );
+    const url = `https://api.whatsapp.com/send?phone=${supportPhone}&text=${msg}`;
+    try { const win = window.open(url, "_blank", "noopener,noreferrer"); if (!win) window.location.href = url; }
+    catch { window.location.href = url; }
+  }
+
+  function copyPix() {
+    if (!pixKey) return toast.error("Chave PIX não cadastrada");
+    navigator.clipboard?.writeText(pixKey)
+      .then(() => toast.success("Chave PIX copiada"))
+      .catch(() => toast.error("Não foi possível copiar"));
+  }
+
   if (matches.length === 0) {
     return (
       <Card>
