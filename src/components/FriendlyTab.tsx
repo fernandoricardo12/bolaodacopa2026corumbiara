@@ -313,7 +313,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 return (
                   <div className="rounded-md border border-muted bg-muted/40 px-3 py-2 text-xs">
                     <div className="font-semibold">Nenhum vencedor no placar atual</div>
-                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar até o fim, acumula.</div>
+                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar até o fim, não há prêmio neste jogo (o prêmio não acumula).</div>
                   </div>
                 );
               })()}
@@ -353,31 +353,57 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 </div>
               )}
 
-              {userBets.length > 0 && (
-                <div className="space-y-1.5 pt-2 border-t">
-                  <div className="text-[11px] font-semibold text-muted-foreground uppercase">Seus palpites ({userBets.length})</div>
-                  {userBets.map((bet) => (
-                    <div key={bet.id} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
-                        {bet.paid
-                          ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
-                          : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
-                        {m.finished && bet.payout > 0 && (
-                          <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
-                            <Trophy className="h-3 w-3" /> R$ {Number(bet.payout).toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                      {!locked && !bet.paid && (
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteBet(bet)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {userBets.length > 0 && (() => {
+                const lh = m.home_score, la = m.away_score;
+                const hasScore = lh !== null && la !== null;
+                const matchPaid = allFriendlyBets.filter((b) => b.match_id === m.id && b.paid);
+                const exactCount = hasScore ? matchPaid.filter((b) => b.home_score === lh && b.away_score === la).length : 0;
+                const winnerCount = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))).length : 0;
+                const projectedPayout = (bet: typeof userBets[number]) => {
+                  if (!hasScore || !bet.paid) return 0;
+                  if (bet.home_score === lh && bet.away_score === la) return (pool.paid * 0.8) / exactCount;
+                  if (exactCount === 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
+                    return (pool.paid * 0.6) / winnerCount;
+                  }
+                  return 0;
+                };
+                return (
+                  <div className="space-y-1.5 pt-2 border-t">
+                    <div className="text-[11px] font-semibold text-muted-foreground uppercase">Seus palpites ({userBets.length})</div>
+                    {userBets.map((bet) => {
+                      const finalPayout = Number(bet.payout) || 0;
+                      const livePayout = projectedPayout(bet);
+                      const showFinal = m.finished && finalPayout > 0;
+                      const showLive = !m.finished && hasScore && livePayout > 0;
+                      return (
+                        <div key={bet.id} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
+                            {bet.paid
+                              ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
+                              : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
+                            {showFinal && (
+                              <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                                <Trophy className="h-3 w-3" /> Ganhou R$ {finalPayout.toFixed(2)}
+                              </span>
+                            )}
+                            {showLive && (
+                              <span className="inline-flex items-center gap-1 text-amber-700 font-semibold">
+                                <Trophy className="h-3 w-3" /> Ganharia R$ {livePayout.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                          {!locked && !bet.paid && (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteBet(bet)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
               {(() => {
                 const unpaid = userBets.filter((b) => !b.paid);
