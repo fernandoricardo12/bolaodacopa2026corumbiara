@@ -313,7 +313,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 return (
                   <div className="rounded-md border border-muted bg-muted/40 px-3 py-2 text-xs">
                     <div className="font-semibold">Nenhum vencedor no placar atual</div>
-                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar até o fim, acumula.</div>
+                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém acertar até o fim, não há prêmio neste jogo (o prêmio não acumula).</div>
                   </div>
                 );
               })()}
