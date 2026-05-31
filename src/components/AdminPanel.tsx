@@ -85,7 +85,8 @@ export function AdminPanel() {
         const m = matches.find((x) => x.id === b.match_id);
         const h = m ? teamMap[m.home_team_id] : null;
         const a = m ? teamMap[m.away_team_id] : null;
-        return { ...b, matchLabel: h && a ? `${h.flag} ${h.name} ${m?.home_score}×${m?.away_score} ${a.name} ${a.flag}` : "—", userName: profiles[b.user_id]?.display_name ?? "—" };
+        const isExact = !!m && b.home_score === m.home_score && b.away_score === m.away_score;
+        return { ...b, matchLabel: h && a ? `${h.flag} ${h.name} ${m?.home_score}×${m?.away_score} ${a.name} ${a.flag}` : "—", userName: profiles[b.user_id]?.display_name ?? "—", prizeRule: isExact ? "Placar exato · 80%" : "Só vencedor · 60%" };
       })
       .sort((a, b) => Number(b.payout) - Number(a.payout)),
     [ibets, matches, teamMap, profiles]
@@ -384,6 +385,7 @@ export function AdminPanel() {
                   <div className="text-sm min-w-0">
                     <div className="font-medium truncate">{g.userName} <span className="text-muted-foreground">— palpitou {g.home_score}×{g.away_score}</span></div>
                     <div className="text-xs text-muted-foreground truncate">{g.matchLabel}</div>
+                    <Badge variant="outline" className="text-[10px] mt-1">{g.prizeRule}</Badge>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-bold text-emerald-600">R$ {Number(g.payout).toFixed(2)}</div>
@@ -571,12 +573,14 @@ export function AdminPanel() {
           const m = matches.find((x) => x.id === b.match_id);
           const h = m ? teamMap[m.home_team_id] : null;
           const a = m ? teamMap[m.away_team_id] : null;
+          const prizeRule = m && b.home_score === m.home_score && b.away_score === m.away_score ? "Placar exato · 80%" : "Só vencedor · 60%";
           return (
             <Card key={b.id}>
               <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
                 <div className="text-sm min-w-0">
                   <div className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "Usuário"} — palpite {b.home_score}×{b.away_score}</div>
                   <div className="text-xs text-muted-foreground truncate">{h?.flag} {h?.name} × {a?.name} {a?.flag}</div>
+                  <div className="text-xs text-muted-foreground">{prizeRule}</div>
                   <div className="text-sm font-bold text-emerald-600 mt-1">Pagar: R$ {Number(b.payout).toFixed(2)}</div>
                 </div>
                 <Button size="sm" variant={b.payout_paid ? "secondary" : "default"} onClick={() => togglePayoutPaid(b)}>{b.payout_paid ? "Prêmio pago ✓" : "Marcar prêmio pago"}</Button>
