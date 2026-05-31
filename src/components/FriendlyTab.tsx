@@ -184,15 +184,35 @@ export function FriendlyTab({ userId }: { userId: string }) {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
-        const locked = m.finished || new Date(m.kickoff) <= new Date();
+        const kickoffMs = new Date(m.kickoff).getTime();
+        const nowMs = Date.now();
+        const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
+        const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
+        const locked = m.finished || kickoffMs <= nowMs;
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         return (
-          <Card key={m.id} className="border-2 border-yellow-400 shadow-lg ring-2 ring-yellow-200 dark:ring-yellow-900/40">
-            <div className="bg-gradient-to-r from-emerald-600 to-yellow-400 text-emerald-950 text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg">
-              <Flame className="h-3.5 w-3.5" /> AMISTOSO BRASIL
+          <Card key={m.id} className={`border-2 shadow-lg ring-2 ${isLive ? "border-red-500 ring-red-200 dark:ring-red-900/40" : "border-yellow-400 ring-yellow-200 dark:ring-yellow-900/40"}`}>
+            <div className={`text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg ${isLive ? "bg-gradient-to-r from-red-600 to-red-500 text-white" : "bg-gradient-to-r from-emerald-600 to-yellow-400 text-emerald-950"}`}>
+              {isLive ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                  </span>
+                  AO VIVO · AMISTOSO BRASIL
+                </>
+              ) : (
+                <><Flame className="h-3.5 w-3.5" /> AMISTOSO BRASIL</>
+              )}
             </div>
             <CardContent className="p-4 space-y-3">
+              {hasLiveScore && (
+                <div className="rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-2 flex items-center justify-center gap-3 shadow-md">
+                  <span className="text-xs font-bold uppercase tracking-wide opacity-90">Placar ao vivo</span>
+                  <span className="text-3xl font-extrabold tabular-nums">{m.home_score}<span className="opacity-70 mx-2">×</span>{m.away_score}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">
                 <div className="flex gap-2 items-center">
                   <Clock className="h-3 w-3" />
@@ -209,6 +229,8 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   <span>✅ Só vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.6).toFixed(2)}</strong></span>
                 </div>
               </div>
+
+
 
 
               <div className="flex items-center gap-2 sm:gap-3">
