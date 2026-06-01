@@ -308,8 +308,8 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   const prize = (pool.paid * 0.8 + bonus) / exactWinners.length;
                   return (
                     <div className="rounded-md border border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
-                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato no momento (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} extra` : ""})</div>
-                      <div className="tabular-nums">{exactWinners.length} apostador{exactWinners.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada (se terminar assim)</div>
+                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato {m.finished ? "(final)" : "no momento"} (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} extra` : ""})</div>
+                      <div className="tabular-nums">{exactWinners.length} apostador{exactWinners.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada{m.finished ? "" : " (se terminar assim)"}</div>
                     </div>
                   );
                 }
