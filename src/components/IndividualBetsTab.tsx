@@ -239,13 +239,23 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 {locked && <Lock className="h-3 w-3" />}
               </div>
 
+              {bonus > 0 && (
+                <div className="rounded-md border-2 border-amber-400 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-950/40 dark:to-yellow-950/40 px-3 py-2 text-xs flex items-center gap-2 animate-pulse">
+                  <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-300">Premiação extra</div>
+                    <div className="font-extrabold text-amber-900 dark:text-amber-100">+ R$ {bonus.toFixed(2)} para quem cravar o placar exato!</div>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
                   💰 Valendo agora
                 </div>
-                <div className="tabular-nums">🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
+                <div className="tabular-nums">🎯 Placar exato (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} de bônus` : ""}): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
                 <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
-                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio não acumula entre jogos.</div>
+                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio das apostas não acumula entre jogos.{bonus > 0 ? ` O bônus de R$ ${bonus.toFixed(2)} é exclusivo para placar exato — se ninguém cravar, acumula pro próximo jogo da Seleção Brasileira 🇧🇷.` : ""}</div>
               </div>
 
 
