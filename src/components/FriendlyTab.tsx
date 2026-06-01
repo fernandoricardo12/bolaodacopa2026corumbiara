@@ -248,7 +248,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                     <div className="flex-1 min-w-0">
                       <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Premiação extra do administrador</div>
                       <div className="text-base sm:text-lg font-extrabold leading-tight">+ R$ {Number(m.bonus_prize).toFixed(2)} para quem cravar o placar exato!</div>
-                      <div className="text-[10px] sm:text-[11px] font-medium opacity-90">Dividido entre todos os que acertarem. Sem acertos, acumula para o próximo amistoso da Seleção 🇧🇷.</div>
+                      <div className="text-[10px] sm:text-[11px] font-medium opacity-90">Dividido entre todos os que acertarem. Sem acertos, acumula para o próximo jogo da Seleção Brasileira 🇧🇷.</div>
                     </div>
                   </div>
                 </div>
