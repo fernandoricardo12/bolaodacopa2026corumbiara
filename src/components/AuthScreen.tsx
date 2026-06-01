@@ -87,7 +87,7 @@ export function AuthScreen() {
             </div>
           </div>
 
-          {/* Destaque do amistoso Brasil x Panamá */}
+          {/* Destaque do amistoso Brasil x Egito + bônus extra */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-yellow-300">
             <div className="grid grid-cols-2">
               {/* Lado Brasil: verde e amarelo */}
@@ -95,27 +95,40 @@ export function AuthScreen() {
                 <span className="text-3xl sm:text-4xl drop-shadow">🇧🇷</span>
                 <div className="text-xs sm:text-sm font-extrabold text-emerald-950 mt-1 tracking-wide">BRASIL</div>
               </div>
-              {/* Lado Panamá: vermelho, azul e branco */}
+              {/* Lado Egito: vermelho, branco e preto */}
               <div className="relative bg-white p-4 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1/2 bg-red-600" />
-                <div className="absolute inset-y-0 right-0 w-1/2 bg-blue-700" />
+                <div className="absolute inset-x-0 top-0 h-1/3 bg-red-600" />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-black" />
                 <div className="relative">
-                  <span className="text-3xl sm:text-4xl drop-shadow">🇵🇦</span>
-                  <div className="text-xs sm:text-sm font-extrabold text-white mt-1 tracking-wide drop-shadow">PANAMÁ</div>
+                  <span className="text-3xl sm:text-4xl drop-shadow">🇪🇬</span>
+                  <div className="text-xs sm:text-sm font-extrabold text-black mt-1 tracking-wide drop-shadow bg-white/70 px-1 rounded">EGITO</div>
                 </div>
               </div>
             </div>
             <div className="bg-gradient-to-r from-emerald-700 via-yellow-500 to-emerald-700 px-4 py-3 text-center text-emerald-950">
               <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2 py-0.5 text-[10px] font-extrabold mb-1">
-                🔥 AMANHÃ · AMISTOSO
+                🔥 SÁBADO · AMISTOSO
               </div>
-              <div className="text-base sm:text-lg font-extrabold leading-tight">Brasil × Panamá</div>
-              <div className="text-xs sm:text-sm font-semibold">Domingo, 31/05 · 17:30 (horário de Rondônia)</div>
+              <div className="text-base sm:text-lg font-extrabold leading-tight">Brasil × Egito</div>
+              <div className="text-xs sm:text-sm font-semibold">Sábado, 06/06 · 16:00 (horário de Rondônia)</div>
               <div className="text-[11px] sm:text-xs mt-1 font-medium">
-                Entre agora e dê seu palpite por apenas <strong>R$ 2</strong>!
+                Palpite por apenas <strong>R$ 2</strong>!
+              </div>
+            </div>
+            {/* Card chamativo de premiação extra */}
+            <div className="relative bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 px-4 py-3 text-amber-950 border-t-2 border-yellow-500 overflow-hidden">
+              <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-yellow-200/70 blur-2xl animate-pulse" />
+              <div className="relative flex items-center gap-3">
+                <div className="text-3xl animate-bounce">💰</div>
+                <div className="flex-1 text-left">
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Premiação extra do administrador</div>
+                  <div className="text-lg sm:text-xl font-extrabold leading-tight">+ R$ 50,00 EM JOGO! 🎯</div>
+                  <div className="text-[11px] font-semibold">Cravou o placar exato? Leva o bolo das apostas + R$ 50 extras (dividido entre quem acertar).</div>
+                </div>
               </div>
             </div>
           </div>
+
 
 
           <div className="grid sm:grid-cols-2 gap-3">

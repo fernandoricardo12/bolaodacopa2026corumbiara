@@ -176,6 +176,7 @@ export type Database = {
         Row: {
           away_score: number | null
           away_team_id: string
+          bonus_prize: number
           created_at: string
           external_match_id: string | null
           featured: boolean
@@ -196,6 +197,7 @@ export type Database = {
         Insert: {
           away_score?: number | null
           away_team_id: string
+          bonus_prize?: number
           created_at?: string
           external_match_id?: string | null
           featured?: boolean
@@ -216,6 +218,7 @@ export type Database = {
         Update: {
           away_score?: number | null
           away_team_id?: string
+          bonus_prize?: number
           created_at?: string
           external_match_id?: string | null
           featured?: boolean
