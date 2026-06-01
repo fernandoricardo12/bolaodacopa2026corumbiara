@@ -16,6 +16,7 @@ type Match = {
   venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
   is_friendly?: boolean;
+  bonus_prize?: number | null;
   live_clock?: string | null; live_period?: number | null; live_status_detail?: string | null;
   updated_at?: string | null;
 };
