@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -213,18 +213,33 @@ export function FriendlyTab({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      {matches.map((m) => {
-        const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
-        if (!home || !away) return null;
-        const userBets = betsByMatch[m.id] ?? [];
-        const kickoffMs = new Date(m.kickoff).getTime();
-        const nowMs = Date.now();
-        const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
-        const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
-        const locked = m.finished || kickoffMs <= nowMs;
-        const d = drafts[m.id] ?? { h: "", a: "" };
-        const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
-        return (
+      {(() => {
+        const upcoming = matches.filter((m) => !m.finished);
+        const finished = matches.filter((m) => m.finished).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime());
+        const ordered = [...upcoming, ...finished];
+        return ordered.map((m, idx) => {
+          const showFinishedDivider = idx === upcoming.length && finished.length > 0;
+          const wrap = (node: ReactNode) => showFinishedDivider ? (
+            <div key={`wrap-${m.id}`} className="space-y-3">
+              <div className="flex items-center gap-2 pt-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Jogos finalizados</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              {node}
+            </div>
+          ) : node;
+          const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
+          if (!home || !away) return null;
+          const userBets = betsByMatch[m.id] ?? [];
+          const kickoffMs = new Date(m.kickoff).getTime();
+          const nowMs = Date.now();
+          const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
+          const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
+          const locked = m.finished || kickoffMs <= nowMs;
+          const d = drafts[m.id] ?? { h: "", a: "" };
+          const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
+          return wrap((
           <Card key={m.id} className={`border-2 shadow-lg ring-2 ${isLive ? "border-red-500 ring-red-200 dark:ring-red-900/40" : "border-yellow-400 ring-yellow-200 dark:ring-yellow-900/40"}`}>
             <div className={`text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg ${isLive ? "bg-gradient-to-r from-red-600 to-red-500 text-white" : "bg-gradient-to-r from-emerald-600 to-yellow-400 text-emerald-950"}`}>
               {isLive ? (
@@ -465,8 +480,9 @@ export function FriendlyTab({ userId }: { userId: string }) {
               })()}
             </CardContent>
           </Card>
-        );
-      })}
+          ));
+        });
+      })()}
     </div>
   );
 }
