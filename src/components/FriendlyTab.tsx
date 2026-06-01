@@ -229,18 +229,17 @@ export function FriendlyTab({ userId }: { userId: string }) {
               {node}
             </div>
           ) : node;
+          const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
+          if (!home || !away) return null;
+          const userBets = betsByMatch[m.id] ?? [];
+          const kickoffMs = new Date(m.kickoff).getTime();
+          const nowMs = Date.now();
+          const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
+          const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
+          const locked = m.finished || kickoffMs <= nowMs;
+          const d = drafts[m.id] ?? { h: "", a: "" };
+          const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
           return wrap((
-        const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
-        if (!home || !away) return null;
-        const userBets = betsByMatch[m.id] ?? [];
-        const kickoffMs = new Date(m.kickoff).getTime();
-        const nowMs = Date.now();
-        const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
-        const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
-        const locked = m.finished || kickoffMs <= nowMs;
-        const d = drafts[m.id] ?? { h: "", a: "" };
-        const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
-        return (
           <Card key={m.id} className={`border-2 shadow-lg ring-2 ${isLive ? "border-red-500 ring-red-200 dark:ring-red-900/40" : "border-yellow-400 ring-yellow-200 dark:ring-yellow-900/40"}`}>
             <div className={`text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg ${isLive ? "bg-gradient-to-r from-red-600 to-red-500 text-white" : "bg-gradient-to-r from-emerald-600 to-yellow-400 text-emerald-950"}`}>
               {isLive ? (
