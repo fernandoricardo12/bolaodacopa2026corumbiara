@@ -219,7 +219,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
         const ordered = [...upcoming, ...finished];
         return ordered.map((m, idx) => {
           const showFinishedDivider = idx === upcoming.length && finished.length > 0;
-          const wrap = (node: React.ReactNode) => showFinishedDivider ? (
+          const wrap = (node: ReactNode) => showFinishedDivider ? (
             <div key={`wrap-${m.id}`} className="space-y-3">
               <div className="flex items-center gap-2 pt-2">
                 <div className="h-px flex-1 bg-border" />
