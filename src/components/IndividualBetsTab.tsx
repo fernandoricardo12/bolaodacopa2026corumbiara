@@ -274,7 +274,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               {!locked && (
                 <div className="flex justify-end">
-                  <Button size="sm" variant={m.featured ? "default" : "outline"} onClick={() => addBet(m.id)} className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
+                  <Button size="sm" variant={showFeatured ? "default" : "outline"} onClick={() => addBet(m.id)} className={showFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
                     <Plus className="h-3 w-3 mr-1" /> Adicionar palpite (R$ {PRICE})
                   </Button>
                 </div>
