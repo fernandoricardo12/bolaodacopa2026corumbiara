@@ -385,6 +385,19 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
             </CardContent>
           </Card>
         );
+        if (showFinishedDivider) {
+          return (
+            <div key={m.id} className="space-y-3">
+              <div className="flex items-center gap-3 pt-4">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Jogos finalizados</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              {card}
+            </div>
+          );
+        }
+        return card;
       })}
     </div>
   );
