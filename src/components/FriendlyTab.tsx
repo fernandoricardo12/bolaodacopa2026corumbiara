@@ -377,7 +377,8 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 const winnerCount = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))).length : 0;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
-                  if (bet.home_score === lh && bet.away_score === la) return (pool.paid * 0.8) / exactCount;
+                  const bonus = Number(m.bonus_prize ?? 0);
+                  if (bet.home_score === lh && bet.away_score === la) return (pool.paid * 0.8 + bonus) / exactCount;
                   if (exactCount === 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
                     return (pool.paid * 0.6) / winnerCount;
                   }
