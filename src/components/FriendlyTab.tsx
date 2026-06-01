@@ -248,7 +248,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                     <div className="flex-1 min-w-0">
                       <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Premiação extra do administrador</div>
                       <div className="text-base sm:text-lg font-extrabold leading-tight">+ R$ {Number(m.bonus_prize).toFixed(2)} para quem cravar o placar exato!</div>
-                      <div className="text-[10px] sm:text-[11px] font-medium opacity-90">Dividido entre todos os que acertarem. Sem acertos, acumula para o próximo amistoso da Seleção 🇧🇷.</div>
+                      <div className="text-[10px] sm:text-[11px] font-medium opacity-90">Dividido entre todos os que acertarem. Sem acertos, acumula para o próximo jogo da Seleção Brasileira 🇧🇷.</div>
                     </div>
                   </div>
                 </div>
@@ -308,8 +308,8 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   const prize = (pool.paid * 0.8 + bonus) / exactWinners.length;
                   return (
                     <div className="rounded-md border border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
-                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato no momento (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} extra` : ""})</div>
-                      <div className="tabular-nums">{exactWinners.length} apostador{exactWinners.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada (se terminar assim)</div>
+                      <div className="font-semibold text-emerald-800 dark:text-emerald-200">🎯 Placar exato {m.finished ? "(final)" : "no momento"} (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} extra` : ""})</div>
+                      <div className="tabular-nums">{exactWinners.length} apostador{exactWinners.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada{m.finished ? "" : " (se terminar assim)"}</div>
                     </div>
                   );
                 }
@@ -318,9 +318,9 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   const prize = (pool.paid * 0.6) / winnerOnly.length;
                   return (
                     <div className="rounded-md border border-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs space-y-1">
-                      <div className="font-semibold text-amber-800 dark:text-amber-200">🏆 Só o vencedor no momento (60%)</div>
-                      <div className="tabular-nums">{winnerOnly.length} palpite{winnerOnly.length > 1 ? "s" : ""} vencedor{winnerOnly.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada (se terminar assim)</div>
-                      <div className="text-[10px] text-muted-foreground">* Ninguém cravou o placar exato ainda{bonus > 0 ? ` — o bônus de R$ ${bonus.toFixed(2)} acumula pro próximo amistoso da Seleção` : ""}.</div>
+                      <div className="font-semibold text-amber-800 dark:text-amber-200">🏆 Só o vencedor {m.finished ? "(final)" : "no momento"} (60%)</div>
+                      <div className="tabular-nums">{winnerOnly.length} palpite{winnerOnly.length > 1 ? "s" : ""} vencedor{winnerOnly.length > 1 ? "es" : ""} · <strong>R$ {prize.toFixed(2)}</strong> cada{m.finished ? "" : " (se terminar assim)"}</div>
+                      <div className="text-[10px] text-muted-foreground">* {m.finished ? "Ninguém cravou o placar exato" : "Ninguém cravou o placar exato ainda"}{bonus > 0 ? ` — o bônus de R$ ${bonus.toFixed(2)} acumula pro próximo jogo da Seleção Brasileira` : ""}.</div>
                     </div>
                   );
                 }
