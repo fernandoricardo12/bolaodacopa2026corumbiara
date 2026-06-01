@@ -481,8 +481,9 @@ export function FriendlyTab({ userId }: { userId: string }) {
               })()}
             </CardContent>
           </Card>
-        );
-      })}
+          ));
+        });
+      })()}
     </div>
   );
 }
