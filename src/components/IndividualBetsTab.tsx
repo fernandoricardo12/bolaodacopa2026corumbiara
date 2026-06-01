@@ -16,7 +16,7 @@ type Match = {
   id: string; home_team_id: string; away_team_id: string; kickoff: string;
   group_name: string | null; stage: string; venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
-  featured: boolean; is_friendly?: boolean;
+  featured: boolean; is_friendly?: boolean; bonus_prize?: number | null;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
 
@@ -212,7 +212,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const locked = m.finished || new Date(m.kickoff) <= new Date();
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
-        const prizeExact = pool.paid * 0.8;
+        const bonus = Number(m.bonus_prize ?? 0);
+        const prizeExact = pool.paid * 0.8 + bonus;
         const prizeWinner = pool.paid * 0.6;
         const showFeatured = m.featured && !m.finished;
         const prev = sortedVisible[idx - 1];
@@ -238,13 +239,23 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 {locked && <Lock className="h-3 w-3" />}
               </div>
 
+              {bonus > 0 && (
+                <div className="rounded-md border-2 border-amber-400 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-950/40 dark:to-yellow-950/40 px-3 py-2 text-xs flex items-center gap-2 animate-pulse">
+                  <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-300">Premiação extra</div>
+                    <div className="font-extrabold text-amber-900 dark:text-amber-100">+ R$ {bonus.toFixed(2)} para quem cravar o placar exato!</div>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
                   💰 Valendo agora
                 </div>
-                <div className="tabular-nums">🎯 Placar exato (80%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
+                <div className="tabular-nums">🎯 Placar exato (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} de bônus` : ""}): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
                 <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
-                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio não acumula entre jogos.</div>
+                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio das apostas não acumula entre jogos.{bonus > 0 ? ` O bônus de R$ ${bonus.toFixed(2)} é exclusivo para placar exato — se ninguém cravar, acumula pro próximo jogo da Seleção Brasileira 🇧🇷.` : ""}</div>
               </div>
 
 
@@ -288,7 +299,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 const winnerCount = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))).length : 0;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
-                  if (bet.home_score === lh && bet.away_score === la && exactCount > 0) return (pool.paid * 0.8) / exactCount;
+                  if (bet.home_score === lh && bet.away_score === la && exactCount > 0) return (pool.paid * 0.8 + bonus) / exactCount;
                   if (exactCount === 0 && winnerCount > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
                     return (pool.paid * 0.6) / winnerCount;
                   }
