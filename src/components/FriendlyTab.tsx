@@ -213,7 +213,23 @@ export function FriendlyTab({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      {matches.map((m) => {
+      {(() => {
+        const upcoming = matches.filter((m) => !m.finished);
+        const finished = matches.filter((m) => m.finished).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime());
+        const ordered = [...upcoming, ...finished];
+        return ordered.map((m, idx) => {
+          const showFinishedDivider = idx === upcoming.length && finished.length > 0;
+          const wrap = (node: JSX.Element) => showFinishedDivider ? (
+            <div key={`wrap-${m.id}`} className="space-y-3">
+              <div className="flex items-center gap-2 pt-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Jogos finalizados</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              {node}
+            </div>
+          ) : node;
+          return wrap((
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
