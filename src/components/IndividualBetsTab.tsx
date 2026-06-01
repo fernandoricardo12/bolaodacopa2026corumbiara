@@ -103,12 +103,18 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     return r;
   }, [allBets]);
 
-  // Ordena: destaques primeiro, depois por kickoff
+  // Ordena: não-finalizados primeiro (destaques no topo), finalizados no final
   const sortedVisible = useMemo(() => {
     return [...visible].sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+      if (a.finished && !b.finished) return 1;
+      if (!a.finished && b.finished) return -1;
+      if (!a.finished && !b.finished) {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+      }
+      // ambos finalizados: mais recentes primeiro
+      return new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime();
     });
   }, [visible]);
 
@@ -199,7 +205,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
       <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
 
-      {sortedVisible.map((m) => {
+      {sortedVisible.map((m, idx) => {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
@@ -208,12 +214,15 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const prizeExact = pool.paid * 0.8;
         const prizeWinner = pool.paid * 0.6;
-        return (
+        const showFeatured = m.featured && !m.finished;
+        const prev = sortedVisible[idx - 1];
+        const showFinishedDivider = m.finished && (!prev || !prev.finished);
+        const card = (
           <Card
             key={m.id}
-            className={m.featured ? "border-2 border-yellow-400 shadow-lg ring-2 ring-yellow-200 dark:ring-yellow-900/40" : ""}
+            className={showFeatured ? "border-2 border-yellow-400 shadow-lg ring-2 ring-yellow-200 dark:ring-yellow-900/40" : (m.finished ? "opacity-90" : "")}
           >
-            {m.featured && (
+            {showFeatured && (
               <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-yellow-950 text-xs font-bold px-3 py-1 flex items-center gap-1 rounded-t-lg">
                 <Flame className="h-3.5 w-3.5" /> JOGO TOP DA RODADA
                 <Star className="h-3 w-3 ml-auto" />
@@ -265,7 +274,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               {!locked && (
                 <div className="flex justify-end">
-                  <Button size="sm" variant={m.featured ? "default" : "outline"} onClick={() => addBet(m.id)} className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
+                  <Button size="sm" variant={showFeatured ? "default" : "outline"} onClick={() => addBet(m.id)} className={showFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
                     <Plus className="h-3 w-3 mr-1" /> Adicionar palpite (R$ {PRICE})
                   </Button>
                 </div>
@@ -376,6 +385,19 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
             </CardContent>
           </Card>
         );
+        if (showFinishedDivider) {
+          return (
+            <div key={m.id} className="space-y-3">
+              <div className="flex items-center gap-3 pt-4">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Jogos finalizados</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              {card}
+            </div>
+          );
+        }
+        return card;
       })}
     </div>
   );
