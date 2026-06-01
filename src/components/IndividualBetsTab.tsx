@@ -103,12 +103,18 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     return r;
   }, [allBets]);
 
-  // Ordena: destaques primeiro, depois por kickoff
+  // Ordena: não-finalizados primeiro (destaques no topo), finalizados no final
   const sortedVisible = useMemo(() => {
     return [...visible].sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+      if (a.finished && !b.finished) return 1;
+      if (!a.finished && b.finished) return -1;
+      if (!a.finished && !b.finished) {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+      }
+      // ambos finalizados: mais recentes primeiro
+      return new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime();
     });
   }, [visible]);
 
