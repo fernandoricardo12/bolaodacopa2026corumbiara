@@ -13,18 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from "@/components/ui/textarea";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 import { buildWaLink, defaultWelcomeMessage, isValidBrPhone } from "@/lib/whatsapp";
+import { calculatePointsPrize } from "@/lib/prizeRules";
 
 
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
-type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null };
+type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null; whatsapp_confirmed_at?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean; payout_paid_at?: string | null };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
-
-const POINTS_WINNER_SHARE = 0.80;
-const ADMIN_BONUS = 100; // bônus extra prometido ao líder (sai do bolso do admin)
-
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -41,7 +38,7 @@ export function AdminPanel() {
       supabase.from("teams").select("id,name,flag,group_name").order("name"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,display_name,phone,pix_key"),
+      supabase.from("profiles").select("id,display_name,phone,pix_key,whatsapp_confirmed_at"),
       supabase.from("individual_bets").select("*"),
       supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
     ]);
@@ -68,9 +65,10 @@ export function AdminPanel() {
     () => ibets.filter((b) => Number(b.payout) > 0).reduce((s, b) => s + Number(b.payout), 0),
     [ibets]
   );
-  const bolaoPontos80 = totalApostadoPontos * POINTS_WINNER_SHARE;       // 80% do arrecadado
-  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE); // 20% bruto
-  const premioFinalPontos = bolaoPontos80 + ADMIN_BONUS;                   // o que o líder leva
+  const pointsPrize = useMemo(() => calculatePointsPrize(totalApostadoPontos), [totalApostadoPontos]);
+  const bolaoPontos80 = pointsPrize.poolPrize;       // 80% do arrecadado confirmado
+  const taxaAdminPontos = pointsPrize.adminFee;      // 20% bruto
+  const premioFinalPontos = pointsPrize.finalPrize;  // o que o líder leva
 
   const usuariosUnicos = useMemo(() => new Set([...bets.map((b) => b.user_id), ...ibets.map((b) => b.user_id)]).size, [bets, ibets]);
   const jogosEncerrados = matches.filter((m) => m.finished).length;
@@ -106,7 +104,7 @@ export function AdminPanel() {
   );
   const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
   // Lucro líquido do admin: taxa de 20% sobre pontos − bônus prometido + sobra dos individuais
-  const lucroAdmin = taxaAdminPontos - ADMIN_BONUS + sobraIndividual;
+  const lucroAdmin = taxaAdminPontos - pointsPrize.bonus + sobraIndividual;
 
 
   // Destaques de participantes (com base em jogos finalizados)
@@ -294,7 +292,7 @@ export function AdminPanel() {
                     {liderPontos ? ` (${liderPontos.pontos} pts)` : ""}
                   </div>
                   <div className="text-[11px] opacity-90 mt-1">
-                    80% do bolo (R$ {bolaoPontos80.toFixed(2)}) + R$ {ADMIN_BONUS.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
+                    80% do bolo confirmado (R$ {bolaoPontos80.toFixed(2)}) + R$ {pointsPrize.bonus.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
                   </div>
 
                 </div>
@@ -319,7 +317,7 @@ export function AdminPanel() {
                   <div className="text-xs uppercase text-emerald-700 font-semibold">💼 Lucro do administrador</div>
                   <div className="text-3xl font-bold text-emerald-700">R$ {lucroAdmin.toFixed(2)}</div>
                   <div className="text-xs text-emerald-800/80 mt-1">
-                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> − Bônus prometido ao líder: <strong>R$ {ADMIN_BONUS.toFixed(2)}</strong> + Sobra individual: <strong>R$ {sobraIndividual.toFixed(2)}</strong>
+                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> − Bônus prometido ao líder: <strong>R$ {pointsPrize.bonus.toFixed(2)}</strong> + Sobra individual: <strong>R$ {sobraIndividual.toFixed(2)}</strong>
                   </div>
                 </div>
               </div>
@@ -631,6 +629,11 @@ export function AdminPanel() {
                     {p.phone ? (
                       <a href={buildWaLink(p.phone)} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
                     ) : <span className="text-amber-600">não informado</span>}
+                    {p.whatsapp_confirmed_at ? (
+                      <Badge className="ml-2 bg-emerald-600 text-[10px]">WhatsApp ok</Badge>
+                    ) : (
+                      <Badge variant="outline" className="ml-2 border-amber-500 text-amber-700 dark:text-amber-300 text-[10px]">pendente</Badge>
+                    )}
 
                   </div>
                   <div className="text-xs break-all">
@@ -674,7 +677,7 @@ export function AdminPanel() {
 function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
   const [message, setMessage] = useState(() => defaultWelcomeMessage());
   const withPhone = profiles.filter((p) => isValidBrPhone(p.phone));
-  const withoutPhone = profiles.filter((p) => !isValidBrPhone(p.phone));
+  const pendingPhone = profiles.filter((p) => !isValidBrPhone(p.phone) || !p.whatsapp_confirmed_at);
 
   return (
     <div className="space-y-4">
@@ -725,7 +728,10 @@ function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
               <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg p-3 flex-wrap">
                 <div className="min-w-0">
                   <div className="font-medium truncate">{p.display_name}</div>
-                  <div className="text-xs text-muted-foreground">{p.phone}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                    <span>{p.phone}</span>
+                    {!p.whatsapp_confirmed_at && <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-700 dark:text-amber-300">aguardando confirmação no login</Badge>}
+                  </div>
                 </div>
                 <Button
                   size="sm"
@@ -742,20 +748,20 @@ function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
         </CardContent>
       </Card>
 
-      {withoutPhone.length > 0 && (
+      {pendingPhone.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base text-amber-700 dark:text-amber-300">
-              ⚠️ Sem WhatsApp cadastrado ({withoutPhone.length})
+              ⚠️ WhatsApp pendente de cadastro/confirmação ({pendingPhone.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
             <p className="text-xs text-muted-foreground mb-2">
-              Esses participantes serão lembrados a cadastrar o WhatsApp no próximo acesso.
+              Esses participantes serão obrigados a cadastrar ou confirmar o WhatsApp no próximo acesso.
             </p>
-            {withoutPhone.map((p) => (
+            {pendingPhone.map((p) => (
               <div key={p.id} className="text-sm border-l-2 border-amber-400 pl-2 py-1">
-                {p.display_name}
+                {p.display_name}{isValidBrPhone(p.phone) ? ` — ${p.phone} (precisa confirmar)` : " — sem número válido"}
               </div>
             ))}
           </CardContent>

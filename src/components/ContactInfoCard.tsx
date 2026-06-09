@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Phone, KeyRound, CheckCircle2, AlertTriangle } from "lucide-react";
+import { isValidBrPhone, toWaDigits } from "@/lib/whatsapp";
 
 export function ContactInfoCard({ userId }: { userId: string }) {
   const [phone, setPhone] = useState("");
@@ -33,18 +34,20 @@ export function ContactInfoCard({ userId }: { userId: string }) {
     e.preventDefault();
     const cleanPhone = phone.trim().slice(0, 20);
     const cleanPix = pixKey.trim().slice(0, 120);
-    if (cleanPhone && cleanPhone.replace(/\D/g, "").length < 10) {
-      toast.error("Informe um telefone válido com DDD.");
+    if (cleanPhone && !isValidBrPhone(cleanPhone)) {
+      toast.error("Informe um WhatsApp válido com DDD.");
       return;
     }
+    const normalizedPhone = cleanPhone ? `+${toWaDigits(cleanPhone)}` : null;
     setLoading(true);
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("profiles")
-      .update({ phone: cleanPhone || null, pix_key: cleanPix || null })
+      .update({ phone: normalizedPhone, pix_key: cleanPix || null, whatsapp_confirmed_at: normalizedPhone ? new Date().toISOString() : null })
       .eq("id", userId);
     setLoading(false);
     if (error) return toast.error(error.message);
-    setInitial({ phone: cleanPhone, pixKey: cleanPix });
+    setPhone(normalizedPhone ?? "");
+    setInitial({ phone: normalizedPhone ?? "", pixKey: cleanPix });
     toast.success("Dados de contato salvos!");
   }
 

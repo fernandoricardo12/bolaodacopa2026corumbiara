@@ -21,9 +21,9 @@ export function WhatsAppPromptDialog({ userId }: { userId: string }) {
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("profiles")
-        .select("phone")
+        .select("phone,whatsapp_confirmed_at")
         .eq("id", userId)
         .maybeSingle();
       if (cancelled) return;
@@ -33,7 +33,8 @@ export function WhatsAppPromptDialog({ userId }: { userId: string }) {
       }
       const current = (data?.phone ?? "").trim();
       const valid = isValidBrPhone(current);
-      if (!valid) {
+      const alreadyConfirmed = Boolean(data?.whatsapp_confirmed_at);
+      if (!valid || !alreadyConfirmed) {
         // Pré-preenche com o que já existe (se houver), normalizando para +55
         if (current) {
           const digits = toWaDigits(current);
@@ -55,9 +56,9 @@ export function WhatsAppPromptDialog({ userId }: { userId: string }) {
     }
     setSaving(true);
     const normalized = "+" + toWaDigits(phone);
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("profiles")
-      .update({ phone: normalized })
+      .update({ phone: normalized, whatsapp_confirmed_at: new Date().toISOString() })
       .eq("id", userId);
     setSaving(false);
     if (error) {

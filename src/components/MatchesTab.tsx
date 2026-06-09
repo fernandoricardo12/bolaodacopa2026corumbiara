@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { Clock, Lock, Trophy, Crown } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
-
-const POINTS_WINNER_SHARE = 0.80;
-const ADMIN_BONUS = 100;
+import { useServerFn } from "@tanstack/react-start";
+import { getPointsPrizeSummary } from "@/lib/prizes.functions";
+import { calculatePointsPrize } from "@/lib/prizeRules";
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -35,20 +35,21 @@ export function MatchesTab({ userId }: { userId: string }) {
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
-  const [pointsPool, setPointsPool] = useState(0);
+  const [pointsPrize, setPointsPrize] = useState(() => calculatePointsPrize(0));
+  const fetchPointsPrize = useServerFn(getPointsPrizeSummary);
   const visible = useMemo(() => filterMatches(matches, teams, search, group), [matches, teams, search, group]);
 
   async function load() {
-    const [{ data: ts }, { data: ms }, { data: bs }, { data: pays }] = await Promise.all([
+    const [{ data: ts }, { data: ms }, { data: bs }, prize] = await Promise.all([
       supabase.from("teams").select("id,name,flag,code"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("bets").select("match_id,home_score,away_score,points").eq("user_id", userId),
-      supabase.from("payments").select("amount,mode,status").eq("mode", "points").eq("status", "confirmed"),
+      fetchPointsPrize(),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
     if (ms) setMatches((ms as Match[]).filter((m) => !m.is_friendly));
     if (bs) setBets(Object.fromEntries(bs.map((b) => [b.match_id, b as Bet])));
-    if (pays) setPointsPool(pays.reduce((s, p) => s + Number(p.amount), 0));
+    setPointsPrize(prize);
   }
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function MatchesTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
-  const prizeValue = pointsPool * POINTS_WINNER_SHARE + ADMIN_BONUS;
+  const prizeValue = pointsPrize.finalPrize;
 
   async function saveBet(matchId: string) {
     const d = drafts[matchId];
@@ -104,11 +105,11 @@ export function MatchesTab({ userId }: { userId: string }) {
               R$ {prizeValue.toFixed(2)}
             </div>
             <div className="text-[11px] opacity-90 mt-1">
-              80% do bolo (R$ {(pointsPool * POINTS_WINNER_SHARE).toFixed(2)}) + <strong className="text-yellow-200">R$ {ADMIN_BONUS.toFixed(2)} de bônus do administrador</strong>. Dividido em caso de empate.
+              80% do bolo confirmado (R$ {pointsPrize.poolPrize.toFixed(2)}) + <strong className="text-yellow-200">R$ {pointsPrize.bonus.toFixed(2)} de bônus do administrador</strong>. Dividido em caso de empate.
             </div>
           </div>
           <div className="rounded-lg bg-yellow-300 text-emerald-950 px-3 py-2 text-[11px] sm:text-xs font-bold text-center shadow">
-            💰 PREMIAÇÃO EXTRA DE R$ 100,00 GARANTIDA PELO ADMINISTRADOR! 🎯
+            💰 PREMIAÇÃO EXTRA DE R$ {pointsPrize.bonus.toFixed(2)} GARANTIDA PELO ADMINISTRADOR! 🎯
           </div>
         </CardContent>
       </Card>
