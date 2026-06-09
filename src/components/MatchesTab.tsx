@@ -139,6 +139,28 @@ export function MatchesTab({ userId }: { userId: string }) {
       .sort((x, y) => y.pts - x.pts || y.sg - x.sg || y.gp - x.gp || x.team.name.localeCompare(y.team.name));
   }, [activeSection, teams, bets]);
 
+  // Real standings: only finished matches
+  const realStandings = useMemo<Standing[]>(() => {
+    if (!activeSection || !activeSection.key.startsWith("G-")) return [];
+    const g = activeSection.key.slice(2);
+    const groupTeams = Object.values(teams).filter(t => t.group_name === g);
+    const rows: Record<string, Standing> = {};
+    groupTeams.forEach(t => { rows[t.id] = { team: t, pj: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0, pts: 0, realPj: 0 }; });
+    activeSection.matches.forEach(m => {
+      if (!m.finished || m.home_score === null || m.away_score === null) return;
+      const h = m.home_score, a = m.away_score;
+      const rh = rows[m.home_team_id], ra = rows[m.away_team_id];
+      if (!rh || !ra) return;
+      rh.pj++; ra.pj++; rh.realPj++; ra.realPj++;
+      rh.gp += h; rh.gc += a; ra.gp += a; ra.gc += h;
+      if (h > a) { rh.v++; rh.pts += 3; ra.d++; }
+      else if (h < a) { ra.v++; ra.pts += 3; rh.d++; }
+      else { rh.e++; ra.e++; rh.pts++; ra.pts++; }
+    });
+    return Object.values(rows).map(r => ({ ...r, sg: r.gp - r.gc }))
+      .sort((x, y) => y.pts - x.pts || y.sg - x.sg || y.gp - x.gp || x.team.name.localeCompare(y.team.name));
+  }, [activeSection, teams]);
+
   const prizeValue = pointsPrize.finalPrize;
 
   async function saveBet(matchId: string) {
