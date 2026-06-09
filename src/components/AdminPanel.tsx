@@ -613,8 +613,9 @@ export function AdminPanel() {
                   <div className="text-xs">
                     <span className="text-muted-foreground">Tel: </span>
                     {p.phone ? (
-                      <a href={`https://wa.me/55${p.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
+                      <a href={buildWaLink(p.phone)} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
                     ) : <span className="text-amber-600">não informado</span>}
+
                   </div>
                   <div className="text-xs break-all">
                     <span className="text-muted-foreground">PIX: </span>
