@@ -661,6 +661,101 @@ export function AdminPanel() {
   );
 }
 
+function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
+  const [message, setMessage] = useState(() => defaultWelcomeMessage());
+  const withPhone = profiles.filter((p) => isValidBrPhone(p.phone));
+  const withoutPhone = profiles.filter((p) => !isValidBrPhone(p.phone));
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-emerald-600" /> Mensagem padrão (boas-vindas + regras)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={14}
+            className="font-mono text-xs"
+          />
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" variant="outline" onClick={() => setMessage(defaultWelcomeMessage())}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Restaurar padrão
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(message); toast.success("Mensagem copiada"); }}>
+              <Copy className="h-4 w-4 mr-1" /> Copiar mensagem
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Edite à vontade antes de enviar. O WhatsApp abrirá com este texto já preenchido — basta apertar enviar.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Send className="h-4 w-4 text-emerald-600" /> Participantes com WhatsApp ({withPhone.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {withPhone.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nenhum participante com WhatsApp cadastrado ainda.</p>
+          )}
+          {withPhone.map((p) => {
+            const personalized = message.includes("Olá,") || message.includes("Olá!")
+              ? defaultWelcomeMessage(p.display_name) === message
+                ? defaultWelcomeMessage(p.display_name)
+                : message.replace(/Olá[^\n]*/, `Olá, ${p.display_name.split(" ")[0]}! 👋`)
+              : message;
+            return (
+              <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg p-3 flex-wrap">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{p.display_name}</div>
+                  <div className="text-xs text-muted-foreground">{p.phone}</div>
+                </div>
+                <Button
+                  size="sm"
+                  asChild
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <a href={buildWaLink(p.phone!, personalized)} target="_blank" rel="noreferrer">
+                    <MessageCircle className="h-4 w-4 mr-1" /> Abrir conversa
+                  </a>
+                </Button>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {withoutPhone.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base text-amber-700 dark:text-amber-300">
+              ⚠️ Sem WhatsApp cadastrado ({withoutPhone.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="text-xs text-muted-foreground mb-2">
+              Esses participantes serão lembrados a cadastrar o WhatsApp no próximo acesso.
+            </p>
+            {withoutPhone.map((p) => (
+              <div key={p.id} className="text-sm border-l-2 border-amber-400 pl-2 py-1">
+                {p.display_name}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+
 function ConfigPanel() {
   const { settings, reload } = useSettings();
   const [form, setForm] = useState<AppSettings>(settings);
