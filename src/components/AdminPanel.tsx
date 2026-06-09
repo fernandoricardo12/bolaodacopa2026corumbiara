@@ -629,6 +629,11 @@ export function AdminPanel() {
                     {p.phone ? (
                       <a href={buildWaLink(p.phone)} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
                     ) : <span className="text-amber-600">não informado</span>}
+                    {p.whatsapp_confirmed_at ? (
+                      <Badge className="ml-2 bg-emerald-600 text-[10px]">WhatsApp ok</Badge>
+                    ) : (
+                      <Badge variant="outline" className="ml-2 border-amber-500 text-amber-700 dark:text-amber-300 text-[10px]">pendente</Badge>
+                    )}
 
                   </div>
                   <div className="text-xs break-all">
@@ -672,7 +677,7 @@ export function AdminPanel() {
 function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
   const [message, setMessage] = useState(() => defaultWelcomeMessage());
   const withPhone = profiles.filter((p) => isValidBrPhone(p.phone));
-  const withoutPhone = profiles.filter((p) => !isValidBrPhone(p.phone));
+  const pendingPhone = profiles.filter((p) => !isValidBrPhone(p.phone) || !p.whatsapp_confirmed_at);
 
   return (
     <div className="space-y-4">
@@ -723,7 +728,10 @@ function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
               <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg p-3 flex-wrap">
                 <div className="min-w-0">
                   <div className="font-medium truncate">{p.display_name}</div>
-                  <div className="text-xs text-muted-foreground">{p.phone}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                    <span>{p.phone}</span>
+                    {!p.whatsapp_confirmed_at && <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-700 dark:text-amber-300">aguardando confirmação no login</Badge>}
+                  </div>
                 </div>
                 <Button
                   size="sm"
@@ -740,20 +748,20 @@ function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
         </CardContent>
       </Card>
 
-      {withoutPhone.length > 0 && (
+      {pendingPhone.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base text-amber-700 dark:text-amber-300">
-              ⚠️ Sem WhatsApp cadastrado ({withoutPhone.length})
+              ⚠️ WhatsApp pendente de cadastro/confirmação ({pendingPhone.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
             <p className="text-xs text-muted-foreground mb-2">
-              Esses participantes serão lembrados a cadastrar o WhatsApp no próximo acesso.
+              Esses participantes serão obrigados a cadastrar ou confirmar o WhatsApp no próximo acesso.
             </p>
-            {withoutPhone.map((p) => (
+            {pendingPhone.map((p) => (
               <div key={p.id} className="text-sm border-l-2 border-amber-400 pl-2 py-1">
-                {p.display_name}
+                {p.display_name}{isValidBrPhone(p.phone) ? ` — ${p.phone} (precisa confirmar)` : " — sem número válido"}
               </div>
             ))}
           </CardContent>
