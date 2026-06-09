@@ -9,8 +9,8 @@ import { Clock, Lock, Trophy, Crown } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 
-const POINTS_POOL_HIGHLIGHT = 200;
 const POINTS_WINNER_SHARE = 0.80;
+const ADMIN_BONUS = 100;
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
