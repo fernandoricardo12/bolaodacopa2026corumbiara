@@ -44,7 +44,7 @@ function Index() {
 }
 
 function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; isAdmin: boolean }) {
-  const [activeTab, setActiveTab] = useState("amistoso");
+  const [activeTab, setActiveTab] = useState("bolao");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -85,8 +85,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="flex sm:grid sm:grid-cols-9 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
-            <TabsTrigger value="amistoso" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🇧🇷 Amistoso</span></TabsTrigger>
-            <TabsTrigger value="bolao" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Bolão</span></TabsTrigger>
+            <TabsTrigger value="bolao" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🏆 Bolão</span></TabsTrigger>
+            <TabsTrigger value="amistoso" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🇧🇷 Amistoso</span></TabsTrigger>
             <TabsTrigger value="individual" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Coins className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Individual</span></TabsTrigger>
             <TabsTrigger value="minhas" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ClipboardCheck className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Minhas</span></TabsTrigger>
             <TabsTrigger value="groups" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Users className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Grupos</span></TabsTrigger>
@@ -107,8 +107,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
 
         </Tabs>
         <div className="text-center text-xs text-muted-foreground mt-8 space-y-1">
-          <p><strong>Bolão de pontos (R$ 50):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar — líder leva 80% do acumulado ao fim da Copa.</p>
-          <p><strong>Palpite individual (R$ 2/palpite):</strong> placar exato leva 80% do bolo do jogo; se ninguém cravar, quem acertou só o vencedor divide 60%. O prêmio não acumula entre jogos.</p>
+          <p><strong>🏆 Bolão de pontos (R$ 50 — inscrição única):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar — líder leva <strong>80% do acumulado + R$ 100 de bônus do administrador</strong> ao fim da Copa.</p>
+          <p className="opacity-80"><strong>Palpite individual (R$ 2/palpite):</strong> modalidade secundária — placar exato leva 80% do bolo do jogo; se ninguém cravar, quem acertou só o vencedor divide 60%. O prêmio não acumula entre jogos.</p>
         </div>
       </main>
       <Footer />

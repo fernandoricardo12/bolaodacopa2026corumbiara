@@ -9,8 +9,8 @@ import { Clock, Lock, Trophy, Crown } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { MatchFilters, filterMatches } from "@/components/MatchFilters";
 
-const POINTS_POOL_HIGHLIGHT = 200;
 const POINTS_WINNER_SHARE = 0.80;
+const ADMIN_BONUS = 100;
 
 type Team = { id: string; name: string; flag: string; code: string };
 type Match = {
@@ -62,8 +62,7 @@ export function MatchesTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
-  const showPrizeBanner = pointsPool >= POINTS_POOL_HIGHLIGHT;
-  const prizeValue = pointsPool * POINTS_WINNER_SHARE;
+  const prizeValue = pointsPool * POINTS_WINNER_SHARE + ADMIN_BONUS;
 
   async function saveBet(matchId: string) {
     const d = drafts[matchId];
@@ -89,22 +88,30 @@ export function MatchesTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      {showPrizeBanner && (
-        <Card className="border-2 border-yellow-400 bg-gradient-to-r from-emerald-600 via-emerald-500 to-yellow-400 text-white shadow-lg overflow-hidden">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Crown className="h-10 w-10 text-yellow-200 drop-shadow shrink-0" />
+      <Card className="border-4 border-yellow-400 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white shadow-xl overflow-hidden relative">
+        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl animate-pulse" />
+        <CardContent className="p-5 relative space-y-3">
+          <div className="flex items-center gap-3">
+            <Crown className="h-12 w-12 text-yellow-300 drop-shadow shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-xs uppercase tracking-wide opacity-90">Prêmio acumulado · Bolão de pontos (80%)</div>
-              <div className="text-2xl sm:text-3xl font-extrabold tabular-nums drop-shadow">
-                R$ {prizeValue.toFixed(2)}
-              </div>
-              <div className="text-[11px] opacity-90">
-                Bolo total: R$ {pointsPool.toFixed(2)} · Líder do ranking ao fim da Copa leva 80% (dividido em caso de empate).
-              </div>
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-200">🏆 Bolão de pontos · Copa 2026</div>
+              <div className="text-xs sm:text-sm text-emerald-50">Inscrição única de <strong className="text-yellow-300">R$ 50,00</strong> · palpite em todos os jogos</div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          <div className="rounded-xl bg-white/10 backdrop-blur border border-white/25 p-3">
+            <div className="text-[10px] uppercase tracking-wider opacity-90 font-bold">Prêmio do líder ao fim da Copa</div>
+            <div className="text-3xl sm:text-4xl font-extrabold tabular-nums drop-shadow text-yellow-300">
+              R$ {prizeValue.toFixed(2)}
+            </div>
+            <div className="text-[11px] opacity-90 mt-1">
+              80% do bolo (R$ {(pointsPool * POINTS_WINNER_SHARE).toFixed(2)}) + <strong className="text-yellow-200">R$ {ADMIN_BONUS.toFixed(2)} de bônus do administrador</strong>. Dividido em caso de empate.
+            </div>
+          </div>
+          <div className="rounded-lg bg-yellow-300 text-emerald-950 px-3 py-2 text-[11px] sm:text-xs font-bold text-center shadow">
+            💰 PREMIAÇÃO EXTRA DE R$ 100,00 GARANTIDA PELO ADMINISTRADOR! 🎯
+          </div>
+        </CardContent>
+      </Card>
       <MatchFilters search={search} onSearch={setSearch} group={group} onGroup={setGroup} />
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
       {matches.length > 0 && visible.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">Nenhum jogo encontrado com esses filtros.</p>}
