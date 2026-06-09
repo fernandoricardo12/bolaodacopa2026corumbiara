@@ -606,6 +606,11 @@ export function AdminPanel() {
       </TabsContent>
 
       {/* ============== PARTICIPANTES ============== */}
+      {/* ============== LEMBRETES ============== */}
+      <TabsContent value="lembretes">
+        <ReminderBetsTab />
+      </TabsContent>
+
       {/* ============== WHATSAPP ============== */}
       <TabsContent value="whatsapp">
         <WhatsAppMessagesTab profiles={Object.values(profiles)} />
