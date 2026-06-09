@@ -287,12 +287,16 @@ export function AdminPanel() {
               <div className="flex items-center gap-3">
                 <Crown className="h-10 w-10" />
                 <div className="flex-1">
-                  <div className="text-xs uppercase opacity-90">Prêmio final do bolão de pontos (80%)</div>
+                  <div className="text-xs uppercase opacity-90">Prêmio total ao líder (80% + bônus admin)</div>
                   <div className="text-3xl font-bold">R$ {premioFinalPontos.toFixed(2)}</div>
                   <div className="text-xs opacity-90">
                     Líder atual: <strong>{liderPontos?.user ?? "—"}</strong>
-                    {liderPontos ? ` (${liderPontos.pontos} pts)` : ""} · Taxa admin (20%): R$ {taxaAdminPontos.toFixed(2)}
+                    {liderPontos ? ` (${liderPontos.pontos} pts)` : ""}
                   </div>
+                  <div className="text-[11px] opacity-90 mt-1">
+                    80% do bolo (R$ {bolaoPontos80.toFixed(2)}) + R$ {ADMIN_BONUS.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
+                  </div>
+
                 </div>
               </div>
             </CardContent>
