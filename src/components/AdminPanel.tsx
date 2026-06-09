@@ -596,7 +596,13 @@ export function AdminPanel() {
       </TabsContent>
 
       {/* ============== PARTICIPANTES ============== */}
+      {/* ============== WHATSAPP ============== */}
+      <TabsContent value="whatsapp">
+        <WhatsAppMessagesTab profiles={Object.values(profiles)} />
+      </TabsContent>
+
       <TabsContent value="users" className="space-y-2">
+
         <p className="text-xs text-muted-foreground">
           Exclui o participante e <strong>todos</strong> os dados dele (palpites, pagamentos, perfil). Útil para remover duplicatas ou redefinir o sistema. Esta ação é irreversível.
         </p>
