@@ -23,6 +23,8 @@ type IBet = { id: string; user_id: string; match_id: string; home_score: number;
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
 const POINTS_WINNER_SHARE = 0.80;
+const ADMIN_BONUS = 100; // bônus extra prometido ao líder (sai do bolso do admin)
+
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
