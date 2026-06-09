@@ -16,7 +16,6 @@ import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, Cl
 import heroCup from "@/assets/hero-cup.jpg";
 import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
-import { FriendlyTab } from "@/components/FriendlyTab";
 
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
