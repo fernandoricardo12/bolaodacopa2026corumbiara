@@ -103,6 +103,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
           <TabsContent value="individual">{activeTab === "individual" && <IndividualBetsTab userId={userId} />}</TabsContent>
           <TabsContent value="minhas">{activeTab === "minhas" && <MyBetsTab userId={userId} />}</TabsContent>
           <TabsContent value="groups">{activeTab === "groups" && <GroupsTab />}</TabsContent>
+          <TabsContent value="compare">{activeTab === "compare" && <GroupsCompareTab userId={userId} />}</TabsContent>
           <TabsContent value="bracket">{activeTab === "bracket" && <KnockoutTab />}</TabsContent>
           <TabsContent value="ranking">{activeTab === "ranking" && <RankingTab currentUserId={userId} />}</TabsContent>
           <TabsContent value="payment">{activeTab === "payment" && <PaymentTab userId={userId} email={email} />}</TabsContent>
