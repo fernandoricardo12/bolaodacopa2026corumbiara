@@ -292,7 +292,7 @@ export function AdminPanel() {
                     {liderPontos ? ` (${liderPontos.pontos} pts)` : ""}
                   </div>
                   <div className="text-[11px] opacity-90 mt-1">
-                    80% do bolo (R$ {bolaoPontos80.toFixed(2)}) + R$ {ADMIN_BONUS.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
+                    80% do bolo confirmado (R$ {bolaoPontos80.toFixed(2)}) + R$ {pointsPrize.bonus.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
                   </div>
 
                 </div>
@@ -317,7 +317,7 @@ export function AdminPanel() {
                   <div className="text-xs uppercase text-emerald-700 font-semibold">💼 Lucro do administrador</div>
                   <div className="text-3xl font-bold text-emerald-700">R$ {lucroAdmin.toFixed(2)}</div>
                   <div className="text-xs text-emerald-800/80 mt-1">
-                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> − Bônus prometido ao líder: <strong>R$ {ADMIN_BONUS.toFixed(2)}</strong> + Sobra individual: <strong>R$ {sobraIndividual.toFixed(2)}</strong>
+                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> − Bônus prometido ao líder: <strong>R$ {pointsPrize.bonus.toFixed(2)}</strong> + Sobra individual: <strong>R$ {sobraIndividual.toFixed(2)}</strong>
                   </div>
                 </div>
               </div>
