@@ -13,18 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from "@/components/ui/textarea";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 import { buildWaLink, defaultWelcomeMessage, isValidBrPhone } from "@/lib/whatsapp";
+import { calculatePointsPrize } from "@/lib/prizeRules";
 
 
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
-type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null };
+type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null; whatsapp_confirmed_at?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean; payout_paid_at?: string | null };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
-
-const POINTS_WINNER_SHARE = 0.80;
-const ADMIN_BONUS = 100; // bônus extra prometido ao líder (sai do bolso do admin)
-
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -41,7 +38,7 @@ export function AdminPanel() {
       supabase.from("teams").select("id,name,flag,group_name").order("name"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,display_name,phone,pix_key"),
+      supabase.from("profiles").select("id,display_name,phone,pix_key,whatsapp_confirmed_at"),
       supabase.from("individual_bets").select("*"),
       supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
     ]);
@@ -68,9 +65,10 @@ export function AdminPanel() {
     () => ibets.filter((b) => Number(b.payout) > 0).reduce((s, b) => s + Number(b.payout), 0),
     [ibets]
   );
-  const bolaoPontos80 = totalApostadoPontos * POINTS_WINNER_SHARE;       // 80% do arrecadado
-  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE); // 20% bruto
-  const premioFinalPontos = bolaoPontos80 + ADMIN_BONUS;                   // o que o líder leva
+  const pointsPrize = useMemo(() => calculatePointsPrize(totalApostadoPontos), [totalApostadoPontos]);
+  const bolaoPontos80 = pointsPrize.poolPrize;       // 80% do arrecadado confirmado
+  const taxaAdminPontos = pointsPrize.adminFee;      // 20% bruto
+  const premioFinalPontos = pointsPrize.finalPrize;  // o que o líder leva
 
   const usuariosUnicos = useMemo(() => new Set([...bets.map((b) => b.user_id), ...ibets.map((b) => b.user_id)]).size, [bets, ibets]);
   const jogosEncerrados = matches.filter((m) => m.finished).length;
@@ -106,7 +104,7 @@ export function AdminPanel() {
   );
   const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
   // Lucro líquido do admin: taxa de 20% sobre pontos − bônus prometido + sobra dos individuais
-  const lucroAdmin = taxaAdminPontos - ADMIN_BONUS + sobraIndividual;
+  const lucroAdmin = taxaAdminPontos - pointsPrize.bonus + sobraIndividual;
 
 
   // Destaques de participantes (com base em jogos finalizados)
