@@ -87,45 +87,60 @@ export function AuthScreen() {
             </div>
           </div>
 
-          {/* Destaque do amistoso Brasil x Egito + bônus extra */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-yellow-300">
-            <div className="grid grid-cols-2">
-              {/* Lado Brasil: verde e amarelo */}
-              <div className="bg-gradient-to-br from-emerald-600 via-emerald-500 to-yellow-400 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
-                <span className="text-3xl sm:text-4xl drop-shadow">🇧🇷</span>
-                <div className="text-xs sm:text-sm font-extrabold text-emerald-950 mt-1 tracking-wide">BRASIL</div>
-              </div>
-              {/* Lado Egito: vermelho, branco e preto */}
-              <div className="relative bg-white p-4 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden">
-                <div className="absolute inset-x-0 top-0 h-1/3 bg-red-600" />
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-black" />
-                <div className="relative">
-                  <span className="text-3xl sm:text-4xl drop-shadow">🇪🇬</span>
-                  <div className="text-xs sm:text-sm font-extrabold text-black mt-1 tracking-wide drop-shadow bg-white/70 px-1 rounded">EGITO</div>
+          {/* DESTAQUE PRINCIPAL: Bolão de Pontos da Copa */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-yellow-300 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800">
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl animate-pulse" />
+            <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-yellow-400/20 blur-3xl animate-pulse" />
+            <div className="relative p-5 sm:p-6 text-white space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 text-emerald-900 px-3 py-1 text-[10px] sm:text-xs font-extrabold tracking-wide">
+                  ⭐ DESTAQUE · COPA 2026
                 </div>
               </div>
-            </div>
-            <div className="bg-gradient-to-r from-emerald-700 via-yellow-500 to-emerald-700 px-4 py-3 text-center text-emerald-950">
-              <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2 py-0.5 text-[10px] font-extrabold mb-1">
-                🔥 SÁBADO · AMISTOSO
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold drop-shadow leading-tight">
+                  🏆 Bolão de Pontos da Copa
+                </h2>
+                <p className="text-sm text-yellow-100 mt-1">
+                  Palpite em <strong>TODOS</strong> os jogos da Copa do Mundo 2026 e dispute o ranking até a grande final.
+                </p>
               </div>
-              <div className="text-base sm:text-lg font-extrabold leading-tight">Brasil × Egito</div>
-              <div className="text-xs sm:text-sm font-semibold">Sábado, 06/06 · 16:00 (horário de Rondônia)</div>
-              <div className="text-[11px] sm:text-xs mt-1 font-medium">
-                Palpite por apenas <strong>R$ 2</strong>!
+
+              {/* Card de inscrição */}
+              <div className="rounded-xl bg-white/10 backdrop-blur border border-white/25 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-yellow-200 font-bold">Inscrição única</div>
+                    <div className="text-3xl sm:text-4xl font-extrabold text-yellow-300 drop-shadow">R$ 50,00</div>
+                    <div className="text-[11px] text-emerald-50/90">Pague uma vez e palpite na Copa inteira</div>
+                  </div>
+                  <div className="text-5xl">🎟️</div>
+                </div>
+                <ul className="text-xs text-emerald-50/95 mt-3 space-y-1">
+                  <li>✅ Palpite em todos os jogos da Copa</li>
+                  <li>✅ 20 pts placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar</li>
+                  <li>✅ Ranking atualizado em tempo real</li>
+                </ul>
               </div>
-            </div>
-            {/* Card chamativo de premiação extra */}
-            <div className="relative bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 px-4 py-3 text-amber-950 border-t-2 border-yellow-500 overflow-hidden">
-              <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-yellow-200/70 blur-2xl animate-pulse" />
-              <div className="relative flex items-center gap-3">
-                <div className="text-3xl animate-bounce">💰</div>
-                <div className="flex-1 text-left">
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Premiação extra do administrador</div>
-                  <div className="text-lg sm:text-xl font-extrabold leading-tight">+ R$ 50,00 EM JOGO! 🎯</div>
-                  <div className="text-[11px] font-semibold">Cravou o placar exato? Leva o bolo das apostas + R$ 50 extras (dividido entre quem acertar).</div>
+
+              {/* CARD CHAMATIVO: Prêmio extra R$ 100 */}
+              <div className="relative rounded-xl bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 p-4 text-amber-950 border-2 border-yellow-500 overflow-hidden shadow-lg">
+                <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/40 blur-2xl animate-pulse" />
+                <div className="relative flex items-center gap-3">
+                  <div className="text-4xl animate-bounce">💰</div>
+                  <div className="flex-1 text-left">
+                    <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Premiação extra do administrador</div>
+                    <div className="text-2xl sm:text-3xl font-extrabold leading-tight">+ R$ 100,00 EXTRAS! 🎯</div>
+                    <div className="text-[11px] sm:text-xs font-semibold mt-0.5">
+                      Líder do ranking ao fim da Copa leva <strong>80% do bolo + R$ 100</strong> de bônus do admin.
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <p className="text-[11px] text-yellow-100/90 italic text-center">
+                Palpites individuais avulsos (R$ 2/jogo) também disponíveis — mas o grande prêmio está no bolão de pontos.
+              </p>
             </div>
           </div>
 
