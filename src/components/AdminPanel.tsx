@@ -68,8 +68,10 @@ export function AdminPanel() {
     () => ibets.filter((b) => Number(b.payout) > 0).reduce((s, b) => s + Number(b.payout), 0),
     [ibets]
   );
-  const premioFinalPontos = totalApostadoPontos * POINTS_WINNER_SHARE;
-  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE);
+  const bolaoPontos80 = totalApostadoPontos * POINTS_WINNER_SHARE;       // 80% do arrecadado
+  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE); // 20% bruto
+  const premioFinalPontos = bolaoPontos80 + ADMIN_BONUS;                   // o que o líder leva
+
   const usuariosUnicos = useMemo(() => new Set([...bets.map((b) => b.user_id), ...ibets.map((b) => b.user_id)]).size, [bets, ibets]);
   const jogosEncerrados = matches.filter((m) => m.finished).length;
 
