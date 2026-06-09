@@ -139,6 +139,28 @@ export function MatchesTab({ userId }: { userId: string }) {
       .sort((x, y) => y.pts - x.pts || y.sg - x.sg || y.gp - x.gp || x.team.name.localeCompare(y.team.name));
   }, [activeSection, teams, bets]);
 
+  // Real standings: only finished matches
+  const realStandings = useMemo<Standing[]>(() => {
+    if (!activeSection || !activeSection.key.startsWith("G-")) return [];
+    const g = activeSection.key.slice(2);
+    const groupTeams = Object.values(teams).filter(t => t.group_name === g);
+    const rows: Record<string, Standing> = {};
+    groupTeams.forEach(t => { rows[t.id] = { team: t, pj: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0, pts: 0, realPj: 0 }; });
+    activeSection.matches.forEach(m => {
+      if (!m.finished || m.home_score === null || m.away_score === null) return;
+      const h = m.home_score, a = m.away_score;
+      const rh = rows[m.home_team_id], ra = rows[m.away_team_id];
+      if (!rh || !ra) return;
+      rh.pj++; ra.pj++; rh.realPj++; ra.realPj++;
+      rh.gp += h; rh.gc += a; ra.gp += a; ra.gc += h;
+      if (h > a) { rh.v++; rh.pts += 3; ra.d++; }
+      else if (h < a) { ra.v++; ra.pts += 3; rh.d++; }
+      else { rh.e++; ra.e++; rh.pts++; ra.pts++; }
+    });
+    return Object.values(rows).map(r => ({ ...r, sg: r.gp - r.gc }))
+      .sort((x, y) => y.pts - x.pts || y.sg - x.sg || y.gp - x.gp || x.team.name.localeCompare(y.team.name));
+  }, [activeSection, teams]);
+
   const prizeValue = pointsPrize.finalPrize;
 
   async function saveBet(matchId: string) {
@@ -353,6 +375,53 @@ export function MatchesTab({ userId }: { userId: string }) {
               );
             })}
           </div>
+
+          {/* Real standings (only finished matches) */}
+          {activeSection.key.startsWith("G-") && realStandings.length > 0 && (
+            <Card className="border-slate-300 dark:border-slate-700">
+              <CardContent className="p-0">
+                <div className="px-3 py-2 border-b bg-slate-100 dark:bg-slate-900/40 flex items-center justify-between">
+                  <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    🎯 Classificação real do {activeSection.label}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {realStandings.reduce((s, r) => s + r.realPj, 0) / 2} jogo(s) encerrado(s)
+                  </div>
+                </div>
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-2 font-medium">#</th>
+                      <th className="text-left p-2 font-medium">Time</th>
+                      <th className="p-2 font-medium">P</th>
+                      <th className="p-2 font-medium">J</th>
+                      <th className="p-2 font-medium">V</th>
+                      <th className="p-2 font-medium">E</th>
+                      <th className="p-2 font-medium">D</th>
+                      <th className="p-2 font-medium">SG</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {realStandings.map((r, i) => {
+                      const color = i === 0 ? "bg-yellow-400 text-yellow-950" : i === 1 ? "bg-emerald-400 text-emerald-950" : i === 2 ? "bg-sky-400 text-sky-950" : "bg-muted text-muted-foreground";
+                      return (
+                        <tr key={r.team.id} className="border-t">
+                          <td className="p-2"><span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}>{i + 1}º</span></td>
+                          <td className="p-2"><div className="flex items-center gap-1.5 min-w-0"><span>{r.team.flag}</span><span className="truncate">{r.team.name}</span></div></td>
+                          <td className="text-center p-2 font-bold">{r.pts}</td>
+                          <td className="text-center p-2">{r.pj}</td>
+                          <td className="text-center p-2">{r.v}</td>
+                          <td className="text-center p-2">{r.e}</td>
+                          <td className="text-center p-2">{r.d}</td>
+                          <td className="text-center p-2">{r.sg > 0 ? `+${r.sg}` : r.sg}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>
