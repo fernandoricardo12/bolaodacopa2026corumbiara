@@ -8,9 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star, MessageCircle, Send, Copy } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useSettings, AppSettings } from "@/lib/useSettings";
+import { buildWaLink, defaultWelcomeMessage, isValidBrPhone } from "@/lib/whatsapp";
+
 
 type Team = { id: string; name: string; flag: string; group_name: string };
 type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
@@ -243,16 +246,18 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="flex sm:grid sm:grid-cols-8 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+      <TabsList className="flex sm:grid sm:grid-cols-9 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
         <TabsTrigger value="dashboard" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Dashboard</span></TabsTrigger>
         <TabsTrigger value="jogos" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Activity className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Jogos</span></TabsTrigger>
         <TabsTrigger value="destaques" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Destaques</span></TabsTrigger>
         <TabsTrigger value="palpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Palpites</span></TabsTrigger>
         <TabsTrigger value="payments" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><DollarSign className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Pagamentos</span></TabsTrigger>
         <TabsTrigger value="ibets" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">A pagar</span></TabsTrigger>
+        <TabsTrigger value="whatsapp" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><MessageCircle className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">WhatsApp</span></TabsTrigger>
         <TabsTrigger value="users" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><UserX className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Participantes</span></TabsTrigger>
         <TabsTrigger value="config" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><SettingsIcon className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Config</span></TabsTrigger>
       </TabsList>
+
 
       {/* ============== DASHBOARD ============== */}
       <TabsContent value="dashboard" className="space-y-4">
@@ -591,7 +596,13 @@ export function AdminPanel() {
       </TabsContent>
 
       {/* ============== PARTICIPANTES ============== */}
+      {/* ============== WHATSAPP ============== */}
+      <TabsContent value="whatsapp">
+        <WhatsAppMessagesTab profiles={Object.values(profiles)} />
+      </TabsContent>
+
       <TabsContent value="users" className="space-y-2">
+
         <p className="text-xs text-muted-foreground">
           Exclui o participante e <strong>todos</strong> os dados dele (palpites, pagamentos, perfil). Útil para remover duplicatas ou redefinir o sistema. Esta ação é irreversível.
         </p>
@@ -608,8 +619,9 @@ export function AdminPanel() {
                   <div className="text-xs">
                     <span className="text-muted-foreground">Tel: </span>
                     {p.phone ? (
-                      <a href={`https://wa.me/55${p.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
+                      <a href={buildWaLink(p.phone)} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{p.phone}</a>
                     ) : <span className="text-amber-600">não informado</span>}
+
                   </div>
                   <div className="text-xs break-all">
                     <span className="text-muted-foreground">PIX: </span>
@@ -648,6 +660,101 @@ export function AdminPanel() {
     </Tabs>
   );
 }
+
+function WhatsAppMessagesTab({ profiles }: { profiles: Profile[] }) {
+  const [message, setMessage] = useState(() => defaultWelcomeMessage());
+  const withPhone = profiles.filter((p) => isValidBrPhone(p.phone));
+  const withoutPhone = profiles.filter((p) => !isValidBrPhone(p.phone));
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-emerald-600" /> Mensagem padrão (boas-vindas + regras)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={14}
+            className="font-mono text-xs"
+          />
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" variant="outline" onClick={() => setMessage(defaultWelcomeMessage())}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Restaurar padrão
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(message); toast.success("Mensagem copiada"); }}>
+              <Copy className="h-4 w-4 mr-1" /> Copiar mensagem
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Edite à vontade antes de enviar. O WhatsApp abrirá com este texto já preenchido — basta apertar enviar.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Send className="h-4 w-4 text-emerald-600" /> Participantes com WhatsApp ({withPhone.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {withPhone.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nenhum participante com WhatsApp cadastrado ainda.</p>
+          )}
+          {withPhone.map((p) => {
+            const personalized = message.includes("Olá,") || message.includes("Olá!")
+              ? defaultWelcomeMessage(p.display_name) === message
+                ? defaultWelcomeMessage(p.display_name)
+                : message.replace(/Olá[^\n]*/, `Olá, ${p.display_name.split(" ")[0]}! 👋`)
+              : message;
+            return (
+              <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg p-3 flex-wrap">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{p.display_name}</div>
+                  <div className="text-xs text-muted-foreground">{p.phone}</div>
+                </div>
+                <Button
+                  size="sm"
+                  asChild
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <a href={buildWaLink(p.phone!, personalized)} target="_blank" rel="noreferrer">
+                    <MessageCircle className="h-4 w-4 mr-1" /> Abrir conversa
+                  </a>
+                </Button>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {withoutPhone.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base text-amber-700 dark:text-amber-300">
+              ⚠️ Sem WhatsApp cadastrado ({withoutPhone.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="text-xs text-muted-foreground mb-2">
+              Esses participantes serão lembrados a cadastrar o WhatsApp no próximo acesso.
+            </p>
+            {withoutPhone.map((p) => (
+              <div key={p.id} className="text-sm border-l-2 border-amber-400 pl-2 py-1">
+                {p.display_name}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 
 function ConfigPanel() {
   const { settings, reload } = useSettings();

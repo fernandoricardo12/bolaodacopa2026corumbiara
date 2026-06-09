@@ -16,6 +16,8 @@ import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, Cl
 import heroCup from "@/assets/hero-cup.jpg";
 import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
+import { WhatsAppPromptDialog } from "@/components/WhatsAppPromptDialog";
+
 
 
 export const Route = createFileRoute("/")({ component: Index, ssr: false });
@@ -47,6 +49,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <WhatsAppPromptDialog userId={userId} />
+
       <header className="sticky top-0 z-10 border-b-2 border-yellow-400 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
