@@ -23,6 +23,8 @@ type IBet = { id: string; user_id: string; match_id: string; home_score: number;
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
 
 const POINTS_WINNER_SHARE = 0.80;
+const ADMIN_BONUS = 100; // bônus extra prometido ao líder (sai do bolso do admin)
+
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -66,8 +68,10 @@ export function AdminPanel() {
     () => ibets.filter((b) => Number(b.payout) > 0).reduce((s, b) => s + Number(b.payout), 0),
     [ibets]
   );
-  const premioFinalPontos = totalApostadoPontos * POINTS_WINNER_SHARE;
-  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE);
+  const bolaoPontos80 = totalApostadoPontos * POINTS_WINNER_SHARE;       // 80% do arrecadado
+  const taxaAdminPontos = totalApostadoPontos * (1 - POINTS_WINNER_SHARE); // 20% bruto
+  const premioFinalPontos = bolaoPontos80 + ADMIN_BONUS;                   // o que o líder leva
+
   const usuariosUnicos = useMemo(() => new Set([...bets.map((b) => b.user_id), ...ibets.map((b) => b.user_id)]).size, [bets, ibets]);
   const jogosEncerrados = matches.filter((m) => m.finished).length;
 
@@ -101,7 +105,9 @@ export function AdminPanel() {
     [ibets]
   );
   const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
-  const lucroAdmin = taxaAdminPontos + sobraIndividual;
+  // Lucro líquido do admin: taxa de 20% sobre pontos − bônus prometido + sobra dos individuais
+  const lucroAdmin = taxaAdminPontos - ADMIN_BONUS + sobraIndividual;
+
 
   // Destaques de participantes (com base em jogos finalizados)
   const destaques = useMemo(() => {
@@ -281,12 +287,16 @@ export function AdminPanel() {
               <div className="flex items-center gap-3">
                 <Crown className="h-10 w-10" />
                 <div className="flex-1">
-                  <div className="text-xs uppercase opacity-90">Prêmio final do bolão de pontos (80%)</div>
+                  <div className="text-xs uppercase opacity-90">Prêmio total ao líder (80% + bônus admin)</div>
                   <div className="text-3xl font-bold">R$ {premioFinalPontos.toFixed(2)}</div>
                   <div className="text-xs opacity-90">
                     Líder atual: <strong>{liderPontos?.user ?? "—"}</strong>
-                    {liderPontos ? ` (${liderPontos.pontos} pts)` : ""} · Taxa admin (20%): R$ {taxaAdminPontos.toFixed(2)}
+                    {liderPontos ? ` (${liderPontos.pontos} pts)` : ""}
                   </div>
+                  <div className="text-[11px] opacity-90 mt-1">
+                    80% do bolo (R$ {bolaoPontos80.toFixed(2)}) + R$ {ADMIN_BONUS.toFixed(2)} de bônus do admin · Taxa admin bruta (20%): R$ {taxaAdminPontos.toFixed(2)}
+                  </div>
+
                 </div>
               </div>
             </CardContent>
@@ -309,7 +319,7 @@ export function AdminPanel() {
                   <div className="text-xs uppercase text-emerald-700 font-semibold">💼 Lucro do administrador</div>
                   <div className="text-3xl font-bold text-emerald-700">R$ {lucroAdmin.toFixed(2)}</div>
                   <div className="text-xs text-emerald-800/80 mt-1">
-                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> + Sobra individual (sem ganhadores): <strong>R$ {sobraIndividual.toFixed(2)}</strong>
+                    Taxa pontos (20%): <strong>R$ {taxaAdminPontos.toFixed(2)}</strong> − Bônus prometido ao líder: <strong>R$ {ADMIN_BONUS.toFixed(2)}</strong> + Sobra individual: <strong>R$ {sobraIndividual.toFixed(2)}</strong>
                   </div>
                 </div>
               </div>
