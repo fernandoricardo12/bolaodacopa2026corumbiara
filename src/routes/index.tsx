@@ -44,7 +44,7 @@ function Index() {
 }
 
 function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; isAdmin: boolean }) {
-  const [activeTab, setActiveTab] = useState("amistoso");
+  const [activeTab, setActiveTab] = useState("bolao");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
