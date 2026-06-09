@@ -62,8 +62,7 @@ export function MatchesTab({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
-  const showPrizeBanner = pointsPool >= POINTS_POOL_HIGHLIGHT;
-  const prizeValue = pointsPool * POINTS_WINNER_SHARE;
+  const prizeValue = pointsPool * POINTS_WINNER_SHARE + ADMIN_BONUS;
 
   async function saveBet(matchId: string) {
     const d = drafts[matchId];
