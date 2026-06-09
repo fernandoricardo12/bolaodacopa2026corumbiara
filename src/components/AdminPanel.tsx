@@ -105,7 +105,9 @@ export function AdminPanel() {
     [ibets]
   );
   const sobraIndividual = Math.max(0, totalApostadoIndividual - totalPagoIndividual);
-  const lucroAdmin = taxaAdminPontos + sobraIndividual;
+  // Lucro líquido do admin: taxa de 20% sobre pontos − bônus prometido + sobra dos individuais
+  const lucroAdmin = taxaAdminPontos - ADMIN_BONUS + sobraIndividual;
+
 
   // Destaques de participantes (com base em jogos finalizados)
   const destaques = useMemo(() => {
