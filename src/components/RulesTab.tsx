@@ -107,17 +107,17 @@ export function RulesTab() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm pt-4">
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
-            <p className="font-semibold">🏆 80% do valor acumulado para o campeão</p>
+            <p className="font-semibold">🏆 80% do valor acumulado + R$ 100,00 para o campeão</p>
             <p className="text-muted-foreground text-xs mt-1">
               Ao final da Copa do Mundo, quem fizer <strong>mais pontos no ranking geral</strong> leva
-              <strong> 80% de todo o valor arrecadado</strong> no bolão de pontos.
+              <strong> 80% de todo o valor confirmado</strong> no bolão de pontos + <strong>R$ 100,00 de bônus do administrador</strong>.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
             <p className="font-semibold">🤝 Empate técnico = prêmio dividido</p>
             <p className="text-muted-foreground text-xs mt-1">
               Se dois ou mais participantes terminarem com a <strong>mesma pontuação no topo</strong>,
-              os 80% são <strong>divididos em partes iguais</strong> entre eles.
+              o prêmio final do bolão de pontos é <strong>dividido em partes iguais</strong> entre eles.
             </p>
           </div>
         </CardContent>
