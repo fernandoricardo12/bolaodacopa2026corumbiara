@@ -8,12 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star, MessageCircle, Send, Copy } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star, MessageCircle, Send, Copy, AlarmClock } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useSettings, AppSettings } from "@/lib/useSettings";
 import { buildWaLink, defaultWelcomeMessage, isValidBrPhone } from "@/lib/whatsapp";
 import { calculatePointsPrize } from "@/lib/prizeRules";
+import { ReminderBetsTab } from "@/components/ReminderBetsTab";
 
 
 type Team = { id: string; name: string; flag: string; group_name: string };
