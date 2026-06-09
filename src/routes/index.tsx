@@ -5,6 +5,7 @@ import { AuthScreen } from "@/components/AuthScreen";
 import { MatchesTab } from "@/components/MatchesTab";
 import { IndividualBetsTab } from "@/components/IndividualBetsTab";
 import { GroupsTab } from "@/components/GroupsTab";
+import { GroupsCompareTab } from "@/components/GroupsCompareTab";
 import { KnockoutTab } from "@/components/KnockoutTab";
 import { RankingTab } from "@/components/RankingTab";
 import { PaymentTab } from "@/components/PaymentTab";
