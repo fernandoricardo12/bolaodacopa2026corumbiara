@@ -9,27 +9,40 @@ import { MessageCircle } from "lucide-react";
 import { isValidBrPhone, toWaDigits } from "@/lib/whatsapp";
 
 /**
- * Pede o WhatsApp uma única vez (quando o perfil ainda não tem `phone`).
- * Inclui participantes antigos que se cadastraram antes desta funcionalidade.
+ * Pede o WhatsApp uma única vez (quando o perfil ainda não tem `phone`
+ * válido no formato brasileiro). Inclui participantes antigos cujo número
+ * foi salvo sem o +55 ou em formato inválido.
  */
 export function WhatsAppPromptDialog({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("+55 ");
   const [saving, setSaving] = useState(false);
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("phone")
         .eq("id", userId)
         .maybeSingle();
       if (cancelled) return;
-      const hasPhone = !!data?.phone && data.phone.trim().length > 0;
-      setOpen(!hasPhone);
-      setChecked(true);
+      if (error) {
+        console.error("[WhatsAppPrompt] erro ao carregar perfil:", error);
+        return;
+      }
+      const current = (data?.phone ?? "").trim();
+      const valid = isValidBrPhone(current);
+      if (!valid) {
+        // Pré-preenche com o que já existe (se houver), normalizando para +55
+        if (current) {
+          const digits = toWaDigits(current);
+          setPhone("+" + digits);
+        } else {
+          setPhone("+55 ");
+        }
+        setOpen(true);
+      }
     }
     check();
     return () => { cancelled = true; };
@@ -55,11 +68,14 @@ export function WhatsAppPromptDialog({ userId }: { userId: string }) {
     setOpen(false);
   }
 
-  if (!checked) return null;
-
   return (
-    <Dialog open={open} onOpenChange={(v) => { /* não permite fechar sem salvar */ if (v) setOpen(true); }}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) return; /* bloqueia fechar sem salvar */ setOpen(v); }}>
+      <DialogContent
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-emerald-600" />
@@ -93,3 +109,4 @@ export function WhatsAppPromptDialog({ userId }: { userId: string }) {
     </Dialog>
   );
 }
+
