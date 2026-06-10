@@ -241,61 +241,8 @@ export function MatchesTab({ userId }: { userId: string }) {
 
       {activeSection && (
         <>
-          {/* Standings preview (only for group sections) */}
-          {activeSection.key.startsWith("G-") && standings.length > 0 && (
-            <Card className="border-emerald-500/30">
-              <CardContent className="p-0">
-                <div className="px-3 py-2 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-                  <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    📊 Como ficaria o {activeSection.label} com seus palpites
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">{filledMatches}/{totalMatches} preenchidos</div>
-                </div>
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/40 text-muted-foreground">
-                    <tr>
-                      <th className="text-left p-2 font-medium">#</th>
-                      <th className="text-left p-2 font-medium">Time</th>
-                      <th className="p-2 font-medium">P</th>
-                      <th className="p-2 font-medium">J</th>
-                      <th className="p-2 font-medium">V</th>
-                      <th className="p-2 font-medium">E</th>
-                      <th className="p-2 font-medium">D</th>
-                      <th className="p-2 font-medium">SG</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {standings.map((r, i) => {
-                      const label = i === 0 ? "1º" : i === 1 ? "2º" : i === 2 ? "3º" : "4º";
-                      const color = i === 0 ? "bg-yellow-400 text-yellow-950" : i === 1 ? "bg-emerald-400 text-emerald-950" : i === 2 ? "bg-sky-400 text-sky-950" : "bg-muted text-muted-foreground";
-                      const projected = r.pj > r.realPj;
-                      return (
-                        <tr key={r.team.id} className="border-t">
-                          <td className="p-2"><span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}>{label}</span></td>
-                          <td className="p-2">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span>{r.team.flag}</span>
-                              <span className="truncate">{r.team.name}</span>
-                              {projected && <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">previsto</Badge>}
-                            </div>
-                          </td>
-                          <td className="text-center p-2 font-bold">{r.pts}</td>
-                          <td className="text-center p-2">{r.pj}</td>
-                          <td className="text-center p-2">{r.v}</td>
-                          <td className="text-center p-2">{r.e}</td>
-                          <td className="text-center p-2">{r.d}</td>
-                          <td className="text-center p-2">{r.sg > 0 ? `+${r.sg}` : r.sg}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <div className="px-3 py-2 border-t text-[10px] text-muted-foreground bg-muted/20">
-                  Os 2 primeiros + melhores 3º colocados se classificam. Esta projeção combina resultados reais com seus palpites.
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
+
 
           {/* Round navigator */}
           {totalRounds > 1 && (
