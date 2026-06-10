@@ -12,20 +12,23 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
 
   async function load() {
-    const [{ data: bets }, { data: profiles }] = await Promise.all([
+    const [{ data: bets }, { data: profiles }, { data: pays }] = await Promise.all([
       supabase.from("bets").select("user_id,points"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
+      supabase.from("payments").select("user_id,mode,status").eq("mode", "points").eq("status", "confirmed"),
     ]);
     if (!bets || !profiles) return;
+    const paidUsers = new Set((pays ?? []).map((p: any) => p.user_id));
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
     const agg: Record<string, { points: number; bets: number }> = {};
     for (const b of bets) {
+      if (!paidUsers.has(b.user_id)) continue;
       agg[b.user_id] ??= { points: 0, bets: 0 };
       agg[b.user_id].points += b.points;
       agg[b.user_id].bets += 1;
     }
-    // include profiles with no bets too
-    for (const p of profiles) agg[p.id] ??= { points: 0, bets: 0 };
+    // include paid profiles even with no bets yet
+    for (const p of profiles) if (paidUsers.has(p.id)) agg[p.id] ??= { points: 0, bets: 0 };
     const arr: Row[] = Object.entries(agg).map(([uid, v]) => ({
       user_id: uid,
       display_name: profMap[uid]?.display_name ?? "Jogador",
@@ -43,6 +46,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       .channel("ranking-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);

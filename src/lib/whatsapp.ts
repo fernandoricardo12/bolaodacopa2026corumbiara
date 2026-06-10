@@ -47,6 +47,8 @@ export function defaultWelcomeMessage(name?: string): string {
     "• Líder do ranking ao fim da Copa leva *80% do bolo + R$ 100 de bônus do administrador*.",
     "• Nos individuais: placar exato leva 80% do jogo; só vencedor divide 60%.",
     "",
+    "⚠️ *Importante:* seus palpites só são *validados após a confirmação do pagamento*. Sem pagamento confirmado, eles não entram no ranking oficial.",
+    "",
     "📱 *Funcionalidades:*",
     "• Ranking atualizado em tempo real",
     "• Acompanhamento de jogos e resultados ao vivo",
