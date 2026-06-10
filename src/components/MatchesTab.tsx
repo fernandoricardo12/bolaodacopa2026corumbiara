@@ -206,22 +206,38 @@ export function MatchesTab({ userId }: { userId: string }) {
 
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
 
-      {/* Section tabs (groups + knockout stages) */}
+      {/* Section tabs (groups + knockout stages, separated) */}
       {sections.length > 0 && (
-        <div className="sticky top-14 z-[5] -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b">
-          <div className="flex gap-1 overflow-x-auto scrollbar-none pb-1">
-            {sections.map(s => (
-              <Button
-                key={s.key}
-                size="sm"
-                variant={activeGroup === s.key ? "default" : "outline"}
-                className="h-8 px-3 text-xs shrink-0"
-                onClick={() => setActiveGroup(s.key)}
-              >{s.label}</Button>
-            ))}
+        <div className="sticky top-14 z-[5] -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b space-y-1.5">
+          <div>
+            <div className="text-[9px] uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-300 mb-1">Grupos</div>
+            <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
+              {sections.filter(s => s.key.startsWith("G-")).map(s => (
+                <Button key={s.key} size="sm"
+                  variant={activeGroup === s.key ? "default" : "outline"}
+                  className="h-7 px-2.5 text-[11px] shrink-0"
+                  onClick={() => setActiveGroup(s.key)}
+                >{s.label}</Button>
+              ))}
+            </div>
           </div>
+          {sections.some(s => !s.key.startsWith("G-")) && (
+            <div>
+              <div className="text-[9px] uppercase tracking-wider font-bold text-amber-700 dark:text-amber-300 mb-1">Mata-mata</div>
+              <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
+                {sections.filter(s => !s.key.startsWith("G-")).map(s => (
+                  <Button key={s.key} size="sm"
+                    variant={activeGroup === s.key ? "default" : "outline"}
+                    className="h-7 px-2.5 text-[11px] shrink-0"
+                    onClick={() => setActiveGroup(s.key)}
+                  >{s.label}</Button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {activeSection && (
         <>
