@@ -105,6 +105,16 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
         <div className="mt-6 rounded-md border border-yellow-400/60 bg-gradient-to-r from-emerald-600/10 via-yellow-400/10 to-emerald-600/10 px-3 py-1.5 text-center text-[11px] leading-tight text-emerald-900 dark:text-yellow-100">
           🏆 <strong>Bolão R$ 50</strong>: 20/15/10/5 pts · líder leva 80% + R$ 100 bônus · 🪙 <strong>Individual R$ 2</strong>: placar exato 80% do jogo (ou vencedor 60%)
         </div>
+
+        <div className="mt-6 relative rounded-xl overflow-hidden shadow border-2 border-yellow-400">
+          <img src={heroCup} alt="Troféu Copa 2026" className="w-full h-20 sm:h-24 object-cover" width={1536} height={768} loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/80 via-emerald-700/40 to-transparent flex items-center px-4">
+            <div className="text-white">
+              <h2 className="text-sm sm:text-lg font-bold drop-shadow">Vamos pra cima, Copa 2026! 🏆</h2>
+              <p className="text-[10px] sm:text-xs text-yellow-200 drop-shadow">Aposte, acompanhe o ranking e dispute prêmios com os amigos.</p>
+            </div>
+          </div>
+        </div>
       </main>
       <Footer />
     </div>
