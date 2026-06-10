@@ -189,31 +189,20 @@ export function MatchesTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      {/* Prize banner */}
-      <Card className="border-4 border-yellow-400 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white shadow-xl overflow-hidden relative">
-        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl animate-pulse" />
-        <CardContent className="p-5 relative space-y-3">
-          <div className="flex items-center gap-3">
-            <Crown className="h-12 w-12 text-yellow-300 drop-shadow shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-200">🏆 Bolão de pontos · Copa 2026</div>
-              <div className="text-xs sm:text-sm text-emerald-50">Inscrição única de <strong className="text-yellow-300">R$ 50,00</strong> · palpite em todos os jogos</div>
-            </div>
+      {/* Prize banner (compact) */}
+      <Card className="border-2 border-yellow-400 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white shadow-md overflow-hidden">
+        <CardContent className="p-2.5 flex items-center gap-2.5">
+          <Crown className="h-7 w-7 text-yellow-300 shrink-0" />
+          <div className="flex-1 min-w-0 leading-tight">
+            <div className="text-[9px] uppercase tracking-wider font-extrabold text-yellow-200">🏆 Prêmio do líder · Copa 2026</div>
+            <div className="text-[10px] text-emerald-50">80% do bolo (R$ {pointsPrize.poolPrize.toFixed(2)}) + R$ {pointsPrize.bonus.toFixed(2)} bônus admin</div>
           </div>
-          <div className="rounded-xl bg-white/10 backdrop-blur border border-white/25 p-3">
-            <div className="text-[10px] uppercase tracking-wider opacity-90 font-bold">Prêmio do líder ao fim da Copa</div>
-            <div className="text-3xl sm:text-4xl font-extrabold tabular-nums drop-shadow text-yellow-300">
-              R$ {prizeValue.toFixed(2)}
-            </div>
-            <div className="text-[11px] opacity-90 mt-1">
-              80% do bolo confirmado (R$ {pointsPrize.poolPrize.toFixed(2)}) + <strong className="text-yellow-200">R$ {pointsPrize.bonus.toFixed(2)} de bônus do administrador</strong>. Dividido em caso de empate.
-            </div>
-          </div>
-          <div className="rounded-lg bg-yellow-300 text-emerald-950 px-3 py-2 text-[11px] sm:text-xs font-bold text-center shadow">
-            💰 PREMIAÇÃO EXTRA DE R$ {pointsPrize.bonus.toFixed(2)} GARANTIDA PELO ADMINISTRADOR! 🎯
+          <div className="text-xl sm:text-2xl font-extrabold tabular-nums text-yellow-300 shrink-0">
+            R$ {prizeValue.toFixed(0)}
           </div>
         </CardContent>
       </Card>
+
 
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
 
