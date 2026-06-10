@@ -13,7 +13,8 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, ClipboardCheck, BookOpen, GitCompare } from "lucide-react";
+import { LogOut, Trophy, ListChecks, BarChart3, Wallet, Users, Swords, Coins, ClipboardCheck, BookOpen, GitCompare, Sparkles } from "lucide-react";
+import { SimulatorTab } from "@/components/SimulatorTab";
 import heroCup from "@/assets/hero-cup.jpg";
 import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
@@ -88,7 +89,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex sm:grid sm:grid-cols-9 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+          <TabsList className="flex sm:grid sm:grid-cols-10 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
             <TabsTrigger value="bolao" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🏆 Bolão</span></TabsTrigger>
             <TabsTrigger value="payment" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-emerald-500 data-[state=active]:text-emerald-950"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">💳 Pagar</span></TabsTrigger>
             <TabsTrigger value="individual" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Coins className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Individual</span></TabsTrigger>
@@ -96,6 +97,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
             <TabsTrigger value="groups" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Users className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Grupos</span></TabsTrigger>
             <TabsTrigger value="compare" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><GitCompare className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Comparar</span></TabsTrigger>
             <TabsTrigger value="bracket" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Swords className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Mata-mata</span></TabsTrigger>
+            <TabsTrigger value="simulator" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><Sparkles className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">✨ Simulador</span></TabsTrigger>
             <TabsTrigger value="ranking" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Ranking</span></TabsTrigger>
             <TabsTrigger value="rules" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BookOpen className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Regras</span></TabsTrigger>
           </TabsList>
@@ -105,6 +107,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
           <TabsContent value="groups">{activeTab === "groups" && <GroupsTab />}</TabsContent>
           <TabsContent value="compare">{activeTab === "compare" && <GroupsCompareTab userId={userId} />}</TabsContent>
           <TabsContent value="bracket">{activeTab === "bracket" && <KnockoutTab />}</TabsContent>
+          <TabsContent value="simulator">{activeTab === "simulator" && <SimulatorTab userId={userId} />}</TabsContent>
           <TabsContent value="ranking">{activeTab === "ranking" && <RankingTab currentUserId={userId} />}</TabsContent>
           <TabsContent value="payment">{activeTab === "payment" && <PaymentTab userId={userId} email={email} />}</TabsContent>
           <TabsContent value="rules">{activeTab === "rules" && <RulesTab />}</TabsContent>
