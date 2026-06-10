@@ -189,108 +189,60 @@ export function MatchesTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      {/* Prize banner */}
-      <Card className="border-4 border-yellow-400 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white shadow-xl overflow-hidden relative">
-        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl animate-pulse" />
-        <CardContent className="p-5 relative space-y-3">
-          <div className="flex items-center gap-3">
-            <Crown className="h-12 w-12 text-yellow-300 drop-shadow shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-200">🏆 Bolão de pontos · Copa 2026</div>
-              <div className="text-xs sm:text-sm text-emerald-50">Inscrição única de <strong className="text-yellow-300">R$ 50,00</strong> · palpite em todos os jogos</div>
-            </div>
+      {/* Prize banner (compact) */}
+      <Card className="border-2 border-yellow-400 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white shadow-md overflow-hidden">
+        <CardContent className="p-2.5 flex items-center gap-2.5">
+          <Crown className="h-7 w-7 text-yellow-300 shrink-0" />
+          <div className="flex-1 min-w-0 leading-tight">
+            <div className="text-[9px] uppercase tracking-wider font-extrabold text-yellow-200">🏆 Prêmio do líder · Copa 2026</div>
+            <div className="text-[10px] text-emerald-50">80% do bolo (R$ {pointsPrize.poolPrize.toFixed(2)}) + R$ {pointsPrize.bonus.toFixed(2)} bônus admin</div>
           </div>
-          <div className="rounded-xl bg-white/10 backdrop-blur border border-white/25 p-3">
-            <div className="text-[10px] uppercase tracking-wider opacity-90 font-bold">Prêmio do líder ao fim da Copa</div>
-            <div className="text-3xl sm:text-4xl font-extrabold tabular-nums drop-shadow text-yellow-300">
-              R$ {prizeValue.toFixed(2)}
-            </div>
-            <div className="text-[11px] opacity-90 mt-1">
-              80% do bolo confirmado (R$ {pointsPrize.poolPrize.toFixed(2)}) + <strong className="text-yellow-200">R$ {pointsPrize.bonus.toFixed(2)} de bônus do administrador</strong>. Dividido em caso de empate.
-            </div>
-          </div>
-          <div className="rounded-lg bg-yellow-300 text-emerald-950 px-3 py-2 text-[11px] sm:text-xs font-bold text-center shadow">
-            💰 PREMIAÇÃO EXTRA DE R$ {pointsPrize.bonus.toFixed(2)} GARANTIDA PELO ADMINISTRADOR! 🎯
+          <div className="text-xl sm:text-2xl font-extrabold tabular-nums text-yellow-300 shrink-0">
+            R$ {prizeValue.toFixed(0)}
           </div>
         </CardContent>
       </Card>
 
+
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
 
-      {/* Section tabs (groups + knockout stages) */}
+      {/* Section tabs (groups + knockout stages, separated) */}
       {sections.length > 0 && (
-        <div className="sticky top-14 z-[5] -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b">
-          <div className="flex gap-1 overflow-x-auto scrollbar-none pb-1">
-            {sections.map(s => (
-              <Button
-                key={s.key}
-                size="sm"
-                variant={activeGroup === s.key ? "default" : "outline"}
-                className="h-8 px-3 text-xs shrink-0"
-                onClick={() => setActiveGroup(s.key)}
-              >{s.label}</Button>
-            ))}
+        <div className="sticky top-14 z-[5] -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b space-y-1.5">
+          <div>
+            <div className="text-[9px] uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-300 mb-1">Grupos</div>
+            <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
+              {sections.filter(s => s.key.startsWith("G-")).map(s => (
+                <Button key={s.key} size="sm"
+                  variant={activeGroup === s.key ? "default" : "outline"}
+                  className="h-7 px-2.5 text-[11px] shrink-0"
+                  onClick={() => setActiveGroup(s.key)}
+                >{s.label}</Button>
+              ))}
+            </div>
           </div>
+          {sections.some(s => !s.key.startsWith("G-")) && (
+            <div>
+              <div className="text-[9px] uppercase tracking-wider font-bold text-amber-700 dark:text-amber-300 mb-1">Mata-mata</div>
+              <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
+                {sections.filter(s => !s.key.startsWith("G-")).map(s => (
+                  <Button key={s.key} size="sm"
+                    variant={activeGroup === s.key ? "default" : "outline"}
+                    className="h-7 px-2.5 text-[11px] shrink-0"
+                    onClick={() => setActiveGroup(s.key)}
+                  >{s.label}</Button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
+
       {activeSection && (
         <>
-          {/* Standings preview (only for group sections) */}
-          {activeSection.key.startsWith("G-") && standings.length > 0 && (
-            <Card className="border-emerald-500/30">
-              <CardContent className="p-0">
-                <div className="px-3 py-2 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-                  <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    📊 Como ficaria o {activeSection.label} com seus palpites
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">{filledMatches}/{totalMatches} preenchidos</div>
-                </div>
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/40 text-muted-foreground">
-                    <tr>
-                      <th className="text-left p-2 font-medium">#</th>
-                      <th className="text-left p-2 font-medium">Time</th>
-                      <th className="p-2 font-medium">P</th>
-                      <th className="p-2 font-medium">J</th>
-                      <th className="p-2 font-medium">V</th>
-                      <th className="p-2 font-medium">E</th>
-                      <th className="p-2 font-medium">D</th>
-                      <th className="p-2 font-medium">SG</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {standings.map((r, i) => {
-                      const label = i === 0 ? "1º" : i === 1 ? "2º" : i === 2 ? "3º" : "4º";
-                      const color = i === 0 ? "bg-yellow-400 text-yellow-950" : i === 1 ? "bg-emerald-400 text-emerald-950" : i === 2 ? "bg-sky-400 text-sky-950" : "bg-muted text-muted-foreground";
-                      const projected = r.pj > r.realPj;
-                      return (
-                        <tr key={r.team.id} className="border-t">
-                          <td className="p-2"><span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}>{label}</span></td>
-                          <td className="p-2">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span>{r.team.flag}</span>
-                              <span className="truncate">{r.team.name}</span>
-                              {projected && <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">previsto</Badge>}
-                            </div>
-                          </td>
-                          <td className="text-center p-2 font-bold">{r.pts}</td>
-                          <td className="text-center p-2">{r.pj}</td>
-                          <td className="text-center p-2">{r.v}</td>
-                          <td className="text-center p-2">{r.e}</td>
-                          <td className="text-center p-2">{r.d}</td>
-                          <td className="text-center p-2">{r.sg > 0 ? `+${r.sg}` : r.sg}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <div className="px-3 py-2 border-t text-[10px] text-muted-foreground bg-muted/20">
-                  Os 2 primeiros + melhores 3º colocados se classificam. Esta projeção combina resultados reais com seus palpites.
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
+
 
           {/* Round navigator */}
           {totalRounds > 1 && (
@@ -375,6 +327,62 @@ export function MatchesTab({ userId }: { userId: string }) {
               );
             })}
           </div>
+
+          {/* Standings: projected from bets (below the matches input) */}
+          {activeSection.key.startsWith("G-") && standings.length > 0 && (
+            <Card className="border-emerald-500/30">
+              <CardContent className="p-0">
+                <div className="px-3 py-2 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+                  <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    📊 Como ficaria o {activeSection.label} com seus palpites
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{filledMatches}/{totalMatches} preenchidos</div>
+                </div>
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-2 font-medium">#</th>
+                      <th className="text-left p-2 font-medium">Time</th>
+                      <th className="p-2 font-medium">P</th>
+                      <th className="p-2 font-medium">J</th>
+                      <th className="p-2 font-medium">V</th>
+                      <th className="p-2 font-medium">E</th>
+                      <th className="p-2 font-medium">D</th>
+                      <th className="p-2 font-medium">SG</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {standings.map((r, i) => {
+                      const label = i === 0 ? "1º" : i === 1 ? "2º" : i === 2 ? "3º" : "4º";
+                      const color = i === 0 ? "bg-yellow-400 text-yellow-950" : i === 1 ? "bg-emerald-400 text-emerald-950" : i === 2 ? "bg-sky-400 text-sky-950" : "bg-muted text-muted-foreground";
+                      const projected = r.pj > r.realPj;
+                      return (
+                        <tr key={r.team.id} className="border-t">
+                          <td className="p-2"><span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}>{label}</span></td>
+                          <td className="p-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span>{r.team.flag}</span>
+                              <span className="truncate">{r.team.name}</span>
+                              {projected && <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">previsto</Badge>}
+                            </div>
+                          </td>
+                          <td className="text-center p-2 font-bold">{r.pts}</td>
+                          <td className="text-center p-2">{r.pj}</td>
+                          <td className="text-center p-2">{r.v}</td>
+                          <td className="text-center p-2">{r.e}</td>
+                          <td className="text-center p-2">{r.d}</td>
+                          <td className="text-center p-2">{r.sg > 0 ? `+${r.sg}` : r.sg}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="px-3 py-2 border-t text-[10px] text-muted-foreground bg-muted/20">
+                  Os 2 primeiros + melhores 3º colocados se classificam. Esta projeção combina resultados reais com seus palpites.
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Real standings (only finished matches) */}
           {activeSection.key.startsWith("G-") && realStandings.length > 0 && (
