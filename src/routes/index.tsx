@@ -75,19 +75,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 pt-4">
-        <div className="relative rounded-2xl overflow-hidden shadow-lg border-2 border-yellow-400">
-          <img src={heroCup} alt="Troféu Copa 2026" className="w-full h-32 sm:h-48 object-cover" width={1536} height={768} />
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/80 via-emerald-700/40 to-transparent flex items-center px-5">
-            <div className="text-white">
-              <h1 className="text-xl sm:text-3xl font-bold drop-shadow">Vamos pra cima, Copa 2026! 🏆</h1>
-              <p className="text-xs sm:text-sm text-yellow-200 drop-shadow">Aposte, acompanhe o ranking e dispute prêmios com os amigos.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <main className="max-w-4xl mx-auto px-4 py-4">
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-5 sm:grid-cols-10 w-full gap-1 p-1 h-auto">
             <TabsTrigger value="bolao" className="flex-col sm:flex-row px-1 sm:px-3 py-1.5 h-auto data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">🏆 Bolão</span></TabsTrigger>
