@@ -113,9 +113,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
           <TabsContent value="rules">{activeTab === "rules" && <RulesTab />}</TabsContent>
 
         </Tabs>
-        <div className="text-center text-xs text-muted-foreground mt-8 space-y-1">
-          <p><strong>🏆 Bolão de pontos (R$ 50 — inscrição única):</strong> 20 placar exato · 15 vencedor + 1 placar · 10 só vencedor · 5 só um placar — líder leva <strong>80% do acumulado + R$ 100 de bônus do administrador</strong> ao fim da Copa.</p>
-          <p className="opacity-80"><strong>Palpite individual (R$ 2/palpite):</strong> modalidade secundária — placar exato leva 80% do bolo do jogo; se ninguém cravar, quem acertou só o vencedor divide 60%. O prêmio não acumula entre jogos.</p>
+        <div className="mt-6 rounded-md border border-yellow-400/60 bg-gradient-to-r from-emerald-600/10 via-yellow-400/10 to-emerald-600/10 px-3 py-1.5 text-center text-[11px] leading-tight text-emerald-900 dark:text-yellow-100">
+          🏆 <strong>Bolão R$ 50</strong>: 20/15/10/5 pts · líder leva 80% + R$ 100 bônus · 🪙 <strong>Individual R$ 2</strong>: placar exato 80% do jogo (ou vencedor 60%)
         </div>
       </main>
       <Footer />
