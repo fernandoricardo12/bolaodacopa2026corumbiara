@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Trophy, CheckCircle2, XCircle, Clock, Coins, Target } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
+import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 
 type Team = { id: string; name: string; code: string };
 type Match = {
@@ -140,6 +141,10 @@ export function MyBetsTab({ userId }: { userId: string }) {
           </CardContent>
         </Card>
       )}
+
+      <LiveLeaderboard currentUserId={userId} limit={5} />
+
+
 
       <Card>
         <CardHeader className="pb-2">
