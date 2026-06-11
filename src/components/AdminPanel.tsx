@@ -107,7 +107,7 @@ export function AdminPanel() {
       .sort((a, b) => b.pontos - a.pontos || b.pontosPendentes - a.pontosPendentes || b.palpites - a.palpites || a.user.localeCompare(b.user));
   }, [bets, matches, payments, profiles]);
 
-  const liderPontos = rankingPontos[0];
+  const liderPontos = rankingPontos.find((r) => r.status === "confirmed" && r.pontos > 0) ?? rankingPontos.find((r) => r.status === "confirmed");
 
   const ganhadoresIndividual = useMemo(
     () => ibets
@@ -392,9 +392,12 @@ export function AdminPanel() {
             <CardContent>
               {rankingPontos.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados ainda.</p> : (
                 <>
+                  <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-900 dark:text-amber-100">
+                    Ranking oficial soma apenas jogos com placar válido e somente participantes com pagamento do bolão confirmado. Pagamentos pendentes aparecem separados.
+                  </div>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={rankingPontos.slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20 }}>
+                      <BarChart data={rankingPontos.filter((r) => r.status === "confirmed").slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis type="number" />
                         <YAxis type="category" dataKey="user" width={110} tick={{ fontSize: 12 }} />
@@ -405,9 +408,20 @@ export function AdminPanel() {
                   </div>
                   <div className="mt-3 divide-y border rounded">
                     {rankingPontos.map((r, i) => (
-                      <div key={r.user_id} className={`flex justify-between items-center p-2 text-sm ${i === 0 ? "bg-yellow-50 font-bold" : ""}`}>
-                        <span>{i + 1}º {i === 0 ? "👑 " : ""}{r.user}</span>
-                        <span className="tabular-nums">{r.pontos} pts</span>
+                      <div key={r.user_id} className={`flex justify-between items-center gap-2 p-2 text-sm ${i === 0 && r.status === "confirmed" ? "bg-yellow-50 font-bold" : ""}`}>
+                        <div className="min-w-0">
+                          <span className="truncate block">{r.status === "confirmed" ? `${i + 1}º ` : "— "}{i === 0 && r.status === "confirmed" ? "👑 " : ""}{r.user}</span>
+                          <div className="text-[10px] text-muted-foreground">
+                            {r.palpites} palpite(s) · {r.jogosPontuados} jogo(s) pontuando
+                          </div>
+                        </div>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <Badge variant={r.status === "confirmed" ? "secondary" : r.status === "pending" ? "outline" : "destructive"} className="text-[10px]">
+                            {r.status === "confirmed" ? "confirmado" : r.status === "pending" ? "pendente" : "sem pagamento"}
+                          </Badge>
+                          <span className="tabular-nums font-bold">{r.pontos} pts</span>
+                          {r.pontosPendentes > 0 && <span className="text-[10px] text-muted-foreground tabular-nums">({r.pontosPendentes} pend.)</span>}
+                        </span>
                       </div>
                     ))}
                   </div>
