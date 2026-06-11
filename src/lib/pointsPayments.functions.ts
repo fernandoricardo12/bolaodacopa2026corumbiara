@@ -8,6 +8,36 @@ export type PointsPaymentStatus = {
   avatar_url: string | null;
 };
 
+export type PointsRankingData = {
+  payments: PointsPaymentStatus[];
+  bets: { user_id: string; match_id: string; home_score: number; away_score: number; points: number }[];
+  matches: { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null }[];
+  teams: { id: string; name: string; code: string }[];
+  profiles: { id: string; display_name: string; avatar_url: string | null }[];
+};
+
+function summarizePointPayments(payments: { user_id: string; status: string }[], profiles: { id: string; display_name: string | null; avatar_url: string | null }[]) {
+  const byUser = new Map<string, "confirmed" | "pending">();
+  for (const payment of payments) {
+    if (payment.status !== "confirmed" && payment.status !== "pending") continue;
+    const current = byUser.get(payment.user_id);
+    if (current === "confirmed") continue;
+    byUser.set(payment.user_id, payment.status === "confirmed" ? "confirmed" : "pending");
+  }
+
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+
+  return Array.from(byUser.keys()).map((userId) => {
+    const profile = profileById.get(userId);
+    return {
+      user_id: userId,
+      status: byUser.get(userId)!,
+      display_name: profile?.display_name ?? null,
+      avatar_url: profile?.avatar_url ?? null,
+    } satisfies PointsPaymentStatus;
+  });
+}
+
 export const getAllPointsPaymentStatuses = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
@@ -22,30 +52,37 @@ export const getAllPointsPaymentStatuses = createServerFn({ method: "GET" })
 
     if (error) throw new Error(error.message);
 
-    const byUser = new Map<string, "confirmed" | "pending">();
-    for (const payment of data ?? []) {
-      if (payment.status !== "confirmed" && payment.status !== "pending") continue;
-      const current = byUser.get(payment.user_id);
-      if (current === "confirmed") continue;
-      byUser.set(payment.user_id, payment.status === "confirmed" ? "confirmed" : "pending");
-    }
-
-    const userIds = Array.from(byUser.keys());
+    const userIds = Array.from(new Set((data ?? []).map((payment) => payment.user_id)));
     const { data: profiles, error: profilesError } = userIds.length
       ? await supabaseAdmin.from("profiles").select("id,display_name,avatar_url").in("id", userIds)
       : { data: [], error: null };
 
     if (profilesError) throw new Error(profilesError.message);
 
-    const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+    return summarizePointPayments(data ?? [], profiles ?? []);
+  });
 
-    return userIds.map((userId) => {
-      const profile = profileById.get(userId);
-      return {
-        user_id: userId,
-        status: byUser.get(userId)!,
-        display_name: profile?.display_name ?? null,
-        avatar_url: profile?.avatar_url ?? null,
-      } satisfies PointsPaymentStatus;
-    });
+export const getPointsRankingData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [paymentsRes, betsRes, matchesRes, teamsRes, profilesRes] = await Promise.all([
+      supabaseAdmin.from("payments").select("user_id,status,created_at").eq("mode", "points").in("status", ["confirmed", "pending"]).order("created_at", { ascending: false }),
+      supabaseAdmin.from("bets").select("user_id,match_id,home_score,away_score,points"),
+      supabaseAdmin.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail"),
+      supabaseAdmin.from("teams").select("id,name,code"),
+      supabaseAdmin.from("profiles").select("id,display_name,avatar_url"),
+    ]);
+
+    const firstError = paymentsRes.error ?? betsRes.error ?? matchesRes.error ?? teamsRes.error ?? profilesRes.error;
+    if (firstError) throw new Error(firstError.message);
+
+    return {
+      payments: summarizePointPayments(paymentsRes.data ?? [], profilesRes.data ?? []),
+      bets: betsRes.data ?? [],
+      matches: matchesRes.data ?? [],
+      teams: teamsRes.data ?? [],
+      profiles: profilesRes.data ?? [],
+    } satisfies PointsRankingData;
   });
