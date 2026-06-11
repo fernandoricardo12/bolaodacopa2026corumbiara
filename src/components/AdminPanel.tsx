@@ -227,6 +227,21 @@ export function AdminPanel() {
     else { toast.success(m.featured ? "Destaque removido" : "Jogo em destaque! 🔥"); load(); }
   }
 
+  async function updateBonus(m: Match, value: string) {
+    const num = value.trim() === "" ? 0 : Number(value.replace(",", "."));
+    if (!Number.isFinite(num) || num < 0) return toast.error("Valor inválido");
+    if (Number(m.bonus_prize ?? 0) === num) return;
+    const { error } = await supabase.from("matches").update({ bonus_prize: num }).eq("id", m.id);
+    if (error) toast.error(error.message); else { toast.success(`Bônus extra: R$ ${num.toFixed(2)}`); load(); }
+  }
+
+  async function toggleAllowTwo(m: Match) {
+    const next = !(m.allow_two_bets ?? true);
+    const { error } = await supabase.from("matches").update({ allow_two_bets: next }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else { toast.success(next ? "Palpites de R$ 2 liberados" : "Apenas R$ 5 neste jogo"); load(); }
+  }
+
   async function exportImage() {
     if (!reportRef.current) return;
     toast.loading("Gerando imagem…", { id: "exp" });
