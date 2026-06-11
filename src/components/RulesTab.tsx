@@ -43,12 +43,13 @@ export function RulesTab() {
             </p>
           </div>
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 p-3">
-            <div className="flex items-center gap-2 font-semibold">
-              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 2 por palpite</Badge>
+            <div className="flex items-center gap-2 font-semibold flex-wrap">
+              <Coins className="h-4 w-4" /> Palpite individual
+              <Badge className="bg-yellow-500 text-yellow-950">R$ 2 ou R$ 5 por palpite</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
-              Cada palpite avulso custa <strong>R$ 2</strong>. Você pode fazer
-              <strong> quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Cada jogo tem o seu próprio bolo —
+              Disponível <strong>apenas em jogos marcados como destaque</strong> pelo administrador. Você escolhe se quer apostar <strong>R$ 2</strong> ou <strong>R$ 5</strong> em cada palpite,
+              e pode fazer <strong>quantos palpites quiser</strong> (inclusive vários no mesmo jogo). Cada jogo tem o seu próprio bolo —
               quem acertar divide o prêmio daquela partida.
             </p>
           </div>
@@ -135,20 +136,29 @@ export function RulesTab() {
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>uma pessoa</strong> cravar o placar, ela leva <strong>80% sozinha</strong>.
-              Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
+              O bolo é a soma de <strong>todas as apostas pagas</strong> (R$ 2 e R$ 5). Os 80% são divididos entre quem cravou,
+              <strong> proporcional ao valor apostado</strong> — quem apostou R$ 5 recebe 2,5× mais do que quem apostou R$ 2.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-3">
             <p className="font-semibold">🏆 Acertou só o vencedor → 60% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor da partida divide <strong>60% do bolo</strong> em partes iguais.
+              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor divide <strong>60% do bolo</strong>,
+              também <strong>proporcional ao valor apostado</strong>.
+            </p>
+          </div>
+          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+            <p className="font-semibold">⭐ Bônus extra → exclusivo para apostas de R$ 5</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Quando o admin coloca um <strong>bônus extra</strong> num jogo destaque (ex.: R$ 50), esse valor é dividido
+              <strong> apenas entre quem apostou R$ 5 e cravou o placar exato</strong>. Quem cravou apostando R$ 2 recebe a parte
+              proporcional do bolo normal, mas <strong>não</strong> recebe o bônus.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
             <p className="font-semibold">🚫 Ninguém acertou nem o vencedor</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Caso ninguém acerte placar exato nem vencedor (ex.: empate inesperado), <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
+              Caso ninguém acerte placar exato nem vencedor, <strong>não há prêmio</strong> neste jogo — e o prêmio <strong>não acumula</strong> para a próxima partida.
             </p>
           </div>
         </CardContent>
@@ -167,9 +177,8 @@ export function RulesTab() {
             <Badge className="ml-1 bg-yellow-500 text-yellow-950">Jogo Top da Rodada</Badge>.
           </p>
           <p className="text-muted-foreground text-xs">
-            Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
-            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 2 por palpite, só paga quem crava o placar exato (80% do bolo),
-            e tudo entra na mesma somatória do palpite individual.
+            <strong>Só os jogos destaque aceitam palpites individuais.</strong> Em cada um deles você escolhe entre <strong>R$ 2</strong> ou <strong>R$ 5</strong> por palpite —
+            quem apostar R$ 5 e cravar o placar exato leva ainda o <strong>bônus extra</strong> definido pelo admin (ex.: R$ 50).
           </p>
         </CardContent>
       </Card>
@@ -201,7 +210,7 @@ export function RulesTab() {
               <p className="font-semibold">Como pagar — passo a passo</p>
               <ol className="text-muted-foreground text-xs list-decimal list-inside space-y-1 mt-1">
                 <li>Vá na aba <strong>Pagar</strong> e copie a chave PIX.</li>
-                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 2 por palpite).</li>
+                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 do bolão, ou R$ 2 / R$ 5 por palpite individual).</li>
                 <li>Clique em <strong>"1. Registrar pagamento"</strong> informando valor e observação.</li>
                 <li>Clique em <strong>"2. Enviar comprovante"</strong> para abrir o WhatsApp e anexar o print.</li>
                 <li>Aguarde o administrador confirmar — o status muda para <Badge className="bg-emerald-600 text-[10px]">Confirmado</Badge>.</li>
@@ -261,7 +270,7 @@ export function RulesTab() {
             <AccordionItem value="quantos">
               <AccordionTrigger>Quantos palpites posso fazer por jogo?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong>: quantos você quiser — cada um custa R$ 2 e concorre separadamente.
+                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong> (só em jogos destaque): quantos você quiser — cada um custa R$ 2 ou R$ 5 e concorre separadamente.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="desempate">
@@ -285,7 +294,7 @@ export function RulesTab() {
         <CardContent className="space-y-2 text-sm">
           {[
             { icon: <Target className="h-4 w-4" />, name: "Bolão", desc: "Faça 1 palpite por jogo. Pontuação acumulada vale para o ranking geral (R$ 50)." },
-            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Faça quantos palpites quiser. Cada palpite é R$ 2 e concorre ao bolo daquele jogo. Jogos em destaque aparecem no topo." },
+            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Disponível apenas em jogos destaque. Aposte R$ 2 ou R$ 5 por palpite e concorra ao bolo daquele jogo (bônus extra só para apostas de R$ 5 que cravarem o placar)." },
             { icon: <CheckCircle2 className="h-4 w-4" />, name: "Minhas", desc: "Veja, edite ou exclua todos os seus palpites em um só lugar (enquanto o jogo não começou)." },
             { icon: <Users className="h-4 w-4" />, name: "Grupos", desc: "Acompanhe a fase de grupos da Copa, classificação e jogos por grupo." },
             { icon: <Trophy className="h-4 w-4" />, name: "Mata-mata", desc: "Veja o chaveamento das oitavas em diante e palpite nos classificados." },
