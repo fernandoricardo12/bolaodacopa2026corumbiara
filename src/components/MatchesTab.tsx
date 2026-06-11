@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Lock, Trophy, Crown, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, Clock, Lock, Trophy, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 import { useServerFn } from "@tanstack/react-start";
 import { getPointsPrizeSummary } from "@/lib/prizes.functions";
@@ -29,6 +29,7 @@ type Match = {
   live_status_detail?: string | null;
 };
 type Bet = { match_id: string; home_score: number; away_score: number; points: number };
+type PointsPayment = { status: string };
 
 type Standing = {
   team: Team;
@@ -57,6 +58,7 @@ export function MatchesTab({ userId }: { userId: string }) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [bets, setBets] = useState<Record<string, Bet>>({});
+  const [pointsPayments, setPointsPayments] = useState<PointsPayment[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [pointsPrize, setPointsPrize] = useState(() => calculatePointsPrize(0));
   const [activeGroup, setActiveGroup] = useState<string>("");
@@ -64,15 +66,17 @@ export function MatchesTab({ userId }: { userId: string }) {
   const fetchPointsPrize = useServerFn(getPointsPrizeSummary);
 
   async function load() {
-    const [{ data: ts }, { data: ms }, { data: bs }, prize] = await Promise.all([
+    const [{ data: ts }, { data: ms }, { data: bs }, { data: pay }, prize] = await Promise.all([
       supabase.from("teams").select("id,name,flag,code,group_name"),
       supabase.from("matches").select("*").order("kickoff"),
       supabase.from("bets").select("match_id,home_score,away_score,points").eq("user_id", userId),
+      supabase.from("payments").select("status").eq("user_id", userId).eq("mode", "points"),
       fetchPointsPrize(),
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t as Team])));
     if (ms) setMatches((ms as Match[]).filter((m) => !m.is_friendly));
     if (bs) setBets(Object.fromEntries(bs.map((b) => [b.match_id, b as Bet])));
+    if (pay) setPointsPayments(pay as PointsPayment[]);
     setPointsPrize(prize);
   }
 
@@ -175,6 +179,9 @@ export function MatchesTab({ userId }: { userId: string }) {
   }, [activeSection, teams]);
 
   const prizeValue = pointsPrize.finalPrize;
+  const hasPointBets = Object.keys(bets).length > 0;
+  const pointsConfirmed = pointsPayments.some((p) => p.status === "confirmed");
+  const pointsPending = pointsPayments.some((p) => p.status === "pending");
 
   async function saveBet(matchId: string) {
     const d = drafts[matchId];
@@ -215,6 +222,20 @@ export function MatchesTab({ userId }: { userId: string }) {
           </div>
         </CardContent>
       </Card>
+
+      {hasPointBets && !pointsConfirmed && (
+        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+          <CardContent className="p-3 flex gap-2 text-xs text-amber-900 dark:text-amber-100">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <div>
+              <strong>{pointsPending ? "Pagamento em análise." : "Pagamento do bolão pendente."}</strong>{" "}
+              {pointsPending
+                ? "Seus palpites já foram registrados, mas seus pontos só entram no ranking após confirmação do administrador."
+                : "Você já registrou palpite(s), mas ainda precisa registrar e enviar o pagamento do bolão de pontos para entrar no ranking."}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
 
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
