@@ -74,21 +74,25 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
 
   const { rows, currentUserHasBets, currentUserPaymentStatus } = useMemo(() => {
     const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
-    const pendingUsers = new Set(payments.filter((p) => p.status === "pending").map((p) => p.user_id));
+    const pendingUsers = new Set(
+      payments.filter((p) => p.status === "pending" && !paidUsers.has(p.user_id)).map((p) => p.user_id)
+    );
     const agg: Record<string, { points: number; bets: number }> = {};
     for (const b of bets) {
       agg[b.user_id] ??= { points: 0, bets: 0 };
       agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? b.points || 0 : 0;
       agg[b.user_id].bets += 1;
     }
-    const arr: Row[] = Object.entries(agg).map(([uid, v]) => ({
-      user_id: uid,
-      display_name: profiles[uid]?.display_name ?? "Jogador",
-      avatar_url: profiles[uid]?.avatar_url ?? null,
-      points: v.points,
-      bets: v.bets,
-      paid: paidUsers.has(uid),
-    }));
+    const arr: Row[] = Object.entries(agg)
+      .filter(([uid, v]) => v.bets > 0 && (paidUsers.has(uid) || pendingUsers.has(uid)))
+      .map(([uid, v]) => ({
+        user_id: uid,
+        display_name: profiles[uid]?.display_name ?? "Jogador",
+        avatar_url: profiles[uid]?.avatar_url ?? null,
+        points: v.points,
+        bets: v.bets,
+        paid: paidUsers.has(uid),
+      }));
     arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || b.bets - a.bets);
     const hasBets = bets.some((b) => b.user_id === currentUserId);
     const status: "confirmed" | "pending" | "none" = paidUsers.has(currentUserId)
@@ -98,6 +102,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         : "none";
     return { rows: arr, currentUserHasBets: hasBets, currentUserPaymentStatus: status };
   }, [bets, matches, profiles, payments, currentUserId]);
+
 
   const betsByUser = useMemo(() => {
     const map: Record<string, Bet[]> = {};
