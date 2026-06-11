@@ -105,7 +105,7 @@ export function ReminderBetsTab() {
           </div>
           <p className="text-xs text-amber-900/80 dark:text-amber-200/80">
             Lista de participantes do Bolão de Pontos que ainda não palpitaram nos jogos que começam dentro da janela escolhida.
-            Os palpites fecham 1h antes do jogo — avise com antecedência.
+            Os palpites fecham 10 minutos antes do jogo — avise com antecedência.
           </p>
           <div className="flex items-end gap-2 pt-1">
             <div>
