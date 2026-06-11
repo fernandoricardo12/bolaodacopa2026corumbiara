@@ -482,8 +482,8 @@ export function AdminPanel() {
           <CardContent className="p-3 text-xs flex items-start gap-2">
             <Flame className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
             <div>
-              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para destacá-los no topo da aba <strong>Individual</strong>.
-              Eles continuam com as mesmas regras (R$ 2 por palpite — placar exato 80%, só vencedor 60% se ninguém cravar) e entram normalmente na somatória dos palpites individuais — o destaque serve apenas para impulsionar e atrair mais apostas.
+              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para liberá-los na aba <strong>Individual</strong>. Só jogos destaque aceitam palpites individuais (R$ 2 ou R$ 5 por palpite).
+              Use o campo <strong>Bônus extra</strong> para adicionar prêmio (ex.: R$ 50) — esse bônus é pago apenas a quem apostou <strong>R$ 5</strong> e cravou o placar exato.
             </div>
           </CardContent>
         </Card>
