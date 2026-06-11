@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Trophy, Medal, ChevronDown, ChevronRight } from "lucide-react";
 import podium from "@/assets/podium.jpg";
 import { HighlightsSection } from "@/components/HighlightsSection";
+import { getAllPointsPaymentStatuses, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Bet = { user_id: string; match_id: string; home_score: number; away_score: number; points: number };
 type Match = { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
 type Team = { id: string; name: string; code: string };
 type Profile = { id: string; display_name: string; avatar_url: string | null };
-type PointsPayment = { user_id: string; status: string };
 
 type Row = {
   user_id: string;
@@ -42,8 +43,9 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [matches, setMatches] = useState<Record<string, Match>>({});
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [payments, setPayments] = useState<PointsPayment[]>([]);
+  const [payments, setPayments] = useState<PointsPaymentStatus[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const fetchPayments = useServerFn(getAllPointsPaymentStatuses);
 
   async function load() {
     const [b, m, t, pr, pay] = await Promise.all([
@@ -51,13 +53,13 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       supabase.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail"),
       supabase.from("teams").select("id,name,code"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
-      supabase.from("payments").select("user_id,status").eq("mode", "points"),
+      fetchPayments(),
     ]);
     if (b.data) setBets(b.data as Bet[]);
     if (m.data) setMatches(Object.fromEntries((m.data as Match[]).map((x) => [x.id, x])));
     if (t.data) setTeams(Object.fromEntries((t.data as Team[]).map((x) => [x.id, x])));
     if (pr.data) setProfiles(Object.fromEntries((pr.data as Profile[]).map((x) => [x.id, x])));
-    if (pay.data) setPayments(pay.data as PointsPayment[]);
+    setPayments(pay as PointsPaymentStatus[]);
   }
 
   useEffect(() => {
