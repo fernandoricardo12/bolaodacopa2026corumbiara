@@ -238,6 +238,10 @@ export function MatchesTab({ userId }: { userId: string }) {
         </Card>
       )}
 
+      <LiveLeaderboard currentUserId={userId} limit={5} />
+
+
+
 
       {matches.length === 0 && <p className="text-center text-muted-foreground py-12">Nenhum jogo cadastrado ainda.</p>}
 
