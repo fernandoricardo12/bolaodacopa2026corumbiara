@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Sincronização automática usando a API pública da ESPN (sem chave).
 // Casa pelos códigos FIFA das seleções + data do jogo (janela de 36h).
@@ -28,6 +27,8 @@ export const Route = createFileRoute("/api/public/sync-scores-auto")({
 
 async function handle() {
   try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     // 1) Busca placares ao vivo na ESPN (Copa + amistosos)
     const events: any[] = [];
     for (const url of ESPN_URLS) {

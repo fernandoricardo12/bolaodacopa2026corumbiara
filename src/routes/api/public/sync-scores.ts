@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const RAPIDAPI_HOST = "free-api-live-football-data.p.rapidapi.com";
 
@@ -33,6 +32,7 @@ export const Route = createFileRoute("/api/public/sync-scores")({
 });
 
 async function handle() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const apiKey = process.env.RAPIDAPI_FOOTBALL_KEY;
   if (!apiKey) return new Response(JSON.stringify({ error: "missing_key" }), { status: 500 });
 

@@ -24,6 +24,9 @@ type Match = {
   away_score: number | null;
   finished: boolean;
   is_friendly?: boolean;
+  live_clock?: string | null;
+  live_period?: number | null;
+  live_status_detail?: string | null;
 };
 type Bet = { match_id: string; home_score: number; away_score: number; points: number };
 
@@ -39,6 +42,16 @@ const STAGE_LABEL: Record<string, string> = {
   group: "Fase de Grupos", R32: "32 avos", R16: "Oitavas", QF: "Quartas",
   SF: "Semifinais", THIRD: "Disputa 3º", FINAL: "Final",
 };
+
+function hasScore(m: Match): m is Match & { home_score: number; away_score: number } {
+  return m.home_score !== null && m.away_score !== null;
+}
+
+function matchStatusLabel(m: Match) {
+  if (m.finished) return "Encerrado";
+  if (hasScore(m)) return m.live_status_detail || m.live_clock || "Ao vivo";
+  return "Aguardando";
+}
 
 export function MatchesTab({ userId }: { userId: string }) {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -119,7 +132,7 @@ export function MatchesTab({ userId }: { userId: string }) {
     groupTeams.forEach(t => { rows[t.id] = { team: t, pj: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0, pts: 0, realPj: 0 }; });
     activeSection.matches.forEach(m => {
       let h: number | null = null, a: number | null = null, isReal = false;
-      if (m.finished && m.home_score !== null && m.away_score !== null) {
+      if (hasScore(m)) {
         h = m.home_score; a = m.away_score; isReal = true;
       } else {
         const b = bets[m.id];
@@ -139,7 +152,7 @@ export function MatchesTab({ userId }: { userId: string }) {
       .sort((x, y) => y.pts - x.pts || y.sg - x.sg || y.gp - x.gp || x.team.name.localeCompare(y.team.name));
   }, [activeSection, teams, bets]);
 
-  // Real standings: only finished matches
+  // Real/live standings: all matches with a registered score
   const realStandings = useMemo<Standing[]>(() => {
     if (!activeSection || !activeSection.key.startsWith("G-")) return [];
     const g = activeSection.key.slice(2);
@@ -147,7 +160,7 @@ export function MatchesTab({ userId }: { userId: string }) {
     const rows: Record<string, Standing> = {};
     groupTeams.forEach(t => { rows[t.id] = { team: t, pj: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0, pts: 0, realPj: 0 }; });
     activeSection.matches.forEach(m => {
-      if (!m.finished || m.home_score === null || m.away_score === null) return;
+      if (!hasScore(m)) return;
       const h = m.home_score, a = m.away_score;
       const rh = rows[m.home_team_id], ra = rows[m.away_team_id];
       if (!rh || !ra) return;
@@ -269,6 +282,8 @@ export function MatchesTab({ userId }: { userId: string }) {
               const bet = bets[m.id];
               const locked = m.finished || new Date(m.kickoff).getTime() - Date.now() <= 10 * 60 * 1000;
               const d = drafts[m.id] ?? { h: bet?.home_score?.toString() ?? "", a: bet?.away_score?.toString() ?? "" };
+              const scoreAvailable = hasScore(m);
+              const statusLabel = matchStatusLabel(m);
               return (
                 <Card key={m.id} className={locked ? "opacity-95" : ""}>
                   <CardContent className="p-4 space-y-3">
@@ -278,7 +293,12 @@ export function MatchesTab({ userId }: { userId: string }) {
                         <Clock className="h-3 w-3" />
                         <span>{new Date(m.kickoff).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                       </div>
-                      {locked && <Lock className="h-3 w-3" />}
+                      <div className="flex items-center gap-1">
+                        <Badge variant={m.finished ? "secondary" : scoreAvailable ? "default" : "outline"} className="text-[10px]">
+                          {statusLabel}
+                        </Badge>
+                        {locked && <Lock className="h-3 w-3" />}
+                      </div>
                     </div>
                     {m.venue && <p className="text-xs text-muted-foreground">{m.venue}</p>}
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -287,8 +307,11 @@ export function MatchesTab({ userId }: { userId: string }) {
                         <div className="text-xs sm:text-sm font-medium text-right truncate w-full">{home.name}</div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {m.finished ? (
-                          <div className="text-2xl sm:text-3xl font-bold tabular-nums">{m.home_score}<span className="text-muted-foreground mx-1">×</span>{m.away_score}</div>
+                        {scoreAvailable ? (
+                          <div className="text-center">
+                            <div className="text-2xl sm:text-3xl font-bold tabular-nums">{m.home_score}<span className="text-muted-foreground mx-1">×</span>{m.away_score}</div>
+                            {!m.finished && <div className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">placar ao vivo</div>}
+                          </div>
                         ) : (
                           <>
                             <Input className="w-12 sm:w-14 text-center text-lg px-1" type="number" inputMode="numeric" min={0} disabled={locked} value={d.h}
@@ -308,9 +331,9 @@ export function MatchesTab({ userId }: { userId: string }) {
                       {bet ? (
                         <div className="text-xs text-muted-foreground">
                           Seu palpite: <strong>{bet.home_score}×{bet.away_score}</strong>
-                          {m.finished && (
+                          {scoreAvailable && (
                             <span className="ml-2 inline-flex items-center gap-1">
-                              <Trophy className="h-3 w-3 text-amber-500" /> {bet.points} pts
+                              <Trophy className="h-3 w-3 text-amber-500" /> {bet.points} pts{!m.finished ? " parciais" : ""}
                             </span>
                           )}
                         </div>
@@ -384,16 +407,16 @@ export function MatchesTab({ userId }: { userId: string }) {
             </Card>
           )}
 
-          {/* Real standings (only finished matches) */}
+          {/* Real/live standings */}
           {activeSection.key.startsWith("G-") && realStandings.length > 0 && (
             <Card className="border-slate-300 dark:border-slate-700">
               <CardContent className="p-0">
                 <div className="px-3 py-2 border-b bg-slate-100 dark:bg-slate-900/40 flex items-center justify-between">
                   <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                    🎯 Classificação real do {activeSection.label}
+                    🎯 Classificação real/ao vivo do {activeSection.label}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
-                    {realStandings.reduce((s, r) => s + r.realPj, 0) / 2} jogo(s) encerrado(s)
+                    {realStandings.reduce((s, r) => s + r.realPj, 0) / 2} jogo(s) com placar
                   </div>
                 </div>
                 <table className="w-full text-xs">
