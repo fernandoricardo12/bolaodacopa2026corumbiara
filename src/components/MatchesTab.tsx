@@ -43,7 +43,7 @@ const STAGE_LABEL: Record<string, string> = {
   SF: "Semifinais", THIRD: "Disputa 3º", FINAL: "Final",
 };
 
-function hasScore(m: Match) {
+function hasScore(m: Match): m is Match & { home_score: number; away_score: number } {
   return m.home_score !== null && m.away_score !== null;
 }
 
