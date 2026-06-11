@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star, MessageCircle, Send, Copy, AlarmClock } from "lucide-react";
+import { Trophy, DollarSign, Users, Activity, RefreshCw, FileDown, ImageDown, Settings as SettingsIcon, Crown, Trash2, UserX, Wallet, BarChart3, ListChecks, Flame, Star, MessageCircle, Send, Copy, AlarmClock, Coins } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useSettings, AppSettings } from "@/lib/useSettings";
@@ -251,11 +251,12 @@ export function AdminPanel() {
 
   return (
     <Tabs defaultValue="dashboard" className="space-y-4">
-      <TabsList className="flex sm:grid sm:grid-cols-10 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
+      <TabsList className="flex sm:grid sm:grid-cols-11 w-full overflow-x-auto sm:overflow-visible gap-1 p-1 h-auto">
         <TabsTrigger value="dashboard" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><BarChart3 className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Dashboard</span></TabsTrigger>
         <TabsTrigger value="jogos" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Activity className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Jogos</span></TabsTrigger>
         <TabsTrigger value="destaques" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Flame className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Destaques</span></TabsTrigger>
-        <TabsTrigger value="palpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Palpites</span></TabsTrigger>
+        <TabsTrigger value="palpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><ListChecks className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Bolão</span></TabsTrigger>
+        <TabsTrigger value="ipalpites" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Coins className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Individuais</span></TabsTrigger>
         <TabsTrigger value="lembretes" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><AlarmClock className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Lembretes</span></TabsTrigger>
         <TabsTrigger value="payments" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><DollarSign className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">Pagamentos</span></TabsTrigger>
         <TabsTrigger value="ibets" className="flex-shrink-0 flex-col sm:flex-row px-2 sm:px-3 py-1.5 h-auto min-w-[60px]"><Wallet className="h-4 w-4 mb-0.5 sm:mb-0 sm:mr-1" /><span className="text-[10px] sm:text-sm leading-tight">A pagar</span></TabsTrigger>
@@ -483,11 +484,11 @@ export function AdminPanel() {
       </TabsContent>
 
 
-      {/* ============== PALPITES (todos os participantes / todos os jogos) ============== */}
+      {/* ============== PALPITES DO BOLÃO DE PONTOS ============== */}
       <TabsContent value="palpites" className="space-y-3">
         <Card className="bg-slate-50 dark:bg-slate-900/40">
           <CardContent className="p-3 text-xs text-muted-foreground">
-            Visão completa de todos os palpites por jogo. Para cada partida, são mostrados os palpites do <strong>bolão de pontos</strong> e os <strong>palpites individuais</strong> de cada participante.
+            Visão completa de todos os palpites do <strong>bolão de pontos</strong> por jogo.
           </CardContent>
         </Card>
         {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}
@@ -495,8 +496,7 @@ export function AdminPanel() {
           const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
           if (!home || !away) return null;
           const matchBets = bets.filter((b) => b.match_id === m.id);
-          const matchIbets = ibets.filter((b) => b.match_id === m.id);
-          
+
           return (
             <Card key={m.id}>
               <CardHeader className="p-3 pb-2">
@@ -510,49 +510,79 @@ export function AdminPanel() {
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 pt-0 space-y-3">
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-1">🏆 Bolão de pontos ({matchBets.length})</div>
-                  {matchBets.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Nenhum palpite.</p>
-                  ) : (
-                    <div className="divide-y border rounded">
-                      {matchBets.map((b) => (
-                        <div key={b.id} className="flex items-center justify-between gap-2 p-2 text-xs">
-                          <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
-                          <span className="flex items-center gap-2 shrink-0">
-                            <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
-                            {m.finished && <Badge variant="secondary" className="text-[9px]">{b.points} pts</Badge>}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-1">💰 Palpites individuais ({matchIbets.length})</div>
-                  {matchIbets.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Nenhum palpite individual.</p>
-                  ) : (
-                    <div className="divide-y border rounded">
-                      {matchIbets.map((b) => (
-                        <div key={b.id} className="flex items-center justify-between gap-2 p-2 text-xs">
-                          <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
-                          <span className="flex items-center gap-2 shrink-0">
-                            <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
-                            <Badge variant={b.paid ? "default" : "outline"} className="text-[9px]">{b.paid ? "pago" : "pendente"}</Badge>
-                            {Number(b.payout) > 0 && <span className="text-emerald-600 font-semibold">R$ {Number(b.payout).toFixed(2)}</span>}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <CardContent className="p-3 pt-0">
+                <div className="text-xs font-semibold text-muted-foreground mb-1">🏆 Bolão de pontos ({matchBets.length})</div>
+                {matchBets.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Nenhum palpite.</p>
+                ) : (
+                  <div className="divide-y border rounded">
+                    {matchBets.map((b) => (
+                      <div key={b.id} className="flex items-center justify-between gap-2 p-2 text-xs">
+                        <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
+                          {m.finished && <Badge variant="secondary" className="text-[9px]">{b.points} pts</Badge>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </TabsContent>
+
+      {/* ============== PALPITES INDIVIDUAIS ============== */}
+      <TabsContent value="ipalpites" className="space-y-3">
+        <Card className="bg-slate-50 dark:bg-slate-900/40">
+          <CardContent className="p-3 text-xs text-muted-foreground">
+            Visão completa de todos os <strong>palpites individuais</strong> (R$ 2 por palpite) por jogo.
+          </CardContent>
+        </Card>
+        {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}
+        {matches.map((m) => {
+          const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
+          if (!home || !away) return null;
+          const matchIbets = ibets.filter((b) => b.match_id === m.id);
+
+          return (
+            <Card key={m.id}>
+              <CardHeader className="p-3 pb-2">
+                <CardTitle className="text-sm flex items-center justify-between gap-2 flex-wrap">
+                  <span className="truncate">{home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.name} {away.flag}</span>
+                  <span className="flex items-center gap-2 text-xs">
+                    {m.home_score !== null && m.away_score !== null && (
+                      <span className="font-bold tabular-nums">{m.home_score}×{m.away_score}</span>
+                    )}
+                    {m.finished ? <Badge variant="secondary" className="text-[10px]">Encerrado</Badge> : <Badge variant="outline" className="text-[10px]">{new Date(m.kickoff).toLocaleString("pt-BR")}</Badge>}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                <div className="text-xs font-semibold text-muted-foreground mb-1">💰 Palpites individuais ({matchIbets.length})</div>
+                {matchIbets.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Nenhum palpite individual.</p>
+                ) : (
+                  <div className="divide-y border rounded">
+                    {matchIbets.map((b) => (
+                      <div key={b.id} className="flex items-center justify-between gap-2 p-2 text-xs">
+                        <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
+                          <Badge variant={b.paid ? "default" : "outline"} className="text-[9px]">{b.paid ? "pago" : "pendente"}</Badge>
+                          {Number(b.payout) > 0 && <span className="text-emerald-600 font-semibold">R$ {Number(b.payout).toFixed(2)}</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </TabsContent>
+
 
       {/* ============== PAGAMENTOS ============== */}
       <TabsContent value="payments" className="space-y-2">
