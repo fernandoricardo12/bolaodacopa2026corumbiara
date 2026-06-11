@@ -20,7 +20,8 @@ type Match = {
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean };
 
-const PRICE = 2;
+const PRICE_OPTIONS = [2, 5] as const;
+type Price = typeof PRICE_OPTIONS[number];
 const POOL_HIGHLIGHT_THRESHOLD = 30;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
