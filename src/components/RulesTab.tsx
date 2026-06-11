@@ -132,17 +132,32 @@ export function RulesTab() {
           <CardDescription>Como o bolo de cada jogo é dividido</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm pt-4">
+          <div className="rounded-md border-l-4 border-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 p-3">
+            <p className="font-semibold">⭐ Só valem os jogos marcados como destaque pelo administrador</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Cada jogo destaque pode receber palpites de <strong>R$ 2</strong> ou <strong>R$ 5</strong>. O administrador pode, a qualquer momento,
+              liberar ou bloquear os palpites de R$ 2 e definir manualmente um <strong>bônus extra</strong> para a partida.
+            </p>
+          </div>
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>uma pessoa</strong> cravar o placar, ela leva <strong>80% sozinha</strong>.
-              Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
+              Os 80% são divididos <strong>proporcionalmente ao valor apostado</strong> entre quem cravou. Havendo mais de um ganhador, a premiação é
+              <strong> sempre dividida</strong>.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-3">
             <p className="font-semibold">🏆 Acertou só o vencedor → 60% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor da partida divide <strong>60% do bolo</strong> em partes iguais.
+              Se <strong>ninguém cravar o placar exato</strong>, os 60% são divididos proporcionalmente ao valor apostado entre quem acertou só o vencedor.
+              Havendo mais de um ganhador, a premiação é sempre dividida.
+            </p>
+          </div>
+          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+            <p className="font-semibold">⭐ Bônus extra (quando o admin define)</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>somente entre quem apostou R$ 5 e cravou o placar exato</strong>.
+              Havendo mais de um, o bônus também é dividido.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
