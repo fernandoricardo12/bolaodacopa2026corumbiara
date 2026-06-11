@@ -18,7 +18,7 @@ type Match = {
   home_score: number | null; away_score: number | null; finished: boolean;
   featured: boolean; is_friendly?: boolean; bonus_prize?: number | null;
 };
-type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number };
+type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean };
 
 const PRICE = 2;
 const POOL_HIGHLIGHT_THRESHOLD = 30;
@@ -35,6 +35,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [myBets, setMyBets] = useState<IBet[]>([]);
   const [allBets, setAllBets] = useState<IBet[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [editDrafts, setEditDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
   const [paying, setPaying] = useState<Record<string, boolean>>({});
@@ -139,6 +140,21 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     if (!confirm(`Excluir o palpite ${bet.home_score}×${bet.away_score}?`)) return;
     const { error } = await supabase.from("individual_bets").delete().eq("id", bet.id);
     if (error) toast.error(error.message); else toast.success("Palpite excluído");
+  }
+
+  async function updateBet(bet: IBet) {
+    const d = editDrafts[bet.id] ?? { h: bet.home_score.toString(), a: bet.away_score.toString() };
+    if (d.h === "" || d.a === "") return toast.error("Preencha o placar");
+    const h = parseInt(d.h), a = parseInt(d.a);
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
+    const dup = (betsByMatch[bet.match_id] ?? []).some((b) => b.id !== bet.id && b.home_score === h && b.away_score === a);
+    if (dup) return toast.error("Você já tem outro palpite com esse placar neste jogo");
+    const { error } = await supabase.from("individual_bets")
+      .update({ home_score: h, away_score: a })
+      .eq("id", bet.id)
+      .eq("user_id", userId);
+    if (error) toast.error(error.message);
+    else toast.success("Palpite atualizado!");
   }
 
   async function registerPayment(matchId: string, unpaid: IBet[], label: string) {
@@ -313,10 +329,21 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                       const livePayout = projectedPayout(bet);
                       const showFinal = m.finished && finalPayout > 0;
                       const showLive = !m.finished && hasScore && livePayout > 0;
+                      const edit = editDrafts[bet.id] ?? { h: bet.home_score.toString(), a: bet.away_score.toString() };
                       return (
-                        <div key={bet.id} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
+                        <div key={bet.id} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
+                            {!locked && !bet.payout_paid ? (
+                              <div className="flex items-center gap-1">
+                                <Input className="h-7 w-11 text-center px-1 text-xs" type="number" inputMode="numeric" min={0} value={edit.h}
+                                  onChange={(e) => setEditDrafts({ ...editDrafts, [bet.id]: { ...edit, h: e.target.value } })} />
+                                <span className="text-muted-foreground">×</span>
+                                <Input className="h-7 w-11 text-center px-1 text-xs" type="number" inputMode="numeric" min={0} value={edit.a}
+                                  onChange={(e) => setEditDrafts({ ...editDrafts, [bet.id]: { ...edit, a: e.target.value } })} />
+                              </div>
+                            ) : (
+                              <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
+                            )}
                             {bet.paid
                               ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
                               : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
@@ -331,10 +358,15 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                               </span>
                             )}
                           </div>
-                          {!locked && !bet.paid && (
-                            <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteBet(bet)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                          {!locked && !bet.payout_paid && (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => updateBet(bet)}>Atualizar</Button>
+                              {!bet.paid && (
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteBet(bet)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
