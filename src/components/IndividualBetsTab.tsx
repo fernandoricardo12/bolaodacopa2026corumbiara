@@ -210,7 +210,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               <br />
               🏆 <strong>Só o vencedor:</strong> 60% do bolo proporcional ao valor — só vale se ninguém cravar o placar exato.
               <br />
-              ⭐ <strong>Bônus extra (R$ 50):</strong> exclusivo para quem apostar <strong>R$ 5</strong> e cravar o placar exato.
+              👥 Havendo mais de um ganhador, a premiação é sempre dividida entre todos.
             </div>
           </div>
         </CardContent>
