@@ -104,7 +104,7 @@ export function AdminPanel() {
           user_id: uid,
         };
       })
-      .sort((a, b) => b.pontos - a.pontos || b.pontosPendentes - a.pontosPendentes || b.palpites - a.palpites || a.user.localeCompare(b.user));
+      .sort((a, b) => b.pontos - a.pontos || a.user.localeCompare(b.user, "pt-BR") || b.pontosPendentes - a.pontosPendentes || b.palpites - a.palpites);
   }, [bets, matches, payments, profiles]);
 
   const liderPontos = rankingPontos.find((r) => r.status === "confirmed" && r.pontos > 0) ?? rankingPontos.find((r) => r.status === "confirmed");
