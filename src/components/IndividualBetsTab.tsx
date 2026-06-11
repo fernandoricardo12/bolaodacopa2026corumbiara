@@ -20,7 +20,8 @@ type Match = {
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean };
 
-const PRICE = 2;
+const PRICE_OPTIONS = [2, 5] as const;
+type Price = typeof PRICE_OPTIONS[number];
 const POOL_HIGHLIGHT_THRESHOLD = 30;
 
 export function IndividualBetsTab({ userId }: { userId: string }) {
@@ -34,7 +35,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [myBets, setMyBets] = useState<IBet[]>([]);
   const [allBets, setAllBets] = useState<IBet[]>([]);
-  const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, { h: string; a: string; price: Price }>>({});
   const [editDrafts, setEditDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
@@ -51,13 +52,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
     if (ms) {
-      const brazil = ts?.find((t) => t.code === "BRA");
-      const brazilId = brazil?.id;
-      setMatches(
-        (ms as Match[]).filter(
-          (m) => brazilId && (m.home_team_id === brazilId || m.away_team_id === brazilId),
-        ),
-      );
+      setMatches((ms as Match[]).filter((m) => m.featured));
     }
     if (bs) setMyBets(bs as IBet[]);
     if (all) setAllBets(all as IBet[]);
@@ -119,19 +114,19 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     });
   }, [visible]);
 
-  async function addBet(matchId: string) {
+  async function addBet(matchId: string, price: Price) {
     const d = drafts[matchId];
     if (!d || d.h === "" || d.a === "") return toast.error("Preencha o placar");
     const h = parseInt(d.h), a = parseInt(d.a);
     if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
-    const dup = (betsByMatch[matchId] ?? []).some((b) => b.home_score === h && b.away_score === a);
-    if (dup) return toast.error("Você já tem um palpite com esse placar neste jogo");
+    const dup = (betsByMatch[matchId] ?? []).some((b) => b.home_score === h && b.away_score === a && Number(b.amount) === price);
+    if (dup) return toast.error(`Você já tem um palpite ${h}×${a} de R$ ${price} neste jogo`);
     const { error } = await supabase.from("individual_bets")
-      .insert({ user_id: userId, match_id: matchId, home_score: h, away_score: a, amount: PRICE });
+      .insert({ user_id: userId, match_id: matchId, home_score: h, away_score: a, amount: price });
     if (error) toast.error(error.message);
     else {
-      toast.success(`Palpite registrado (R$ ${PRICE} a pagar no PIX)`);
-      setDrafts((p) => ({ ...p, [matchId]: { h: "", a: "" } }));
+      toast.success(`Palpite de R$ ${price} registrado (pagar no PIX)`);
+      setDrafts((p) => ({ ...p, [matchId]: { h: "", a: "", price } }));
     }
   }
 
@@ -147,8 +142,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     if (d.h === "" || d.a === "") return toast.error("Preencha o placar");
     const h = parseInt(d.h), a = parseInt(d.a);
     if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
-    const dup = (betsByMatch[bet.match_id] ?? []).some((b) => b.id !== bet.id && b.home_score === h && b.away_score === a);
-    if (dup) return toast.error("Você já tem outro palpite com esse placar neste jogo");
+    const dup = (betsByMatch[bet.match_id] ?? []).some((b) => b.id !== bet.id && b.home_score === h && b.away_score === a && Number(b.amount) === Number(bet.amount));
+    if (dup) return toast.error("Você já tem outro palpite com esse placar e valor neste jogo");
     const { error } = await supabase.from("individual_bets")
       .update({ home_score: h, away_score: a })
       .eq("id", bet.id)
@@ -160,8 +155,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   async function registerPayment(matchId: string, unpaid: IBet[], label: string) {
     if (unpaid.length === 0) return;
     setPaying((p) => ({ ...p, [matchId]: true }));
-    const total = unpaid.length * PRICE;
-    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const total = unpaid.reduce((s, b) => s + Number(b.amount), 0);
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score} (R$${Number(b.amount)})`).join(", ");
     const { error } = await supabase.from("payments").insert({
       user_id: userId,
       amount: total,
@@ -177,8 +172,8 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
   function sendWhatsApp(matchId: string, unpaid: IBet[], label: string) {
     if (!hasPhone) return toast.error("WhatsApp do administrador ainda não cadastrado.");
-    const total = unpaid.length * PRICE;
-    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score}`).join(", ");
+    const total = unpaid.reduce((s, b) => s + Number(b.amount), 0);
+    const scores = unpaid.map((b) => `${b.home_score}×${b.away_score} (R$${Number(b.amount)})`).join(", ");
     const msg = encodeURIComponent(
       `Olá! Sou *${email}*. Acabei de registrar um pagamento de R$ ${total.toFixed(2)} (palpite individual) referente ao jogo *${label}* — palpites: ${scores}. Segue o comprovante em anexo.`,
     );
@@ -209,11 +204,13 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         <CardContent className="p-3 text-xs flex items-start gap-2">
           <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
           <div className="space-y-1">
-            <div><strong>Palpite Individual — R$ {PRICE} por palpite.</strong> Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
+            <div><strong>Palpite Individual — escolha R$ 2 ou R$ 5 por palpite.</strong> Só valem os jogos marcados como destaque pelo administrador. Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
             <div>
-              🎯 <strong>Placar exato:</strong> 80% do bolo do jogo (dividido se houver mais de um acertador).
+              🎯 <strong>Placar exato:</strong> 80% do bolo do jogo, dividido proporcional ao valor apostado.
               <br />
-              🏆 <strong>Só o vencedor:</strong> 60% do bolo (dividido entre acertadores) — só vale se ninguém cravar o placar exato.
+              🏆 <strong>Só o vencedor:</strong> 60% do bolo proporcional ao valor — só vale se ninguém cravar o placar exato.
+              <br />
+              ⭐ <strong>Bônus extra (R$ 50):</strong> exclusivo para quem apostar <strong>R$ 5</strong> e cravar o placar exato.
             </div>
           </div>
         </CardContent>
@@ -226,7 +223,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
         const locked = m.finished || new Date(m.kickoff).getTime() - Date.now() <= 10 * 60 * 1000;
-        const d = drafts[m.id] ?? { h: "", a: "" };
+        const d = drafts[m.id] ?? { h: "", a: "", price: 2 as Price };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const bonus = Number(m.bonus_prize ?? 0);
         const prizeExact = pool.paid * 0.8 + bonus;
@@ -269,9 +266,10 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
                   💰 Valendo agora
                 </div>
-                <div className="tabular-nums">🎯 Placar exato (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} de bônus` : ""}): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
-                <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
-                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio das apostas não acumula entre jogos.{bonus > 0 ? ` O bônus de R$ ${bonus.toFixed(2)} é exclusivo para placar exato — se ninguém cravar, acumula pro próximo jogo da Seleção Brasileira 🇧🇷.` : ""}</div>
+                <div className="tabular-nums">🎯 Placar exato (80% do bolo, proporcional ao valor apostado): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8).toFixed(2)}</strong></div>
+                <div className="tabular-nums">🏆 Só o vencedor (60%, proporcional): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
+                {bonus > 0 && <div className="tabular-nums">⭐ Bônus extra (só para quem apostar R$ 5 e cravar): <strong className="text-amber-700 dark:text-amber-300">R$ {bonus.toFixed(2)}</strong></div>}
+                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio não acumula entre jogos.</div>
               </div>
 
 
@@ -300,9 +298,12 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               </div>
 
               {!locked && (
-                <div className="flex justify-end">
-                  <Button size="sm" variant={showFeatured ? "default" : "outline"} onClick={() => addBet(m.id)} className={showFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}>
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar palpite (R$ {PRICE})
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={() => addBet(m.id, 2)}>
+                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 2
+                  </Button>
+                  <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
+                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
                   </Button>
                 </div>
               )}
@@ -311,13 +312,21 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 const lh = m.home_score, la = m.away_score;
                 const hasScore = lh !== null && la !== null;
                 const matchPaid = allBets.filter((b) => b.match_id === m.id && b.paid);
-                const exactCount = hasScore ? matchPaid.filter((b) => b.home_score === lh && b.away_score === la).length : 0;
-                const winnerCount = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))).length : 0;
+                const exactPaid = hasScore ? matchPaid.filter((b) => b.home_score === lh && b.away_score === la) : [];
+                const winnerPaid = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))) : [];
+                const exactAmountTotal = exactPaid.reduce((s, b) => s + Number(b.amount), 0);
+                const winnerAmountTotal = winnerPaid.reduce((s, b) => s + Number(b.amount), 0);
+                const premiumExactCount = exactPaid.filter((b) => Number(b.amount) >= 5).length;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
-                  if (bet.home_score === lh && bet.away_score === la && exactCount > 0) return (pool.paid * 0.8 + bonus) / exactCount;
-                  if (exactCount === 0 && winnerCount > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
-                    return (pool.paid * 0.6) / winnerCount;
+                  const amt = Number(bet.amount);
+                  if (bet.home_score === lh && bet.away_score === la && exactAmountTotal > 0) {
+                    const base = (pool.paid * 0.8) * (amt / exactAmountTotal);
+                    const bonusShare = amt >= 5 && premiumExactCount > 0 ? bonus / premiumExactCount : 0;
+                    return base + bonusShare;
+                  }
+                  if (exactAmountTotal === 0 && winnerAmountTotal > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
+                    return (pool.paid * 0.6) * (amt / winnerAmountTotal);
                   }
                   return 0;
                 };
@@ -344,6 +353,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                             ) : (
                               <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
                             )}
+                            <Badge variant="outline" className={`text-[10px] ${Number(bet.amount) >= 5 ? "border-yellow-500 text-yellow-700" : ""}`}>R$ {Number(bet.amount)}</Badge>
                             {bet.paid
                               ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
                               : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
@@ -378,14 +388,14 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               {(() => {
                 const unpaid = userBets.filter((b) => !b.paid);
                 if (unpaid.length === 0) return null;
-                const total = unpaid.length * PRICE;
+                const total = unpaid.reduce((s, b) => s + Number(b.amount), 0);
                 const label = `${home.name} × ${away.name}`;
                 const isPaying = !!paying[m.id];
                 const wasRegistered = !!registeredFor[m.id];
                 return (
                   <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2">
                     <div className="text-xs font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
-                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} × R$ {PRICE} =
+                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} =
                       <strong className="tabular-nums">R$ {total.toFixed(2)}</strong>
                     </div>
 
