@@ -16,6 +16,15 @@ const FINISHED_STATUSES = new Set([
   "STATUS_PEN",
 ]);
 
+const PRE_GAME_STATUSES = new Set([
+  "STATUS_SCHEDULED",
+  "STATUS_PRE_GAME",
+  "STATUS_DELAYED",
+  "STATUS_POSTPONED",
+  "STATUS_CANCELED",
+  "STATUS_CANCELLED",
+]);
+
 export const Route = createFileRoute("/api/public/sync-scores-auto")({
   server: {
     handlers: {
@@ -86,7 +95,12 @@ async function handle() {
       const comp = ev.competitions[0];
       const statusName: string =
         ev?.status?.type?.name ?? comp?.status?.type?.name ?? "";
+      const statusState: string =
+        ev?.status?.type?.state ?? comp?.status?.type?.state ?? "";
       const isFinished = FINISHED_STATUSES.has(statusName);
+      if (!isFinished && (statusState === "pre" || PRE_GAME_STATUSES.has(statusName))) {
+        continue;
+      }
       const clock: string | null =
         ev?.status?.displayClock ?? comp?.status?.displayClock ?? null;
       const periodRaw = ev?.status?.period ?? comp?.status?.period ?? null;

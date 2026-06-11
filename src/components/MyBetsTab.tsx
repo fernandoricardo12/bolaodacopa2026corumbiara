@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, CheckCircle2, XCircle, Clock, Coins, Target } from "lucide-react";
+import { AlertTriangle, Trophy, CheckCircle2, XCircle, Clock, Coins, Target } from "lucide-react";
 import { FlagImg } from "@/lib/flags";
 
 type Team = { id: string; name: string; code: string };
@@ -19,6 +19,7 @@ type Match = {
   live_status_detail?: string | null;
 };
 type Bet = { match_id: string; home_score: number; away_score: number; points: number };
+type PointsPayment = { status: string };
 type IBet = {
   id: string;
   match_id: string;
@@ -52,18 +53,21 @@ export function MyBetsTab({ userId }: { userId: string }) {
   const [matches, setMatches] = useState<Record<string, Match>>({});
   const [bets, setBets] = useState<Bet[]>([]);
   const [ibets, setIbets] = useState<IBet[]>([]);
+  const [pointsPayments, setPointsPayments] = useState<PointsPayment[]>([]);
 
   async function load() {
-    const [t, m, b, ib] = await Promise.all([
+    const [t, m, b, ib, pay] = await Promise.all([
       supabase.from("teams").select("id,name,code"),
       supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,home_score,away_score,finished,live_clock,live_period,live_status_detail"),
       supabase.from("bets").select("match_id,home_score,away_score,points").eq("user_id", userId),
       supabase.from("individual_bets").select("*").eq("user_id", userId),
+      supabase.from("payments").select("status").eq("user_id", userId).eq("mode", "points"),
     ]);
     if (t.data) setTeams(Object.fromEntries(t.data.map((x) => [x.id, x as Team])));
     if (m.data) setMatches(Object.fromEntries(m.data.map((x) => [x.id, x as Match])));
     if (b.data) setBets(b.data as Bet[]);
     if (ib.data) setIbets(ib.data as IBet[]);
+    if (pay.data) setPointsPayments(pay.data as PointsPayment[]);
   }
 
   useEffect(() => {
@@ -73,6 +77,7 @@ export function MyBetsTab({ userId }: { userId: string }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "bets", filter: `user_id=eq.${userId}` }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "individual_bets", filter: `user_id=eq.${userId}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `user_id=eq.${userId}` }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
@@ -110,14 +115,31 @@ export function MyBetsTab({ userId }: { userId: string }) {
       });
   }, [ibets, matches]);
 
+  const pointsConfirmed = pointsPayments.some((p) => p.status === "confirmed");
+  const pointsPending = pointsPayments.some((p) => p.status === "pending");
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <SummaryCard icon={<Trophy className="h-4 w-4" />} label="Seus pontos" value={totals.pts.toString()} tone="emerald" />
+        <SummaryCard icon={<Trophy className="h-4 w-4" />} label={pointsConfirmed ? "Seus pontos" : "Pontos fora do ranking"} value={totals.pts.toString()} tone="emerald" />
         <SummaryCard icon={<Target className="h-4 w-4" />} label="Acertos / jogos" value={`${totals.acertos}/${totals.finalizados}`} tone="yellow" />
         <SummaryCard icon={<Coins className="h-4 w-4" />} label="Ganho individual" value={`R$ ${totals.ganhoIndividual.toFixed(2)}`} tone="emerald" />
         <SummaryCard icon={<Clock className="h-4 w-4" />} label="Palpites individuais" value={ibets.length.toString()} tone="slate" />
       </div>
+
+      {bets.length > 0 && !pointsConfirmed && (
+        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+          <CardContent className="p-3 flex gap-2 text-xs text-amber-900 dark:text-amber-100">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <div>
+              <strong>{pointsPending ? "Pagamento do bolão em análise." : "Pagamento do bolão pendente."}</strong>{" "}
+              {pointsPending
+                ? "Esses pontos só aparecem no ranking depois da confirmação do administrador."
+                : "Registre e envie o pagamento na aba Pagar para entrar no ranking oficial."}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-2">

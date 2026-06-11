@@ -17,6 +17,7 @@ async function fetchMatchScore(eventId: string, apiKey: string) {
   const home = r?.home?.score ?? r?.homeScore ?? r?.score?.home ?? null;
   const away = r?.away?.score ?? r?.awayScore ?? r?.score?.away ?? null;
   const status: string = (r?.status?.name ?? r?.status ?? "").toString().toLowerCase();
+  if (["scheduled", "pre", "not started", "notstarted", "postponed", "delayed"].some((s) => status.includes(s))) return null;
   const finished = ["finished", "ft", "ended", "full-time", "aet", "pen"].some((s) => status.includes(s));
   if (typeof home !== "number" || typeof away !== "number") return null;
   return { home, away, finished };

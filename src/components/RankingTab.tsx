@@ -2,23 +2,32 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal } from "lucide-react";
+import { AlertTriangle, Trophy, Medal } from "lucide-react";
 import podium from "@/assets/podium.jpg";
 import { HighlightsSection } from "@/components/HighlightsSection";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
+type PointsPayment = { user_id: string; status: string };
 
 export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
+  const [currentUserHasBets, setCurrentUserHasBets] = useState(false);
+  const [currentUserPaymentStatus, setCurrentUserPaymentStatus] = useState<"confirmed" | "pending" | "none">("none");
 
   async function load() {
     const [{ data: bets }, { data: profiles }, { data: pays }] = await Promise.all([
       supabase.from("bets").select("user_id,points"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
-      supabase.from("payments").select("user_id,mode,status").eq("mode", "points").eq("status", "confirmed"),
+      supabase.from("payments").select("user_id,status").eq("mode", "points"),
     ]);
     if (!bets || !profiles) return;
-    const paidUsers = new Set((pays ?? []).map((p: any) => p.user_id));
+    const payments = (pays ?? []) as PointsPayment[];
+    const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
+    const currentPayments = payments.filter((p) => p.user_id === currentUserId);
+    setCurrentUserHasBets(bets.some((b) => b.user_id === currentUserId));
+    setCurrentUserPaymentStatus(
+      currentPayments.some((p) => p.status === "confirmed") ? "confirmed" : currentPayments.some((p) => p.status === "pending") ? "pending" : "none"
+    );
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
     const agg: Record<string, { points: number; bets: number }> = {};
     for (const b of bets) {
@@ -45,6 +54,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
     const ch = supabase
       .channel("ranking-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => load())
       .subscribe();
@@ -60,6 +70,19 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         <img src={podium} alt="Pódio dos campeões" className="w-full h-28 sm:h-36 object-cover" loading="lazy" width={1280} height={640} />
       </div>
       <HighlightsSection />
+      {currentUserHasBets && currentUserPaymentStatus !== "confirmed" && (
+        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+          <CardContent className="p-3 flex gap-2 text-xs text-amber-900 dark:text-amber-100">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <div>
+              <strong>{currentUserPaymentStatus === "pending" ? "Seu pagamento está em análise." : "Você ainda não está no ranking."}</strong>{" "}
+              {currentUserPaymentStatus === "pending"
+                ? "Seus pontos entram aqui assim que o administrador confirmar o pagamento do bolão."
+                : "Registre o pagamento do bolão de pontos na aba Pagar para seus palpites entrarem no ranking."}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent className="p-0 divide-y">
         {rows.length === 0 && <p className="p-6 text-center text-muted-foreground">Sem jogadores ainda.</p>}
