@@ -18,11 +18,19 @@ import { ReminderBetsTab } from "@/components/ReminderBetsTab";
 
 
 type Team = { id: string; name: string; flag: string; group_name: string };
-type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean };
+type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean; live_status_detail?: string | null };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null; whatsapp_confirmed_at?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean; payout_paid_at?: string | null };
 type Bet = { id: string; user_id: string; match_id: string; points: number; home_score: number; away_score: number };
+
+function countsForPointsRanking(m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return false;
+  if (m.finished) return true;
+  if (new Date(m.kickoff).getTime() > Date.now()) return false;
+  const status = (m.live_status_detail ?? "").trim().toLowerCase();
+  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+}
 
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -75,14 +83,31 @@ export function AdminPanel() {
   const jogosEncerrados = matches.filter((m) => m.finished).length;
 
   const rankingPontos = useMemo(() => {
-    const map: Record<string, number> = {};
-    bets.forEach((b) => { map[b.user_id] = (map[b.user_id] ?? 0) + (b.points ?? 0); });
-    return Object.entries(map)
-      .map(([uid, pts]) => ({ user: profiles[uid]?.display_name ?? "—", pontos: pts, user_id: uid }))
-      .sort((a, b) => b.pontos - a.pontos);
-  }, [bets, profiles]);
+    const matchMap = Object.fromEntries(matches.map((m) => [m.id, m]));
+    const confirmedUsers = new Set(payments.filter((p) => p.mode === "points" && p.status === "confirmed").map((p) => p.user_id));
+    const pendingUsers = new Set(payments.filter((p) => p.mode === "points" && p.status === "pending").map((p) => p.user_id));
+    const users = new Set([...Object.keys(profiles), ...bets.map((b) => b.user_id), ...payments.filter((p) => p.mode === "points").map((p) => p.user_id)]);
 
-  const liderPontos = rankingPontos[0];
+    return Array.from(users)
+      .map((uid) => {
+        const userBets = bets.filter((b) => b.user_id === uid);
+        const validBets = userBets.filter((b) => countsForPointsRanking(matchMap[b.match_id]));
+        const pontos = validBets.reduce((sum, b) => sum + (b.points ?? 0), 0);
+        const status = confirmedUsers.has(uid) ? "confirmed" : pendingUsers.has(uid) ? "pending" : "none";
+        return {
+          user: profiles[uid]?.display_name ?? "—",
+          pontos: status === "confirmed" ? pontos : 0,
+          pontosPendentes: status === "confirmed" ? 0 : pontos,
+          palpites: userBets.length,
+          jogosPontuados: validBets.filter((b) => (b.points ?? 0) > 0).length,
+          status,
+          user_id: uid,
+        };
+      })
+      .sort((a, b) => b.pontos - a.pontos || b.pontosPendentes - a.pontosPendentes || b.palpites - a.palpites || a.user.localeCompare(b.user));
+  }, [bets, matches, payments, profiles]);
+
+  const liderPontos = rankingPontos.find((r) => r.status === "confirmed" && r.pontos > 0) ?? rankingPontos.find((r) => r.status === "confirmed");
 
   const ganhadoresIndividual = useMemo(
     () => ibets
@@ -111,6 +136,7 @@ export function AdminPanel() {
   // Destaques de participantes (com base em jogos finalizados)
   const destaques = useMemo(() => {
     const finishedMatchIds = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+    const confirmedUsers = new Set(payments.filter((p) => p.mode === "points" && p.status === "confirmed").map((p) => p.user_id));
 
     // Pontos por usuário (bolão de pontos)
     const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
@@ -121,6 +147,7 @@ export function AdminPanel() {
 
     for (const b of bets) {
       if (!finishedMatchIds.has(b.match_id)) continue;
+      if (!confirmedUsers.has(b.user_id)) continue;
       const s = ensure(b.user_id);
       s.pts += b.points || 0;
       s.total += 1;
@@ -143,7 +170,7 @@ export function AdminPanel() {
     const topIndividual = [...arr].filter((x) => x.iCount > 0).sort((a, b) => b.iwins - a.iwins || b.iCount - a.iCount)[0];
 
     return { topPontos, topIndividual, bolaMurcha, sabeTudo, altoIndice };
-  }, [bets, ibets, matches, profiles]);
+  }, [bets, ibets, matches, payments, profiles]);
 
 
   async function setExternalId(id: string, ext: string) {
@@ -365,9 +392,12 @@ export function AdminPanel() {
             <CardContent>
               {rankingPontos.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados ainda.</p> : (
                 <>
+                  <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-900 dark:text-amber-100">
+                    Ranking oficial soma apenas jogos com placar válido e somente participantes com pagamento do bolão confirmado. Pagamentos pendentes aparecem separados.
+                  </div>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={rankingPontos.slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20 }}>
+                      <BarChart data={rankingPontos.filter((r) => r.status === "confirmed").slice(0, 10)} layout="vertical" margin={{ left: 10, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis type="number" />
                         <YAxis type="category" dataKey="user" width={110} tick={{ fontSize: 12 }} />
@@ -378,9 +408,20 @@ export function AdminPanel() {
                   </div>
                   <div className="mt-3 divide-y border rounded">
                     {rankingPontos.map((r, i) => (
-                      <div key={r.user_id} className={`flex justify-between items-center p-2 text-sm ${i === 0 ? "bg-yellow-50 font-bold" : ""}`}>
-                        <span>{i + 1}º {i === 0 ? "👑 " : ""}{r.user}</span>
-                        <span className="tabular-nums">{r.pontos} pts</span>
+                      <div key={r.user_id} className={`flex justify-between items-center gap-2 p-2 text-sm ${i === 0 && r.status === "confirmed" ? "bg-yellow-50 font-bold" : ""}`}>
+                        <div className="min-w-0">
+                          <span className="truncate block">{r.status === "confirmed" ? `${i + 1}º ` : "— "}{i === 0 && r.status === "confirmed" ? "👑 " : ""}{r.user}</span>
+                          <div className="text-[10px] text-muted-foreground">
+                            {r.palpites} palpite(s) · {r.jogosPontuados} jogo(s) pontuando
+                          </div>
+                        </div>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <Badge variant={r.status === "confirmed" ? "secondary" : r.status === "pending" ? "outline" : "destructive"} className="text-[10px]">
+                            {r.status === "confirmed" ? "confirmado" : r.status === "pending" ? "pendente" : "sem pagamento"}
+                          </Badge>
+                          <span className="tabular-nums font-bold">{r.pontos} pts</span>
+                          {r.pontosPendentes > 0 && <span className="text-[10px] text-muted-foreground tabular-nums">({r.pontosPendentes} pend.)</span>}
+                        </span>
                       </div>
                     ))}
                   </div>

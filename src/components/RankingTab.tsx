@@ -7,7 +7,17 @@ import podium from "@/assets/podium.jpg";
 import { HighlightsSection } from "@/components/HighlightsSection";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
+type Bet = { user_id: string; match_id: string; points: number };
+type Match = { id: string; kickoff: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
 type PointsPayment = { user_id: string; status: string };
+
+function countsForRanking(m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return false;
+  if (m.finished) return true;
+  if (new Date(m.kickoff).getTime() > Date.now()) return false;
+  const status = (m.live_status_detail ?? "").trim().toLowerCase();
+  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+}
 
 export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
@@ -15,25 +25,27 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [currentUserPaymentStatus, setCurrentUserPaymentStatus] = useState<"confirmed" | "pending" | "none">("none");
 
   async function load() {
-    const [{ data: bets }, { data: profiles }, { data: pays }] = await Promise.all([
-      supabase.from("bets").select("user_id,points"),
+    const [{ data: bets }, { data: profiles }, { data: pays }, { data: matches }] = await Promise.all([
+      supabase.from("bets").select("user_id,match_id,points"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
       supabase.from("payments").select("user_id,status").eq("mode", "points"),
+      supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
     ]);
     if (!bets || !profiles) return;
+    const matchMap = Object.fromEntries(((matches ?? []) as Match[]).map((m) => [m.id, m]));
     const payments = (pays ?? []) as PointsPayment[];
     const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const currentPayments = payments.filter((p) => p.user_id === currentUserId);
-    setCurrentUserHasBets(bets.some((b) => b.user_id === currentUserId));
+    setCurrentUserHasBets((bets as Bet[]).some((b) => b.user_id === currentUserId));
     setCurrentUserPaymentStatus(
       currentPayments.some((p) => p.status === "confirmed") ? "confirmed" : currentPayments.some((p) => p.status === "pending") ? "pending" : "none"
     );
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
     const agg: Record<string, { points: number; bets: number }> = {};
-    for (const b of bets) {
+    for (const b of bets as Bet[]) {
       if (!paidUsers.has(b.user_id)) continue;
       agg[b.user_id] ??= { points: 0, bets: 0 };
-      agg[b.user_id].points += b.points;
+      agg[b.user_id].points += countsForRanking(matchMap[b.match_id]) ? b.points : 0;
       agg[b.user_id].bets += 1;
     }
     // include paid profiles even with no bets yet

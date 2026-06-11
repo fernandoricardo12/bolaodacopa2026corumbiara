@@ -4,9 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Bet = { user_id: string; match_id: string; points: number };
 type IBet = { user_id: string; match_id: string; paid: boolean; payout: number };
-type Match = { id: string; finished: boolean };
+type Match = { id: string; kickoff?: string; home_score?: number | null; away_score?: number | null; finished: boolean; live_status_detail?: string | null };
 type Profile = { id: string; display_name: string };
 type Payment = { user_id: string; status: string };
+
+function countsForRanking(m?: Match) {
+  if (!m || m.home_score === null || m.home_score === undefined || m.away_score === null || m.away_score === undefined) return false;
+  if (m.finished) return true;
+  if (m.kickoff && new Date(m.kickoff).getTime() > Date.now()) return false;
+  const status = (m.live_status_detail ?? "").trim().toLowerCase();
+  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+}
 
 export function HighlightsSection() {
   const [bets, setBets] = useState<Bet[]>([]);
@@ -19,7 +27,7 @@ export function HighlightsSection() {
     const [b, ib, m, pr, pay] = await Promise.all([
       supabase.from("bets").select("user_id,match_id,points"),
       supabase.from("individual_bets").select("user_id,match_id,paid,payout"),
-      supabase.from("matches").select("id,finished"),
+      supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
       supabase.from("profiles").select("id,display_name"),
       supabase.from("payments").select("user_id,status").eq("mode", "points"),
     ]);
@@ -43,7 +51,7 @@ export function HighlightsSection() {
   }, []);
 
   const destaques = useMemo(() => {
-    const finished = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+    const validMatches = new Set(matches.filter(countsForRanking).map((m) => m.id));
     const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
     const ensure = (uid: string) => {
@@ -51,7 +59,7 @@ export function HighlightsSection() {
       return stats[uid];
     };
     for (const b of bets) {
-      if (!finished.has(b.match_id)) continue;
+      if (!validMatches.has(b.match_id)) continue;
       if (!paidUsers.has(b.user_id)) continue;
       const s = ensure(b.user_id);
       s.pts += b.points || 0;
@@ -60,7 +68,7 @@ export function HighlightsSection() {
       if (b.points === 20) s.exact += 1;
     }
     for (const ib of ibets) {
-      if (!finished.has(ib.match_id) || !ib.paid) continue;
+      if (!validMatches.has(ib.match_id) || !ib.paid) continue;
       const s = ensure(ib.user_id);
       s.iCount += 1;
       if (Number(ib.payout) > 0) s.iwins += 1;
