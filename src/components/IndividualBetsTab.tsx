@@ -311,13 +311,21 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 const lh = m.home_score, la = m.away_score;
                 const hasScore = lh !== null && la !== null;
                 const matchPaid = allBets.filter((b) => b.match_id === m.id && b.paid);
-                const exactCount = hasScore ? matchPaid.filter((b) => b.home_score === lh && b.away_score === la).length : 0;
-                const winnerCount = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))).length : 0;
+                const exactPaid = hasScore ? matchPaid.filter((b) => b.home_score === lh && b.away_score === la) : [];
+                const winnerPaid = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))) : [];
+                const exactAmountTotal = exactPaid.reduce((s, b) => s + Number(b.amount), 0);
+                const winnerAmountTotal = winnerPaid.reduce((s, b) => s + Number(b.amount), 0);
+                const premiumExactCount = exactPaid.filter((b) => Number(b.amount) >= 5).length;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
-                  if (bet.home_score === lh && bet.away_score === la && exactCount > 0) return (pool.paid * 0.8 + bonus) / exactCount;
-                  if (exactCount === 0 && winnerCount > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
-                    return (pool.paid * 0.6) / winnerCount;
+                  const amt = Number(bet.amount);
+                  if (bet.home_score === lh && bet.away_score === la && exactAmountTotal > 0) {
+                    const base = (pool.paid * 0.8) * (amt / exactAmountTotal);
+                    const bonusShare = amt >= 5 && premiumExactCount > 0 ? bonus / premiumExactCount : 0;
+                    return base + bonusShare;
+                  }
+                  if (exactAmountTotal === 0 && winnerAmountTotal > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
+                    return (pool.paid * 0.6) * (amt / winnerAmountTotal);
                   }
                   return 0;
                 };
