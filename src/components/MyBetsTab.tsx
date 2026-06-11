@@ -14,6 +14,9 @@ type Match = {
   home_score: number | null;
   away_score: number | null;
   finished: boolean;
+  live_clock?: string | null;
+  live_period?: number | null;
+  live_status_detail?: string | null;
 };
 type Bet = { match_id: string; home_score: number; away_score: number; points: number };
 type IBet = {
@@ -34,6 +37,16 @@ function feedbackPontos(pts: number) {
   return { label: "❌ Não pontuou", tone: "bg-slate-300 text-slate-700" };
 }
 
+function hasScore(m: Match): m is Match & { home_score: number; away_score: number } {
+  return m.home_score !== null && m.away_score !== null;
+}
+
+function matchStatusLabel(m: Match) {
+  if (m.finished) return "Encerrado";
+  if (hasScore(m)) return m.live_status_detail || m.live_clock || "Ao vivo";
+  return "Aguardando";
+}
+
 export function MyBetsTab({ userId }: { userId: string }) {
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [matches, setMatches] = useState<Record<string, Match>>({});
@@ -43,7 +56,7 @@ export function MyBetsTab({ userId }: { userId: string }) {
   async function load() {
     const [t, m, b, ib] = await Promise.all([
       supabase.from("teams").select("id,name,code"),
-      supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,home_score,away_score,finished"),
+      supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,home_score,away_score,finished,live_clock,live_period,live_status_detail"),
       supabase.from("bets").select("match_id,home_score,away_score,points").eq("user_id", userId),
       supabase.from("individual_bets").select("*").eq("user_id", userId),
     ]);
@@ -68,9 +81,11 @@ export function MyBetsTab({ userId }: { userId: string }) {
     const pts = bets.reduce((s, b) => s + (b.points ?? 0), 0);
     const ganhoIndividual = ibets.reduce((s, b) => s + Number(b.payout ?? 0), 0);
     const acertos = bets.filter((b) => {
-      const m = matches[b.match_id]; return m?.finished && (b.points ?? 0) > 0;
+      const m = matches[b.match_id]; return !!m && hasScore(m) && (b.points ?? 0) > 0;
     }).length;
-    const finalizados = bets.filter((b) => matches[b.match_id]?.finished).length;
+    const finalizados = bets.filter((b) => {
+      const m = matches[b.match_id]; return !!m && hasScore(m);
+    }).length;
     return { pts, ganhoIndividual, acertos, finalizados };
   }, [bets, ibets, matches]);
 
@@ -115,12 +130,13 @@ export function MyBetsTab({ userId }: { userId: string }) {
           {bolaoRows.map(({ b, m }) => {
             const home = teams[m!.home_team_id]; const away = teams[m!.away_team_id];
             if (!home || !away) return null;
-            const fb = m!.finished ? feedbackPontos(b.points ?? 0) : null;
+            const scoreAvailable = hasScore(m!);
+            const fb = scoreAvailable ? feedbackPontos(b.points ?? 0) : null;
             return (
               <div key={b.match_id} className="p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{new Date(m!.kickoff).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
-                  {m!.finished ? <Badge variant="secondary">Encerrado</Badge> : <Badge variant="outline">Aguardando</Badge>}
+                  <Badge variant={m!.finished ? "secondary" : scoreAvailable ? "default" : "outline"}>{matchStatusLabel(m!)}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 flex items-center gap-2 justify-end min-w-0">
@@ -130,9 +146,9 @@ export function MyBetsTab({ userId }: { userId: string }) {
                   <div className="text-center shrink-0 px-2">
                     <div className="text-xs text-muted-foreground">Seu palpite</div>
                     <div className="text-lg font-bold tabular-nums">{b.home_score} × {b.away_score}</div>
-                    {m!.finished && (
+                    {scoreAvailable && (
                       <>
-                        <div className="text-xs text-muted-foreground mt-1">Resultado</div>
+                        <div className="text-xs text-muted-foreground mt-1">{m!.finished ? "Resultado" : "Ao vivo"}</div>
                         <div className="text-sm font-semibold tabular-nums">{m!.home_score} × {m!.away_score}</div>
                       </>
                     )}
@@ -145,7 +161,7 @@ export function MyBetsTab({ userId }: { userId: string }) {
                 {fb && (
                   <div className="flex items-center justify-between">
                     <span className={`text-xs px-2 py-1 rounded font-medium ${fb.tone}`}>{fb.label}</span>
-                    <span className="text-sm font-bold">+{b.points ?? 0} pts</span>
+                    <span className="text-sm font-bold">+{b.points ?? 0} pts{!m!.finished ? " parciais" : ""}</span>
                   </div>
                 )}
               </div>
