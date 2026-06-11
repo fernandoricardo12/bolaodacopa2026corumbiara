@@ -18,7 +18,7 @@ import { ReminderBetsTab } from "@/components/ReminderBetsTab";
 
 
 type Team = { id: string; name: string; flag: string; group_name: string };
-type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean; live_status_detail?: string | null };
+type Match = { id: string; home_team_id: string; away_team_id: string; kickoff: string; group_name: string | null; stage: string; home_score: number | null; away_score: number | null; finished: boolean; external_match_id: string | null; featured: boolean; live_status_detail?: string | null; bonus_prize?: number | null; allow_two_bets?: boolean };
 type Payment = { id: string; user_id: string; amount: number; status: string; mode: string; created_at: string; proof_note: string | null };
 type Profile = { id: string; display_name: string; phone?: string | null; pix_key?: string | null; whatsapp_confirmed_at?: string | null };
 type IBet = { id: string; user_id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean; payout_paid_at?: string | null };
@@ -225,6 +225,21 @@ export function AdminPanel() {
     const { error } = await supabase.from("matches").update({ featured: !m.featured }).eq("id", m.id);
     if (error) toast.error(error.message);
     else { toast.success(m.featured ? "Destaque removido" : "Jogo em destaque! 🔥"); load(); }
+  }
+
+  async function updateBonus(m: Match, value: string) {
+    const num = value.trim() === "" ? 0 : Number(value.replace(",", "."));
+    if (!Number.isFinite(num) || num < 0) return toast.error("Valor inválido");
+    if (Number(m.bonus_prize ?? 0) === num) return;
+    const { error } = await supabase.from("matches").update({ bonus_prize: num }).eq("id", m.id);
+    if (error) toast.error(error.message); else { toast.success(`Bônus extra: R$ ${num.toFixed(2)}`); load(); }
+  }
+
+  async function toggleAllowTwo(m: Match) {
+    const next = !(m.allow_two_bets ?? true);
+    const { error } = await supabase.from("matches").update({ allow_two_bets: next }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else { toast.success(next ? "Palpites de R$ 2 liberados" : "Apenas R$ 5 neste jogo"); load(); }
   }
 
   async function exportImage() {
@@ -499,25 +514,54 @@ export function AdminPanel() {
           const paidPool = matchIbets.filter((b) => b.paid).reduce((s, b) => s + Number(b.amount), 0);
           return (
             <Card key={m.id} className={m.featured ? "border-2 border-yellow-400 shadow" : ""}>
-              <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
-                <div className="text-sm min-w-0 flex-1">
-                  <div className="font-medium truncate flex items-center gap-2">
-                    {m.featured && <Flame className="h-4 w-4 text-amber-500 shrink-0" />}
-                    {home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.name} {away.flag}
+              <CardContent className="p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="text-sm min-w-0 flex-1">
+                    <div className="font-medium truncate flex items-center gap-2">
+                      {m.featured && <Flame className="h-4 w-4 text-amber-500 shrink-0" />}
+                      {home.flag} {home.name} <span className="text-muted-foreground">×</span> {away.name} {away.flag}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(m.kickoff).toLocaleString("pt-BR")} · {matchIbets.length} palpite(s) · bolo R$ {paidPool.toFixed(2)}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(m.kickoff).toLocaleString("pt-BR")} · {matchIbets.length} palpite(s) · bolo R$ {paidPool.toFixed(2)}
-                  </div>
+                  <Button
+                    size="sm"
+                    variant={m.featured ? "default" : "outline"}
+                    onClick={() => toggleFeatured(m)}
+                    disabled={m.finished}
+                    className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}
+                  >
+                    {m.featured ? <><Star className="h-4 w-4 mr-1 fill-current" /> Em destaque</> : <><Flame className="h-4 w-4 mr-1" /> Destacar jogo</>}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant={m.featured ? "default" : "outline"}
-                  onClick={() => toggleFeatured(m)}
-                  disabled={m.finished}
-                  className={m.featured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-950" : ""}
-                >
-                  {m.featured ? <><Star className="h-4 w-4 mr-1 fill-current" /> Em destaque</> : <><Flame className="h-4 w-4 mr-1" /> Destacar jogo</>}
-                </Button>
+                {m.featured && (
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                    <label className="text-xs flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Bônus extra R$</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="1"
+                        defaultValue={Number(m.bonus_prize ?? 0)}
+                        disabled={m.finished}
+                        className="h-7 w-20 text-xs"
+                        onBlur={(e) => updateBonus(m, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                      />
+                      <span className="text-[10px] text-muted-foreground">(só p/ quem apostar R$ 5 e cravar)</span>
+                    </label>
+                    <Button
+                      size="sm"
+                      variant={(m.allow_two_bets ?? true) ? "default" : "outline"}
+                      disabled={m.finished}
+                      onClick={() => toggleAllowTwo(m)}
+                      className={(m.allow_two_bets ?? true) ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
+                    >
+                      {(m.allow_two_bets ?? true) ? "Palpites R$ 2 liberados" : "Somente R$ 5"}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );

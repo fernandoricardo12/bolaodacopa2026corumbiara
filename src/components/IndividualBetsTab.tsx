@@ -16,7 +16,7 @@ type Match = {
   id: string; home_team_id: string; away_team_id: string; kickoff: string;
   group_name: string | null; stage: string; venue: string | null;
   home_score: number | null; away_score: number | null; finished: boolean;
-  featured: boolean; is_friendly?: boolean; bonus_prize?: number | null;
+  featured: boolean; is_friendly?: boolean; bonus_prize?: number | null; allow_two_bets?: boolean;
 };
 type IBet = { id: string; match_id: string; home_score: number; away_score: number; amount: number; paid: boolean; payout: number; payout_paid?: boolean };
 
@@ -299,9 +299,11 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               {!locked && (
                 <div className="flex flex-wrap justify-end gap-2">
-                  <Button size="sm" variant="outline" onClick={() => addBet(m.id, 2)}>
-                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 2
-                  </Button>
+                  {(m.allow_two_bets ?? true) && (
+                    <Button size="sm" variant="outline" onClick={() => addBet(m.id, 2)}>
+                      <Plus className="h-3 w-3 mr-1" /> Apostar R$ 2
+                    </Button>
+                  )}
                   <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
                     <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
                   </Button>
