@@ -142,6 +142,10 @@ export function MyBetsTab({ userId }: { userId: string }) {
         </Card>
       )}
 
+      <LiveLeaderboard currentUserId={userId} limit={5} />
+
+
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
