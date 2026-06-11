@@ -35,7 +35,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [myBets, setMyBets] = useState<IBet[]>([]);
   const [allBets, setAllBets] = useState<IBet[]>([]);
-  const [drafts, setDrafts] = useState<Record<string, { h: string; a: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, { h: string; a: string; price: Price }>>({});
   const [editDrafts, setEditDrafts] = useState<Record<string, { h: string; a: string }>>({});
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
