@@ -1,15 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AlertTriangle, Trophy, Medal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Trophy, Medal, ChevronDown, ChevronRight } from "lucide-react";
 import podium from "@/assets/podium.jpg";
 import { HighlightsSection } from "@/components/HighlightsSection";
 
-type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
-type Bet = { user_id: string; match_id: string; points: number };
-type Match = { id: string; kickoff: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
+type Bet = { user_id: string; match_id: string; home_score: number; away_score: number; points: number };
+type Match = { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
+type Team = { id: string; name: string; code: string };
+type Profile = { id: string; display_name: string; avatar_url: string | null };
 type PointsPayment = { user_id: string; status: string };
+
+type Row = {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  points: number;
+  bets: number;
+  paid: boolean;
+};
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
@@ -19,62 +30,103 @@ function countsForRanking(m?: Match) {
   return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
 }
 
+function matchStarted(m?: Match) {
+  if (!m) return false;
+  if (m.finished) return true;
+  if (m.home_score !== null && m.away_score !== null) return true;
+  return new Date(m.kickoff).getTime() <= Date.now();
+}
+
 export function RankingTab({ currentUserId }: { currentUserId: string }) {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [currentUserHasBets, setCurrentUserHasBets] = useState(false);
-  const [currentUserPaymentStatus, setCurrentUserPaymentStatus] = useState<"confirmed" | "pending" | "none">("none");
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [matches, setMatches] = useState<Record<string, Match>>({});
+  const [teams, setTeams] = useState<Record<string, Team>>({});
+  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [payments, setPayments] = useState<PointsPayment[]>([]);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   async function load() {
-    const [{ data: bets }, { data: profiles }, { data: pays }, { data: matches }] = await Promise.all([
-      supabase.from("bets").select("user_id,match_id,points"),
+    const [b, m, t, pr, pay] = await Promise.all([
+      supabase.from("bets").select("user_id,match_id,home_score,away_score,points"),
+      supabase.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail"),
+      supabase.from("teams").select("id,name,code"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
       supabase.from("payments").select("user_id,status").eq("mode", "points"),
-      supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
     ]);
-    if (!bets || !profiles) return;
-    const matchMap = Object.fromEntries(((matches ?? []) as Match[]).map((m) => [m.id, m]));
-    const payments = (pays ?? []) as PointsPayment[];
-    const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
-    const currentPayments = payments.filter((p) => p.user_id === currentUserId);
-    setCurrentUserHasBets((bets as Bet[]).some((b) => b.user_id === currentUserId));
-    setCurrentUserPaymentStatus(
-      currentPayments.some((p) => p.status === "confirmed") ? "confirmed" : currentPayments.some((p) => p.status === "pending") ? "pending" : "none"
-    );
-    const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
-    const agg: Record<string, { points: number; bets: number }> = {};
-    for (const b of bets as Bet[]) {
-      if (!paidUsers.has(b.user_id)) continue;
-      agg[b.user_id] ??= { points: 0, bets: 0 };
-      agg[b.user_id].points += countsForRanking(matchMap[b.match_id]) ? b.points : 0;
-      agg[b.user_id].bets += 1;
-    }
-    // include paid profiles even with no bets yet
-    for (const p of profiles) if (paidUsers.has(p.id)) agg[p.id] ??= { points: 0, bets: 0 };
-    const arr: Row[] = Object.entries(agg).map(([uid, v]) => ({
-      user_id: uid,
-      display_name: profMap[uid]?.display_name ?? "Jogador",
-      avatar_url: profMap[uid]?.avatar_url ?? null,
-      points: v.points,
-      bets: v.bets,
-    }));
-    arr.sort((a, b) => b.points - a.points || b.bets - a.bets);
-    setRows(arr);
+    if (b.data) setBets(b.data as Bet[]);
+    if (m.data) setMatches(Object.fromEntries((m.data as Match[]).map((x) => [x.id, x])));
+    if (t.data) setTeams(Object.fromEntries((t.data as Team[]).map((x) => [x.id, x])));
+    if (pr.data) setProfiles(Object.fromEntries((pr.data as Profile[]).map((x) => [x.id, x])));
+    if (pay.data) setPayments(pay.data as PointsPayment[]);
   }
 
   useEffect(() => {
     load();
     const ch = supabase
       .channel("ranking-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
 
+  const { rows, currentUserHasBets, currentUserPaymentStatus } = useMemo(() => {
+    const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
+    const pendingUsers = new Set(payments.filter((p) => p.status === "pending").map((p) => p.user_id));
+    const agg: Record<string, { points: number; bets: number }> = {};
+    for (const b of bets) {
+      agg[b.user_id] ??= { points: 0, bets: 0 };
+      agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? b.points || 0 : 0;
+      agg[b.user_id].bets += 1;
+    }
+    const arr: Row[] = Object.entries(agg).map(([uid, v]) => ({
+      user_id: uid,
+      display_name: profiles[uid]?.display_name ?? "Jogador",
+      avatar_url: profiles[uid]?.avatar_url ?? null,
+      points: v.points,
+      bets: v.bets,
+      paid: paidUsers.has(uid),
+    }));
+    arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || b.bets - a.bets);
+    const hasBets = bets.some((b) => b.user_id === currentUserId);
+    const status: "confirmed" | "pending" | "none" = paidUsers.has(currentUserId)
+      ? "confirmed"
+      : pendingUsers.has(currentUserId)
+        ? "pending"
+        : "none";
+    return { rows: arr, currentUserHasBets: hasBets, currentUserPaymentStatus: status };
+  }, [bets, matches, profiles, payments, currentUserId]);
+
+  const betsByUser = useMemo(() => {
+    const map: Record<string, Bet[]> = {};
+    for (const b of bets) {
+      if (!matchStarted(matches[b.match_id])) continue; // só revela após início
+      (map[b.user_id] ??= []).push(b);
+    }
+    for (const uid of Object.keys(map)) {
+      map[uid].sort((a, b) => {
+        const ka = new Date(matches[a.match_id]?.kickoff ?? 0).getTime();
+        const kb = new Date(matches[b.match_id]?.kickoff ?? 0).getTime();
+        return kb - ka;
+      });
+    }
+    return map;
+  }, [bets, matches]);
+
+  const toggle = (uid: string) =>
+    setExpanded((s) => {
+      const n = new Set(s);
+      n.has(uid) ? n.delete(uid) : n.add(uid);
+      return n;
+    });
+
   const medal = (i: number) =>
     i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-orange-700" : "text-muted-foreground";
+
+  const paidRows = rows.filter((r) => r.paid);
+  const pendingRows = rows.filter((r) => !r.paid);
 
   return (
     <div className="space-y-3">
@@ -95,32 +147,132 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
           </CardContent>
         </Card>
       )}
+
       <Card>
-        <CardContent className="p-0 divide-y">
-        {rows.length === 0 && <p className="p-6 text-center text-muted-foreground">Sem jogadores ainda.</p>}
-        {rows.map((r, i) => (
-          <div key={r.user_id} className={`flex items-center gap-3 p-3 ${r.user_id === currentUserId ? "bg-emerald-50 dark:bg-emerald-950/30" : ""}`}>
-            <div className="w-8 flex items-center justify-center">
-              {i < 3 ? <Medal className={`h-5 w-5 ${medal(i)}`} /> : <span className="text-sm font-medium text-muted-foreground">{i + 1}</span>}
-            </div>
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={r.avatar_url ?? undefined} />
-              <AvatarFallback>{r.display_name.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="font-medium text-sm">{r.display_name}</div>
-              <div className="text-xs text-muted-foreground">{r.bets} palpites</div>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 font-bold text-lg">
-                <Trophy className="h-4 w-4 text-amber-500" /> {r.points}
-              </div>
-              <div className="text-xs text-muted-foreground">pts</div>
-            </div>
+        <CardContent className="p-0">
+          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/40">
+            🏆 Ranking oficial ({paidRows.length})
           </div>
-        ))}
-      </CardContent>
-    </Card>
+          <div className="divide-y">
+            {paidRows.length === 0 && <p className="p-6 text-center text-muted-foreground text-sm">Sem jogadores confirmados ainda.</p>}
+            {paidRows.map((r, i) => (
+              <RowItem
+                key={r.user_id}
+                r={r}
+                rank={i + 1}
+                isMe={r.user_id === currentUserId}
+                medalClass={medal(i)}
+                open={expanded.has(r.user_id)}
+                onToggle={() => toggle(r.user_id)}
+                bets={betsByUser[r.user_id] ?? []}
+                matches={matches}
+                teams={teams}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {pendingRows.length > 0 && (
+        <Card className="border-dashed">
+          <CardContent className="p-0">
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/40">
+              ⏳ Aguardando pagamento ({pendingRows.length}) — não contam no ranking
+            </div>
+            <div className="divide-y opacity-80">
+              {pendingRows.map((r) => (
+                <RowItem
+                  key={r.user_id}
+                  r={r}
+                  rank={null}
+                  isMe={r.user_id === currentUserId}
+                  medalClass="text-muted-foreground"
+                  open={expanded.has(r.user_id)}
+                  onToggle={() => toggle(r.user_id)}
+                  bets={betsByUser[r.user_id] ?? []}
+                  matches={matches}
+                  teams={teams}
+                  pending
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function RowItem({
+  r, rank, isMe, medalClass, open, onToggle, bets, matches, teams, pending,
+}: {
+  r: Row; rank: number | null; isMe: boolean; medalClass: string; open: boolean; onToggle: () => void;
+  bets: Bet[]; matches: Record<string, Match>; teams: Record<string, Team>; pending?: boolean;
+}) {
+  const hasVisibleBets = bets.length > 0;
+  return (
+    <div className={isMe ? "bg-emerald-50 dark:bg-emerald-950/30" : ""}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/40"
+      >
+        <div className="w-7 flex items-center justify-center">
+          {rank !== null && rank <= 3 ? <Medal className={`h-5 w-5 ${medalClass}`} /> : <span className="text-sm font-medium text-muted-foreground">{rank ?? "—"}</span>}
+        </div>
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={r.avatar_url ?? undefined} />
+          <AvatarFallback>{r.display_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm flex items-center gap-2">
+            <span className="truncate">{r.display_name}</span>
+            {pending && <Badge variant="outline" className="text-[10px]">pendente</Badge>}
+          </div>
+          <div className="text-xs text-muted-foreground">{r.bets} palpites</div>
+        </div>
+        <div className="text-right">
+          <div className="flex items-center gap-1 font-bold text-lg">
+            <Trophy className="h-4 w-4 text-amber-500" /> {r.points}
+          </div>
+          <div className="text-[10px] text-muted-foreground">pts</div>
+        </div>
+        {hasVisibleBets ? (open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />) : <span className="w-4" />}
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          {!hasVisibleBets ? (
+            <p className="text-xs text-muted-foreground italic">Palpites ficam visíveis quando os jogos começam.</p>
+          ) : (
+            <div className="rounded-lg border divide-y">
+              {bets.map((b) => {
+                const m = matches[b.match_id];
+                const home = m ? teams[m.home_team_id]?.code ?? "—" : "—";
+                const away = m ? teams[m.away_team_id]?.code ?? "—" : "—";
+                const hasResult = m && m.home_score !== null && m.away_score !== null;
+                const exact = hasResult && b.home_score === m!.home_score && b.away_score === m!.away_score;
+                return (
+                  <div key={`${b.user_id}-${b.match_id}`} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-medium">{home} × {away}</span>
+                      {hasResult && (
+                        <span className="text-muted-foreground">
+                          (oficial: {m!.home_score}×{m!.away_score})
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold">{b.home_score} × {b.away_score}</span>
+                      {exact && <Badge className="text-[9px] bg-amber-500 hover:bg-amber-500">EXATO</Badge>}
+                      <Badge variant={b.points > 0 ? "default" : "secondary"} className="text-[10px]">{b.points} pts</Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
