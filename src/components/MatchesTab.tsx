@@ -10,6 +10,7 @@ import { FlagImg } from "@/lib/flags";
 import { useServerFn } from "@tanstack/react-start";
 import { getPointsPrizeSummary } from "@/lib/prizes.functions";
 import { calculatePointsPrize } from "@/lib/prizeRules";
+import { LiveLeaderboard } from "@/components/LiveLeaderboard";
 
 type Team = { id: string; name: string; flag: string; code: string; group_name?: string };
 type Match = {
