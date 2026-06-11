@@ -141,7 +141,7 @@ export function ReminderBetsTab() {
           .filter(Boolean)
           .sort((a, b) => (a!.display_name ?? "").localeCompare(b!.display_name ?? ""));
         const minutesToKick = Math.round((new Date(m.kickoff).getTime() - now.getTime()) / 60000);
-        const closesInMin = minutesToKick - 60;
+        const closesInMin = minutesToKick - 10;
         return (
           <Card key={m.id}>
             <CardContent className="p-4 space-y-3">
