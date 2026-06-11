@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Trophy, Medal, ChevronDown, ChevronRight } from "lucide-react";
 import podium from "@/assets/podium.jpg";
 import { HighlightsSection } from "@/components/HighlightsSection";
-import { getAllPointsPaymentStatuses, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
+import { getPointsRankingData, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Bet = { user_id: string; match_id: string; home_score: number; away_score: number; points: number };
 type Match = { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
@@ -45,21 +45,15 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [payments, setPayments] = useState<PointsPaymentStatus[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const fetchPayments = useServerFn(getAllPointsPaymentStatuses);
+  const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
-    const [b, m, t, pr, pay] = await Promise.all([
-      supabase.from("bets").select("user_id,match_id,home_score,away_score,points"),
-      supabase.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail"),
-      supabase.from("teams").select("id,name,code"),
-      supabase.from("profiles").select("id,display_name,avatar_url"),
-      fetchPayments(),
-    ]);
-    if (b.data) setBets(b.data as Bet[]);
-    if (m.data) setMatches(Object.fromEntries((m.data as Match[]).map((x) => [x.id, x])));
-    if (t.data) setTeams(Object.fromEntries((t.data as Team[]).map((x) => [x.id, x])));
-    if (pr.data) setProfiles(Object.fromEntries((pr.data as Profile[]).map((x) => [x.id, x])));
-    setPayments(pay as PointsPaymentStatus[]);
+    const data = await fetchRanking();
+    setBets(data.bets as Bet[]);
+    setMatches(Object.fromEntries((data.matches as Match[]).map((x) => [x.id, x])));
+    setTeams(Object.fromEntries((data.teams as Team[]).map((x) => [x.id, x])));
+    setProfiles(Object.fromEntries((data.profiles as Profile[]).map((x) => [x.id, x])));
+    setPayments(data.payments as PointsPaymentStatus[]);
   }
 
   useEffect(() => {
