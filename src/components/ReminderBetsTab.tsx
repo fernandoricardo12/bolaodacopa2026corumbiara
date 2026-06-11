@@ -37,7 +37,7 @@ function buildReminderMessage(name: string, homeName: string, awayName: string, 
     `Lembrete rápido do *Bolão Copa 2026* 🏆`,
     `Você ainda não palpitou em *${homeName} × ${awayName}* — bola rola ${dia} às ${hora}.`,
     "",
-    "⏰ Os palpites fecham *1 hora antes* do início. Não perca os pontos!",
+    "⏰ Os palpites fecham *10 minutos antes* do início. Não perca os pontos!",
     "",
     "👉 Entra no bolão e manda seu palpite agora:",
     "https://bolaodacopa2026corumbiara.lovable.app",
@@ -105,7 +105,7 @@ export function ReminderBetsTab() {
           </div>
           <p className="text-xs text-amber-900/80 dark:text-amber-200/80">
             Lista de participantes do Bolão de Pontos que ainda não palpitaram nos jogos que começam dentro da janela escolhida.
-            Os palpites fecham 1h antes do jogo — avise com antecedência.
+            Os palpites fecham 10 minutos antes do jogo — avise com antecedência.
           </p>
           <div className="flex items-end gap-2 pt-1">
             <div>
@@ -141,7 +141,7 @@ export function ReminderBetsTab() {
           .filter(Boolean)
           .sort((a, b) => (a!.display_name ?? "").localeCompare(b!.display_name ?? ""));
         const minutesToKick = Math.round((new Date(m.kickoff).getTime() - now.getTime()) / 60000);
-        const closesInMin = minutesToKick - 60;
+        const closesInMin = minutesToKick - 10;
         return (
           <Card key={m.id}>
             <CardContent className="p-4 space-y-3">

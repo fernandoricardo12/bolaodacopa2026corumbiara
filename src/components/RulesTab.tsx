@@ -188,10 +188,10 @@ export function RulesTab() {
           <div className="flex gap-3 items-start">
             <Clock className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">Pague antes do início do jogo</p>
+              <p className="font-semibold">Pague até 10 minutos antes do início do jogo</p>
               <p className="text-muted-foreground text-xs">
-                O pagamento deve ser efetuado e o comprovante enviado <strong>antes do apito inicial</strong> da partida.
-                Pagamentos registrados após o início do jogo <strong>não contam</strong> para aquela rodada.
+                O pagamento deve ser efetuado e o comprovante enviado <strong>até 10 minutos antes do apito inicial</strong> da partida.
+                Pagamentos registrados depois desse prazo <strong>não contam</strong> para aquela rodada.
               </p>
             </div>
           </div>
@@ -235,14 +235,14 @@ export function RulesTab() {
             <AccordionItem value="prazo">
               <AccordionTrigger>Até quando posso palpitar?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                Os palpites podem ser feitos ou alterados até o <strong>apito inicial</strong> da partida. Após o início do jogo o palpite é travado e não pode mais ser modificado.
+                Os palpites podem ser feitos ou alterados até <strong>10 minutos antes</strong> do apito inicial da partida. A partir desse momento o palpite é travado e não pode mais ser modificado.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="alterar">
               <AccordionTrigger>Posso alterar ou excluir meus palpites?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                Sim. Enquanto o jogo não começou, você pode editar ou excluir qualquer palpite na aba <strong>Minhas</strong> ou diretamente em <strong>Bolão</strong> / <strong>Individual</strong>.
-                Depois que a bola rolar, o palpite fica congelado.
+                Sim. Até <strong>10 minutos antes</strong> do início, você pode editar ou excluir qualquer palpite na aba <strong>Minhas</strong> ou diretamente em <strong>Bolão</strong> / <strong>Individual</strong>.
+                Depois desse prazo, o palpite fica congelado.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="prorrogacao">
