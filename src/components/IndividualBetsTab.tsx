@@ -52,13 +52,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     ]);
     if (ts) setTeams(Object.fromEntries(ts.map((t) => [t.id, t])));
     if (ms) {
-      const brazil = ts?.find((t) => t.code === "BRA");
-      const brazilId = brazil?.id;
-      setMatches(
-        (ms as Match[]).filter(
-          (m) => brazilId && (m.home_team_id === brazilId || m.away_team_id === brazilId),
-        ),
-      );
+      setMatches((ms as Match[]).filter((m) => m.featured));
     }
     if (bs) setMyBets(bs as IBet[]);
     if (all) setAllBets(all as IBet[]);
