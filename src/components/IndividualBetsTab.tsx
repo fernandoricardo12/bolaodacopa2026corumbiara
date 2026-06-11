@@ -353,6 +353,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                             ) : (
                               <strong className="tabular-nums">{bet.home_score}×{bet.away_score}</strong>
                             )}
+                            <Badge variant="outline" className={`text-[10px] ${Number(bet.amount) >= 5 ? "border-yellow-500 text-yellow-700" : ""}`}>R$ {Number(bet.amount)}</Badge>
                             {bet.paid
                               ? <Badge className="bg-emerald-600 text-[10px]">pago</Badge>
                               : <Badge variant="secondary" className="text-[10px]">pagto pendente</Badge>}
