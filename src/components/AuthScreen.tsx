@@ -139,7 +139,7 @@ export function AuthScreen() {
               </div>
 
               <p className="text-[11px] text-yellow-100/90 italic text-center">
-                Palpites individuais avulsos (R$ 2/jogo) também disponíveis — mas o grande prêmio está no bolão de pontos.
+                Palpites individuais (R$ 2 ou R$ 5) liberados nos jogos destaque — bônus extra para quem apostar R$ 5 e cravar o placar.
               </p>
             </div>
           </div>
