@@ -88,12 +88,13 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? b.points || 0 : 0;
       agg[b.user_id].bets += 1;
     }
+    const paymentByUser = Object.fromEntries(payments.map((p) => [p.user_id, p]));
     const arr: Row[] = Object.entries(agg)
       .filter(([uid]) => paidUsers.has(uid) || pendingUsers.has(uid))
       .map(([uid, v]) => ({
         user_id: uid,
-        display_name: profiles[uid]?.display_name ?? "Jogador",
-        avatar_url: profiles[uid]?.avatar_url ?? null,
+        display_name: profiles[uid]?.display_name ?? paymentByUser[uid]?.display_name ?? "Jogador",
+        avatar_url: profiles[uid]?.avatar_url ?? paymentByUser[uid]?.avatar_url ?? null,
         points: v.points,
         bets: v.bets,
         paid: paidUsers.has(uid),

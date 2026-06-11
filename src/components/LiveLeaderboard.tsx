@@ -33,6 +33,7 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
     const matchMap = Object.fromEntries(((matches ?? []) as Match[]).map((m) => [m.id, m]));
     const paidUsers = new Set(((pays ?? []) as PointsPaymentStatus[]).filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
+    const paymentMap = Object.fromEntries(((pays ?? []) as PointsPaymentStatus[]).map((p) => [p.user_id, p]));
     const agg: Record<string, { points: number; bets: number }> = {};
     for (const b of bets as Bet[]) {
       if (!paidUsers.has(b.user_id)) continue;
@@ -40,11 +41,11 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
       agg[b.user_id].points += countsForRanking(matchMap[b.match_id]) ? b.points : 0;
       agg[b.user_id].bets += 1;
     }
-    for (const p of profiles) if (paidUsers.has(p.id)) agg[p.id] ??= { points: 0, bets: 0 };
+    for (const uid of paidUsers) agg[uid] ??= { points: 0, bets: 0 };
     const arr: Row[] = Object.entries(agg).map(([uid, v]) => ({
       user_id: uid,
-      display_name: profMap[uid]?.display_name ?? "Jogador",
-      avatar_url: profMap[uid]?.avatar_url ?? null,
+      display_name: profMap[uid]?.display_name ?? paymentMap[uid]?.display_name ?? "Jogador",
+      avatar_url: profMap[uid]?.avatar_url ?? paymentMap[uid]?.avatar_url ?? null,
       points: v.points,
       bets: v.bets,
     }));

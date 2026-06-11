@@ -55,9 +55,10 @@ export function HighlightsSection() {
   const destaques = useMemo(() => {
     const validMatches = new Set(matches.filter(countsForRanking).map((m) => m.id));
     const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
+    const paymentMap = Object.fromEntries(payments.map((p) => [p.user_id, p]));
     const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
     const ensure = (uid: string) => {
-      stats[uid] ??= { name: profiles[uid]?.display_name ?? "Jogador", pts: 0, total: 0, hits: 0, exact: 0, iwins: 0, iCount: 0 };
+      stats[uid] ??= { name: profiles[uid]?.display_name ?? paymentMap[uid]?.display_name ?? "Jogador", pts: 0, total: 0, hits: 0, exact: 0, iwins: 0, iCount: 0 };
       return stats[uid];
     };
     for (const b of bets) {
