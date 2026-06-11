@@ -372,6 +372,12 @@ export function MatchesTab({ userId }: { userId: string }) {
                         </div>
                       )}
                     </div>
+                    <MatchBetsReveal
+                      matchId={m.id}
+                      matchStarted={scoreAvailable || new Date(m.kickoff).getTime() <= Date.now()}
+                      finalHome={m.home_score}
+                      finalAway={m.away_score}
+                    />
                   </CardContent>
                 </Card>
               );
