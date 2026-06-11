@@ -77,12 +77,34 @@ export function HighlightsSection() {
       if (Number(ib.payout) > 0) s.iwins += 1;
     }
     const arr = Object.entries(stats).map(([uid, v]) => ({ uid, ...v, rate: v.total > 0 ? v.hits / v.total : 0 }));
+    const pickTied = <T extends { name: string }>(list: T[], keyFn: (x: T) => number | string) => {
+      if (list.length === 0) return undefined;
+      const sorted = [...list].sort((a, b) => {
+        const ka = keyFn(a), kb = keyFn(b);
+        if (ka !== kb) return ka < kb ? 1 : -1;
+        return a.name.localeCompare(b.name, "pt-BR");
+      });
+      const topKey = keyFn(sorted[0]);
+      const tied = sorted.filter((x) => keyFn(x) === topKey);
+      return { ...sorted[0], tiedWith: tied.slice(1).map((x) => x.name) } as T & { tiedWith: string[] };
+    };
+    const pickTiedAsc = <T extends { name: string }>(list: T[], keyFn: (x: T) => number) => {
+      if (list.length === 0) return undefined;
+      const sorted = [...list].sort((a, b) => {
+        const ka = keyFn(a), kb = keyFn(b);
+        if (ka !== kb) return ka - kb;
+        return a.name.localeCompare(b.name, "pt-BR");
+      });
+      const topKey = keyFn(sorted[0]);
+      const tied = sorted.filter((x) => keyFn(x) === topKey);
+      return { ...sorted[0], tiedWith: tied.slice(1).map((x) => x.name) } as T & { tiedWith: string[] };
+    };
     return {
-      topPontos: [...arr].filter((x) => x.total > 0).sort((a, b) => b.pts - a.pts)[0],
-      topIndividual: [...arr].filter((x) => x.iCount > 0).sort((a, b) => b.iwins - a.iwins || b.iCount - a.iCount)[0],
-      sabeTudo: [...arr].filter((x) => x.exact > 0).sort((a, b) => b.exact - a.exact || b.pts - a.pts)[0],
-      altoIndice: [...arr].filter((x) => x.total >= 3).sort((a, b) => b.rate - a.rate || b.pts - a.pts)[0],
-      bolaMurcha: [...arr].filter((x) => x.total >= 3).sort((a, b) => a.pts - b.pts)[0],
+      topPontos: pickTied(arr.filter((x) => x.total > 0), (x) => x.pts),
+      topIndividual: pickTied(arr.filter((x) => x.iCount > 0), (x) => `${String(x.iwins).padStart(6, "0")}-${String(x.iCount).padStart(6, "0")}`),
+      sabeTudo: pickTied(arr.filter((x) => x.exact > 0), (x) => `${String(x.exact).padStart(6, "0")}-${String(x.pts).padStart(8, "0")}`),
+      altoIndice: pickTied(arr.filter((x) => x.total >= 3), (x) => `${x.rate.toFixed(6)}-${String(x.pts).padStart(8, "0")}`),
+      bolaMurcha: pickTiedAsc(arr.filter((x) => x.total >= 3), (x) => x.pts),
     };
   }, [bets, ibets, matches, payments, profiles]);
 
@@ -105,33 +127,38 @@ export function HighlightsSection() {
           emoji="🥇" title="Mestre dos pontos" tone="amber"
           name={destaques.topPontos?.name}
           detail={destaques.topPontos ? `${destaques.topPontos.pts} pts em ${destaques.topPontos.total} palpites` : undefined}
+          tiedWith={destaques.topPontos?.tiedWith}
         />
         <Highlight
           emoji="💰" title="Rei do individual" tone="emerald"
           name={destaques.topIndividual?.name}
           detail={destaques.topIndividual ? `${destaques.topIndividual.iwins} prêmio(s) em ${destaques.topIndividual.iCount} apostas` : undefined}
+          tiedWith={destaques.topIndividual?.tiedWith}
         />
         <Highlight
           emoji="🎯" title="Sabe-tudo (placar exato)" tone="violet"
           name={destaques.sabeTudo?.name}
           detail={destaques.sabeTudo ? `${destaques.sabeTudo.exact} placar(es) exato(s)` : undefined}
+          tiedWith={destaques.sabeTudo?.tiedWith}
         />
         <Highlight
           emoji="🔥" title="Alto índice de acerto" tone="blue"
           name={destaques.altoIndice?.name}
           detail={destaques.altoIndice ? `${(destaques.altoIndice.rate * 100).toFixed(0)}% (${destaques.altoIndice.hits}/${destaques.altoIndice.total})` : undefined}
+          tiedWith={destaques.altoIndice?.tiedWith}
         />
         <Highlight
           emoji="🎈" title="Bola murcha da rodada" tone="slate"
           name={destaques.bolaMurcha?.name}
           detail={destaques.bolaMurcha ? `Só ${destaques.bolaMurcha.pts} pts em ${destaques.bolaMurcha.total} palpites` : undefined}
+          tiedWith={destaques.bolaMurcha?.tiedWith}
         />
       </CardContent>
     </Card>
   );
 }
 
-function Highlight({ emoji, title, name, detail, tone }: { emoji: string; title: string; name?: string; detail?: string; tone: string }) {
+function Highlight({ emoji, title, name, detail, tone, tiedWith }: { emoji: string; title: string; name?: string; detail?: string; tone: string; tiedWith?: string[] }) {
   const tones: Record<string, string> = {
     emerald: "border-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/30",
     blue: "border-blue-300 bg-blue-50/70 dark:bg-blue-950/30",
@@ -146,6 +173,11 @@ function Highlight({ emoji, title, name, detail, tone }: { emoji: string; title:
       </div>
       <div className="text-base font-bold mt-1 truncate">{name ?? "—"}</div>
       <div className="text-xs text-muted-foreground mt-0.5">{detail ?? "Sem dados ainda"}</div>
+      {tiedWith && tiedWith.length > 0 && (
+        <div className="text-[10px] text-muted-foreground mt-0.5 italic truncate">
+          empatado com: {tiedWith.join(", ")}
+        </div>
+      )}
     </div>
   );
 }
