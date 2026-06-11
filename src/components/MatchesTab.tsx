@@ -11,6 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getPointsPrizeSummary } from "@/lib/prizes.functions";
 import { calculatePointsPrize } from "@/lib/prizeRules";
 import { LiveLeaderboard } from "@/components/LiveLeaderboard";
+import { MatchBetsReveal } from "@/components/MatchBetsReveal";
 
 type Team = { id: string; name: string; flag: string; code: string; group_name?: string };
 type Match = {
@@ -371,6 +372,12 @@ export function MatchesTab({ userId }: { userId: string }) {
                         </div>
                       )}
                     </div>
+                    <MatchBetsReveal
+                      matchId={m.id}
+                      matchStarted={scoreAvailable || new Date(m.kickoff).getTime() <= Date.now()}
+                      finalHome={m.home_score}
+                      finalAway={m.away_score}
+                    />
                   </CardContent>
                 </Card>
               );
