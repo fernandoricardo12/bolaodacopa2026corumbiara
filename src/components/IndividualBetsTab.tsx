@@ -266,9 +266,10 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
                   💰 Valendo agora
                 </div>
-                <div className="tabular-nums">🎯 Placar exato (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} de bônus` : ""}): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeExact.toFixed(2)}</strong></div>
-                <div className="tabular-nums">🏆 Só o vencedor (60%): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
-                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio das apostas não acumula entre jogos.{bonus > 0 ? ` O bônus de R$ ${bonus.toFixed(2)} é exclusivo para placar exato — se ninguém cravar, acumula pro próximo jogo da Seleção Brasileira 🇧🇷.` : ""}</div>
+                <div className="tabular-nums">🎯 Placar exato (80% do bolo, proporcional ao valor apostado): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8).toFixed(2)}</strong></div>
+                <div className="tabular-nums">🏆 Só o vencedor (60%, proporcional): <strong className="text-emerald-700 dark:text-emerald-300">R$ {prizeWinner.toFixed(2)}</strong></div>
+                {bonus > 0 && <div className="tabular-nums">⭐ Bônus extra (só para quem apostar R$ 5 e cravar): <strong className="text-amber-700 dark:text-amber-300">R$ {bonus.toFixed(2)}</strong></div>}
+                <div className="text-[10px] text-muted-foreground">* "Só vencedor" só é pago se ninguém cravar o placar exato. O prêmio não acumula entre jogos.</div>
               </div>
 
 
