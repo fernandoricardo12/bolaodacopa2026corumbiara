@@ -182,9 +182,8 @@ export function RulesTab() {
             <Badge className="ml-1 bg-yellow-500 text-yellow-950">Jogo Top da Rodada</Badge>.
           </p>
           <p className="text-muted-foreground text-xs">
-            Eles aparecem no <strong>topo da aba Individual</strong> com destaque dourado para incentivar mais palpites.
-            As regras e o preço continuam <strong>idênticos</strong> aos outros jogos: R$ 2 por palpite, só paga quem crava o placar exato (80% do bolo),
-            e tudo entra na mesma somatória do palpite individual.
+            Apenas os <strong>jogos marcados como destaque</strong> aparecem na aba <strong>Individual</strong>. Cada palpite custa
+            <strong> R$ 2 ou R$ 5</strong> (à escolha do apostador, quando o admin liberar R$ 2). Premiação sempre dividida entre os ganhadores.
           </p>
         </CardContent>
       </Card>
