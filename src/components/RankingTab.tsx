@@ -80,13 +80,16 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       payments.filter((p) => p.status === "pending" && !paidUsers.has(p.user_id)).map((p) => p.user_id)
     );
     const agg: Record<string, { points: number; bets: number }> = {};
+    for (const uid of [...paidUsers, ...pendingUsers]) {
+      agg[uid] ??= { points: 0, bets: 0 };
+    }
     for (const b of bets) {
       agg[b.user_id] ??= { points: 0, bets: 0 };
       agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? b.points || 0 : 0;
       agg[b.user_id].bets += 1;
     }
     const arr: Row[] = Object.entries(agg)
-      .filter(([uid, v]) => v.bets > 0 && (paidUsers.has(uid) || pendingUsers.has(uid)))
+      .filter(([uid]) => paidUsers.has(uid) || pendingUsers.has(uid))
       .map(([uid, v]) => ({
         user_id: uid,
         display_name: profiles[uid]?.display_name ?? "Jogador",
