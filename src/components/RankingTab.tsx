@@ -93,7 +93,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         bets: v.bets,
         paid: paidUsers.has(uid),
       }));
-    arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || b.bets - a.bets);
+    arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || b.bets - a.bets || a.display_name.localeCompare(b.display_name, "pt-BR"));
     const hasBets = bets.some((b) => b.user_id === currentUserId);
     const status: "confirmed" | "pending" | "none" = paidUsers.has(currentUserId)
       ? "confirmed"

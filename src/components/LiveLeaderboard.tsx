@@ -49,7 +49,7 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
       points: v.points,
       bets: v.bets,
     }));
-    arr.sort((a, b) => b.points - a.points || b.bets - a.bets);
+    arr.sort((a, b) => b.points - a.points || b.bets - a.bets || a.display_name.localeCompare(b.display_name, "pt-BR"));
     setRows(arr);
   }
 
