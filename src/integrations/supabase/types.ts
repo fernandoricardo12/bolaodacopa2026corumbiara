@@ -174,6 +174,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          allow_two_bets: boolean
           away_score: number | null
           away_team_id: string
           bonus_prize: number
@@ -195,6 +196,7 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          allow_two_bets?: boolean
           away_score?: number | null
           away_team_id: string
           bonus_prize?: number
@@ -216,6 +218,7 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          allow_two_bets?: boolean
           away_score?: number | null
           away_team_id?: string
           bonus_prize?: number

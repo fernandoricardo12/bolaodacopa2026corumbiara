@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS allow_two_bets boolean NOT NULL DEFAULT true;
