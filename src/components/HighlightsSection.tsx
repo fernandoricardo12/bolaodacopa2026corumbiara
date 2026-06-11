@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAllPointsPaymentStatuses, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Bet = { user_id: string; match_id: string; points: number };
 type IBet = { user_id: string; match_id: string; paid: boolean; payout: number };
 type Match = { id: string; kickoff?: string; home_score?: number | null; away_score?: number | null; finished: boolean; live_status_detail?: string | null };
 type Profile = { id: string; display_name: string };
-type Payment = { user_id: string; status: string };
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.home_score === undefined || m.away_score === null || m.away_score === undefined) return false;
@@ -21,7 +22,8 @@ export function HighlightsSection() {
   const [ibets, setIbets] = useState<IBet[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payments, setPayments] = useState<PointsPaymentStatus[]>([]);
+  const fetchPayments = useServerFn(getAllPointsPaymentStatuses);
 
   async function load() {
     const [b, ib, m, pr, pay] = await Promise.all([
@@ -29,13 +31,13 @@ export function HighlightsSection() {
       supabase.from("individual_bets").select("user_id,match_id,paid,payout"),
       supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
       supabase.from("profiles").select("id,display_name"),
-      supabase.from("payments").select("user_id,status").eq("mode", "points"),
+      fetchPayments(),
     ]);
     if (b.data) setBets(b.data as Bet[]);
     if (ib.data) setIbets(ib.data as IBet[]);
     if (m.data) setMatches(m.data as Match[]);
     if (pr.data) setProfiles(Object.fromEntries(pr.data.map((x: any) => [x.id, x])));
-    if (pay.data) setPayments(pay.data as Payment[]);
+    setPayments(pay as PointsPaymentStatus[]);
   }
 
   useEffect(() => {
