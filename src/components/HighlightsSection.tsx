@@ -6,24 +6,28 @@ type Bet = { user_id: string; match_id: string; points: number };
 type IBet = { user_id: string; match_id: string; paid: boolean; payout: number };
 type Match = { id: string; finished: boolean };
 type Profile = { id: string; display_name: string };
+type Payment = { user_id: string; status: string };
 
 export function HighlightsSection() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [ibets, setIbets] = useState<IBet[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   async function load() {
-    const [b, ib, m, pr] = await Promise.all([
+    const [b, ib, m, pr, pay] = await Promise.all([
       supabase.from("bets").select("user_id,match_id,points"),
       supabase.from("individual_bets").select("user_id,match_id,paid,payout"),
       supabase.from("matches").select("id,finished"),
       supabase.from("profiles").select("id,display_name"),
+      supabase.from("payments").select("user_id,status").eq("mode", "points"),
     ]);
     if (b.data) setBets(b.data as Bet[]);
     if (ib.data) setIbets(ib.data as IBet[]);
     if (m.data) setMatches(m.data as Match[]);
     if (pr.data) setProfiles(Object.fromEntries(pr.data.map((x: any) => [x.id, x])));
+    if (pay.data) setPayments(pay.data as Payment[]);
   }
 
   useEffect(() => {
@@ -33,12 +37,14 @@ export function HighlightsSection() {
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "individual_bets" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
 
   const destaques = useMemo(() => {
     const finished = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+    const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const stats: Record<string, { name: string; pts: number; total: number; hits: number; exact: number; iwins: number; iCount: number }> = {};
     const ensure = (uid: string) => {
       stats[uid] ??= { name: profiles[uid]?.display_name ?? "Jogador", pts: 0, total: 0, hits: 0, exact: 0, iwins: 0, iCount: 0 };
@@ -46,6 +52,7 @@ export function HighlightsSection() {
     };
     for (const b of bets) {
       if (!finished.has(b.match_id)) continue;
+      if (!paidUsers.has(b.user_id)) continue;
       const s = ensure(b.user_id);
       s.pts += b.points || 0;
       s.total += 1;
@@ -66,7 +73,7 @@ export function HighlightsSection() {
       altoIndice: [...arr].filter((x) => x.total >= 3).sort((a, b) => b.rate - a.rate || b.pts - a.pts)[0],
       bolaMurcha: [...arr].filter((x) => x.total >= 3).sort((a, b) => a.pts - b.pts)[0],
     };
-  }, [bets, ibets, matches, profiles]);
+  }, [bets, ibets, matches, payments, profiles]);
 
   const semDados = !destaques.topPontos && !destaques.topIndividual && !destaques.sabeTudo;
 
