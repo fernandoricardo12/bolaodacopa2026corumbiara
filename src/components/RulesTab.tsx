@@ -136,20 +136,29 @@ export function RulesTab() {
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>uma pessoa</strong> cravar o placar, ela leva <strong>80% sozinha</strong>.
-              Se <strong>duas ou mais</strong> cravarem, os 80% são <strong>divididos em partes iguais</strong> entre todas elas.
+              O bolo é a soma de <strong>todas as apostas pagas</strong> (R$ 2 e R$ 5). Os 80% são divididos entre quem cravou,
+              <strong> proporcional ao valor apostado</strong> — quem apostou R$ 5 recebe 2,5× mais do que quem apostou R$ 2.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-3">
             <p className="font-semibold">🏆 Acertou só o vencedor → 60% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor da partida divide <strong>60% do bolo</strong> em partes iguais.
+              Se <strong>ninguém cravar o placar exato</strong>, quem acertou apenas o vencedor divide <strong>60% do bolo</strong>,
+              também <strong>proporcional ao valor apostado</strong>.
+            </p>
+          </div>
+          <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+            <p className="font-semibold">⭐ Bônus extra → exclusivo para apostas de R$ 5</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Quando o admin coloca um <strong>bônus extra</strong> num jogo destaque (ex.: R$ 50), esse valor é dividido
+              <strong> apenas entre quem apostou R$ 5 e cravou o placar exato</strong>. Quem cravou apostando R$ 2 recebe a parte
+              proporcional do bolo normal, mas <strong>não</strong> recebe o bônus.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
             <p className="font-semibold">🚫 Ninguém acertou nem o vencedor</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Caso ninguém acerte placar exato nem vencedor (ex.: empate inesperado), <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
+              Caso ninguém acerte placar exato nem vencedor, <strong>não há prêmio</strong> neste jogo — e o prêmio <strong>não acumula</strong> para a próxima partida.
             </p>
           </div>
         </CardContent>
