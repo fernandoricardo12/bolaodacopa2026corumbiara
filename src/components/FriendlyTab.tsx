@@ -236,7 +236,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
           const nowMs = Date.now();
           const isLive = !m.finished && kickoffMs <= nowMs && nowMs - kickoffMs < 3 * 60 * 60 * 1000;
           const hasLiveScore = isLive && m.home_score !== null && m.away_score !== null;
-          const locked = m.finished || kickoffMs <= nowMs;
+          const locked = m.finished || kickoffMs - nowMs <= 10 * 60 * 1000;
           const d = drafts[m.id] ?? { h: "", a: "" };
           const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
           return wrap((

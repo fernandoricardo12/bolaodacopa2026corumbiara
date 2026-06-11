@@ -267,7 +267,7 @@ export function MatchesTab({ userId }: { userId: string }) {
               const away = teams[m.away_team_id];
               if (!home || !away) return null;
               const bet = bets[m.id];
-              const locked = m.finished || new Date(m.kickoff) <= new Date();
+              const locked = m.finished || new Date(m.kickoff).getTime() - Date.now() <= 10 * 60 * 1000;
               const d = drafts[m.id] ?? { h: bet?.home_score?.toString() ?? "", a: bet?.away_score?.toString() ?? "" };
               return (
                 <Card key={m.id} className={locked ? "opacity-95" : ""}>

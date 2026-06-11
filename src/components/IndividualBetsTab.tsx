@@ -209,7 +209,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const home = teams[m.home_team_id]; const away = teams[m.away_team_id];
         if (!home || !away) return null;
         const userBets = betsByMatch[m.id] ?? [];
-        const locked = m.finished || new Date(m.kickoff) <= new Date();
+        const locked = m.finished || new Date(m.kickoff).getTime() - Date.now() <= 10 * 60 * 1000;
         const d = drafts[m.id] ?? { h: "", a: "" };
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const bonus = Number(m.bonus_prize ?? 0);
