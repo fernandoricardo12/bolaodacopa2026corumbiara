@@ -378,14 +378,14 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               {(() => {
                 const unpaid = userBets.filter((b) => !b.paid);
                 if (unpaid.length === 0) return null;
-                const total = unpaid.length * PRICE;
+                const total = unpaid.reduce((s, b) => s + Number(b.amount), 0);
                 const label = `${home.name} × ${away.name}`;
                 const isPaying = !!paying[m.id];
                 const wasRegistered = !!registeredFor[m.id];
                 return (
                   <div className="rounded-lg border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2">
                     <div className="text-xs font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
-                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} × R$ {PRICE} =
+                      💸 Pagar agora — {unpaid.length} palpite{unpaid.length > 1 ? "s" : ""} =
                       <strong className="tabular-nums">R$ {total.toFixed(2)}</strong>
                     </div>
 
