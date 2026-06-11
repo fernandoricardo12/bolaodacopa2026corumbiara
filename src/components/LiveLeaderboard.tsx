@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal } from "lucide-react";
+import { getAllPointsPaymentStatuses, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
 type Bet = { user_id: string; match_id: string; points: number };
 type Match = { id: string; kickoff: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
-type Payment = { user_id: string; status: string };
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
@@ -19,17 +20,18 @@ function countsForRanking(m?: Match) {
 
 export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Ranking ao vivo" }: { currentUserId?: string; limit?: number; title?: string }) {
   const [rows, setRows] = useState<Row[]>([]);
+  const fetchPayments = useServerFn(getAllPointsPaymentStatuses);
 
   async function load() {
-    const [{ data: bets }, { data: profiles }, { data: pays }, { data: matches }] = await Promise.all([
+    const [{ data: bets }, { data: profiles }, pays, { data: matches }] = await Promise.all([
       supabase.from("bets").select("user_id,match_id,points"),
       supabase.from("profiles").select("id,display_name,avatar_url"),
-      supabase.from("payments").select("user_id,status").eq("mode", "points"),
+      fetchPayments(),
       supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
     ]);
     if (!bets || !profiles) return;
     const matchMap = Object.fromEntries(((matches ?? []) as Match[]).map((m) => [m.id, m]));
-    const paidUsers = new Set(((pays ?? []) as Payment[]).filter((p) => p.status === "confirmed").map((p) => p.user_id));
+    const paidUsers = new Set(((pays ?? []) as PointsPaymentStatus[]).filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
     const agg: Record<string, { points: number; bets: number }> = {};
     for (const b of bets as Bet[]) {
