@@ -188,10 +188,10 @@ export function RulesTab() {
           <div className="flex gap-3 items-start">
             <Clock className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">Pague antes do início do jogo</p>
+              <p className="font-semibold">Pague até 10 minutos antes do início do jogo</p>
               <p className="text-muted-foreground text-xs">
-                O pagamento deve ser efetuado e o comprovante enviado <strong>antes do apito inicial</strong> da partida.
-                Pagamentos registrados após o início do jogo <strong>não contam</strong> para aquela rodada.
+                O pagamento deve ser efetuado e o comprovante enviado <strong>até 10 minutos antes do apito inicial</strong> da partida.
+                Pagamentos registrados depois desse prazo <strong>não contam</strong> para aquela rodada.
               </p>
             </div>
           </div>
