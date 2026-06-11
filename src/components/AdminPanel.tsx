@@ -578,7 +578,7 @@ export function AdminPanel() {
       <TabsContent value="ipalpites" className="space-y-3">
         <Card className="bg-slate-50 dark:bg-slate-900/40">
           <CardContent className="p-3 text-xs text-muted-foreground">
-            Visão completa de todos os <strong>palpites individuais</strong> (R$ 2 por palpite) por jogo.
+            Visão completa de todos os <strong>palpites individuais</strong> (R$ 2 ou R$ 5 por palpite, apenas em jogos destaque) por jogo.
           </CardContent>
         </Card>
         {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}
