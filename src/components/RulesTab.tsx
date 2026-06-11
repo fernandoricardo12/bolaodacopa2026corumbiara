@@ -235,14 +235,14 @@ export function RulesTab() {
             <AccordionItem value="prazo">
               <AccordionTrigger>Até quando posso palpitar?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                Os palpites podem ser feitos ou alterados até o <strong>apito inicial</strong> da partida. Após o início do jogo o palpite é travado e não pode mais ser modificado.
+                Os palpites podem ser feitos ou alterados até <strong>10 minutos antes</strong> do apito inicial da partida. A partir desse momento o palpite é travado e não pode mais ser modificado.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="alterar">
               <AccordionTrigger>Posso alterar ou excluir meus palpites?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                Sim. Enquanto o jogo não começou, você pode editar ou excluir qualquer palpite na aba <strong>Minhas</strong> ou diretamente em <strong>Bolão</strong> / <strong>Individual</strong>.
-                Depois que a bola rolar, o palpite fica congelado.
+                Sim. Até <strong>10 minutos antes</strong> do início, você pode editar ou excluir qualquer palpite na aba <strong>Minhas</strong> ou diretamente em <strong>Bolão</strong> / <strong>Individual</strong>.
+                Depois desse prazo, o palpite fica congelado.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="prorrogacao">
