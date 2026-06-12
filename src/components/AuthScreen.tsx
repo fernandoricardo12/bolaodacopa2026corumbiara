@@ -139,7 +139,7 @@ export function AuthScreen() {
               </div>
 
               <p className="text-[11px] text-yellow-100/90 italic text-center">
-                Palpites individuais avulsos (R$ 2/jogo) também disponíveis — mas o grande prêmio está no bolão de pontos.
+                Palpites individuais avulsos de <strong>R$ 2 ou R$ 5</strong> também disponíveis — válidos somente nos <strong>jogos marcados como destaque</strong> pelo administrador. Premiação sempre dividida em caso de mais de um ganhador.
               </p>
             </div>
           </div>
@@ -165,7 +165,7 @@ export function AuthScreen() {
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-4">
               <Wallet className="h-5 w-5 text-yellow-300 mb-2" />
               <h3 className="font-bold text-sm">Bolão de pontos + palpites individuais</h3>
-              <p className="text-xs text-emerald-50/90">R$ 50 no bolão geral ou R$ 2 por palpite avulso. Prêmios para quem acerta!</p>
+              <p className="text-xs text-emerald-50/90">R$ 50 no bolão geral ou R$ 2 / R$ 5 por palpite avulso (jogos destaque). Premiação sempre dividida entre ganhadores.</p>
             </div>
           </div>
 
