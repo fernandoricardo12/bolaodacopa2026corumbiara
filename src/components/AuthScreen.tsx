@@ -139,7 +139,7 @@ export function AuthScreen() {
               </div>
 
               <p className="text-[11px] text-yellow-100/90 italic text-center">
-                Palpites individuais avulsos (R$ 2/jogo) também disponíveis — mas o grande prêmio está no bolão de pontos.
+                Palpites individuais avulsos de <strong>R$ 2 ou R$ 5</strong> também disponíveis — válidos somente nos <strong>jogos marcados como destaque</strong> pelo administrador. Premiação sempre dividida em caso de mais de um ganhador.
               </p>
             </div>
           </div>
