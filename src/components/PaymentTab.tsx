@@ -6,16 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle, MessageCircle, AlertTriangle } from "lucide-react";
 import { useSettings } from "@/lib/useSettings";
 import { ContactInfoCard } from "@/components/ContactInfoCard";
 
 type Payment = { id: string; amount: number; status: string; mode: string; proof_note: string | null; created_at: string };
-type IBet = { id: string; match_id: string; home_score: number; away_score: number; paid: boolean };
-
-const PRICE_INDIVIDUAL = 2;
 
 /** Boundary local — evita que um erro dentro da aba mostre "página não encontrada" no app inteiro. */
 class PaymentBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -64,29 +60,21 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
   const hasPhone = supportPhone.length >= 10;
 
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [unpaidBets, setUnpaidBets] = useState<IBet[]>([]);
-  const [mode, setMode] = useState<"points" | "individual">("points");
   const [amount, setAmount] = useState("50");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
 
-  const unpaidCount = unpaidBets.length;
-  const unpaidTotal = unpaidCount * PRICE_INDIVIDUAL;
-
-  // Derivados — declarados ANTES dos handlers para evitar leitura em TDZ.
-  const pointsConfirmed = payments.some((p) => p.mode === "points" && p.status === "confirmed");
-  const pointsPending = payments.some((p) => p.mode === "points" && p.status === "pending");
-  const pointsBlocked = mode === "points" && (pointsConfirmed || pointsPending);
+  // Mostra apenas pagamentos do bolão de pontos (individuais agora pagam na aba de Individuais)
+  const pointsPayments = payments.filter((p) => p.mode === "points");
+  const pointsConfirmed = pointsPayments.some((p) => p.status === "confirmed");
+  const pointsPending = pointsPayments.some((p) => p.status === "pending");
+  const blocked = pointsConfirmed || pointsPending;
 
   async function load() {
     try {
-      const [paysRes, betsRes] = await Promise.all([
-        supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-        supabase.from("individual_bets").select("id,match_id,home_score,away_score,paid").eq("user_id", userId).eq("paid", false),
-      ]);
-      if (paysRes.data) setPayments(paysRes.data as Payment[]);
-      if (betsRes.data) setUnpaidBets(betsRes.data as IBet[]);
+      const { data } = await supabase.from("payments").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+      if (data) setPayments(data as Payment[]);
     } catch (err) {
       console.error("[PaymentTab] load erro:", err);
     }
@@ -97,45 +85,30 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
     load();
     const ch = supabase.channel(`pay-rt-${userId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `user_id=eq.${userId}` }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "individual_bets", filter: `user_id=eq.${userId}` }, load)
       .subscribe();
     return () => { try { supabase.removeChannel(ch); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  useEffect(() => {
-    if (mode === "individual") setAmount(String(unpaidTotal || PRICE_INDIVIDUAL));
-  }, [mode, unpaidTotal]);
-
-  function changeMode(m: "points" | "individual") {
-    setMode(m);
-    setAmount(m === "points" ? "50" : String(unpaidTotal || PRICE_INDIVIDUAL));
-    setRegistered(false);
-  }
-
   function buildWhatsAppUrl() {
     const valor = parseFloat(amount || "0");
-    const modoLabel = mode === "points" ? "Bolão de pontos" : "Palpite individual";
     const msg = encodeURIComponent(
-      `Olá! Sou *${email ?? ""}*. Acabei de registrar um pagamento de R$ ${valor.toFixed(2)} (${modoLabel}).${note ? " Obs: " + note : ""} Segue o comprovante em anexo.`
+      `Olá! Sou *${email ?? ""}*. Acabei de registrar um pagamento de R$ ${valor.toFixed(2)} (Bolão de pontos).${note ? " Obs: " + note : ""} Segue o comprovante em anexo.`
     );
-    // api.whatsapp.com/send funciona melhor que wa.me em webviews (Instagram, Facebook, etc.)
     return `https://api.whatsapp.com/send?phone=${supportPhone}&text=${msg}`;
   }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (mode === "points" && (pointsConfirmed || pointsPending)) {
-      toast.error(
-        pointsConfirmed
-          ? "Você já tem um pagamento do bolão de pontos confirmado."
-          : "Você já possui um registro pendente. Aguarde a análise do administrador."
-      );
+    if (blocked) {
+      toast.error(pointsConfirmed
+        ? "Você já tem um pagamento do bolão de pontos confirmado."
+        : "Você já possui um registro pendente. Aguarde a análise do administrador.");
       return;
     }
     setLoading(true);
     const { error } = await supabase.from("payments").insert({
-      user_id: userId, amount: parseFloat(amount), mode, proof_note: note || null,
+      user_id: userId, amount: parseFloat(amount), mode: "points", proof_note: note || null,
     });
     setLoading(false);
     if (error) toast.error(error.message);
@@ -166,9 +139,11 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            Pagamento via PIX {pointsConfirmed && <Badge className="bg-emerald-600">Bolão de pontos pago</Badge>}
+            Pagamento do Bolão (R$ 50) {pointsConfirmed && <Badge className="bg-emerald-600">Pago</Badge>}
           </CardTitle>
-          <CardDescription>Escolha a modalidade, faça o PIX e registre aqui. O admin confirma manualmente.</CardDescription>
+          <CardDescription>
+            Pagamento único de R$ 50 para entrar no ranking acumulado da Copa. Os palpites individuais (R$ 2 / R$ 5) são pagos diretamente na aba <strong>Individuais</strong>, após registrar cada palpite.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border bg-muted/40 p-4">
@@ -177,25 +152,8 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
             <Button size="sm" variant="ghost" className="mt-2" onClick={() => { navigator.clipboard?.writeText(PIX_KEY).then(() => toast.success("Chave copiada")).catch(() => toast.error("Não foi possível copiar")); }}>Copiar chave</Button>
           </div>
 
-          <Tabs value={mode} onValueChange={(v) => changeMode(v as "points" | "individual")}>
-            <TabsList className="grid grid-cols-1 sm:grid-cols-2 w-full h-auto gap-1">
-              <TabsTrigger value="points" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Bolão de pontos (R$ 50)</TabsTrigger>
-              <TabsTrigger value="individual" className="w-full justify-center py-2 text-xs sm:text-sm whitespace-normal">Palpite individual (R$ 2 / R$ 5)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="points" className="text-xs text-muted-foreground pt-2">
-              Pagamento único de R$ 50 para entrar no ranking acumulado da Copa.
-            </TabsContent>
-            <TabsContent value="individual" className="text-xs text-muted-foreground pt-2 space-y-2">
-              <p>Cada palpite individual custa <strong>R$ {PRICE_INDIVIDUAL}</strong>, independente do jogo. Você pode fazer quantos quiser (inclusive vários no mesmo jogo).</p>
-              <div className="rounded-md border bg-muted/40 p-2 text-foreground">
-                Palpites em aberto: <strong>{unpaidCount}</strong> × R$ {PRICE_INDIVIDUAL} = <strong>R$ {unpaidTotal.toFixed(2)}</strong>
-                {unpaidCount === 0 && <span className="block text-muted-foreground">Nenhum palpite pendente de pagamento.</span>}
-              </div>
-            </TabsContent>
-          </Tabs>
-
           <form onSubmit={handleRegister} className="space-y-3">
-            {pointsBlocked && (
+            {blocked && (
               <div className="rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-xs text-emerald-900 dark:text-emerald-200">
                 {pointsConfirmed
                   ? "✅ Seu pagamento do bolão de pontos já foi confirmado. Não é necessário registrar novamente."
@@ -204,11 +162,11 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
             )}
             <div className="space-y-1">
               <Label>Valor (R$)</Label>
-              <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} disabled={pointsBlocked} />
+              <Input type="number" step="0.01" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} disabled={blocked} />
             </div>
             <div className="space-y-1">
               <Label>Observação</Label>
-              <Textarea placeholder={mode === "individual" ? "Diga quais jogos este pagamento cobre" : "Ex: ID da transação"} value={note} onChange={(e) => setNote(e.target.value)} disabled={pointsBlocked} />
+              <Textarea placeholder="Ex: ID da transação" value={note} onChange={(e) => setNote(e.target.value)} disabled={blocked} />
             </div>
 
             {!hasPhone && (
@@ -218,13 +176,13 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button type="submit" disabled={loading || pointsBlocked} variant="outline" className="w-full">
+              <Button type="submit" disabled={loading || blocked} variant="outline" className="w-full">
                 {loading ? "Registrando…" : registered ? "✓ Registrado" : "1. Registrar pagamento"}
               </Button>
               <Button
                 type="button"
                 onClick={handleSendWhatsApp}
-                disabled={!hasPhone || pointsBlocked}
+                disabled={!hasPhone || blocked}
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
               >
                 <MessageCircle className="h-4 w-4 mr-2" /> 2. Enviar comprovante
@@ -238,15 +196,13 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Meus envios</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Meus envios (Bolão de pontos)</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {payments.length === 0 && <p className="text-sm text-muted-foreground">Nenhum envio.</p>}
-          {payments.map((p) => (
+          {pointsPayments.length === 0 && <p className="text-sm text-muted-foreground">Nenhum envio.</p>}
+          {pointsPayments.map((p) => (
             <div key={p.id} className="flex items-center justify-between border rounded-md p-3">
               <div>
-                <div className="font-medium flex items-center gap-2">R$ {Number(p.amount).toFixed(2)}
-                  <Badge variant="outline" className="text-[10px]">{p.mode === "individual" ? "Individual" : "Pontos"}</Badge>
-                </div>
+                <div className="font-medium">R$ {Number(p.amount).toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleString("pt-BR")}</div>
                 {p.proof_note && <div className="text-xs text-muted-foreground mt-1">{p.proof_note}</div>}
               </div>
