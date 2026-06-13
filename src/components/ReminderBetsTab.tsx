@@ -205,7 +205,7 @@ export function ReminderBetsTab() {
                 <div className="space-y-2">
                   {missing.map((p) => {
                     if (!p) return null;
-                    const msg = buildReminderMessage(p.display_name, home.name, away.name, m.kickoff);
+                    const msg = buildReminderMessage(p.display_name, home.name, away.name, m.kickoff, { featured: m.featured, bonus: Number(m.bonus_prize ?? 0) });
                     const hasPhone = isValidBrPhone(p.phone);
                     return (
                       <div key={p.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
