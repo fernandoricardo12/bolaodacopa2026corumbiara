@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react";
 import heroCup from "@/assets/hero-cup.jpg";
+import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
+import { FeaturedWelcomeBanner } from "@/components/FeaturedWelcomeBanner";
 
 export function AuthScreen() {
   const [loading, setLoading] = useState(false);
@@ -71,6 +73,7 @@ export function AuthScreen() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-700 via-emerald-600 to-yellow-500 dark:from-slate-950 dark:via-emerald-950 dark:to-slate-900">
+      <FeaturedWelcomeBanner />
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 grid lg:grid-cols-2 gap-8 items-center min-h-screen">
         {/* Coluna esquerda: propaganda / temática */}
         <div className="text-white space-y-6 order-2 lg:order-1">
@@ -175,7 +178,17 @@ export function AuthScreen() {
         </div>
 
         {/* Coluna direita: card de login */}
-        <div className="order-1 lg:order-2 flex justify-center">
+        <div className="order-1 lg:order-2 flex flex-col items-center gap-4">
+          <div className="w-full max-w-md">
+            <FeaturedMatchCard
+              variant="public"
+              ctaLabel="🪙 Entrar e palpitar no jogo destaque"
+              onGoIndividual={() => {
+                document.getElementById("si-email")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                (document.getElementById("si-email") as HTMLInputElement | null)?.focus();
+              }}
+            />
+          </div>
           <Card className="w-full max-w-md shadow-2xl border-2 border-yellow-400">
             <CardHeader className="text-center">
               <div className="mx-auto mb-2 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-800 text-yellow-300 shadow-lg">

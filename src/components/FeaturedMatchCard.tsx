@@ -30,7 +30,15 @@ function countdown(iso: string, now: Date) {
   return `em ${m}min`;
 }
 
-export function FeaturedMatchCard({ onGoIndividual }: { onGoIndividual: () => void }) {
+export function FeaturedMatchCard({
+  onGoIndividual,
+  ctaLabel,
+  variant = "logged",
+}: {
+  onGoIndividual: () => void;
+  ctaLabel?: string;
+  variant?: "logged" | "public";
+}) {
   const [match, setMatch] = useState<Match | null>(null);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [now, setNow] = useState(() => new Date());
@@ -107,10 +115,10 @@ export function FeaturedMatchCard({ onGoIndividual }: { onGoIndividual: () => vo
         <Button
           size="lg"
           onClick={onGoIndividual}
-          disabled={closed}
+          disabled={variant === "logged" && closed}
           className="w-full bg-yellow-400 hover:bg-yellow-300 text-emerald-950 font-bold shadow"
         >
-          {closed ? "Palpites encerrados" : "🪙 Palpitar agora no Individual"}
+          {ctaLabel ?? (closed ? "Palpites encerrados" : "🪙 Palpitar agora no Individual")}
         </Button>
         <p className="text-[11px] text-center text-yellow-100/80">
           Palpites fecham 10 minutos antes do início.
