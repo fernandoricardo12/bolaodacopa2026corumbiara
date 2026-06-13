@@ -19,6 +19,7 @@ import heroCup from "@/assets/hero-cup.jpg";
 import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
 import { WhatsAppPromptDialog } from "@/components/WhatsAppPromptDialog";
+import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 
 
 
