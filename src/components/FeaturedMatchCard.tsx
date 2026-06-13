@@ -30,7 +30,15 @@ function countdown(iso: string, now: Date) {
   return `em ${m}min`;
 }
 
-export function FeaturedMatchCard({ onGoIndividual }: { onGoIndividual: () => void }) {
+export function FeaturedMatchCard({
+  onGoIndividual,
+  ctaLabel,
+  variant = "logged",
+}: {
+  onGoIndividual: () => void;
+  ctaLabel?: string;
+  variant?: "logged" | "public";
+}) {
   const [match, setMatch] = useState<Match | null>(null);
   const [teams, setTeams] = useState<Record<string, Team>>({});
   const [now, setNow] = useState(() => new Date());
