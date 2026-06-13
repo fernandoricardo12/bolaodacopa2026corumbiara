@@ -95,7 +95,7 @@ export function ReminderBetsTab() {
   async function load() {
     const [t, m, pr, b, pay] = await Promise.all([
       supabase.from("teams").select("id,name,flag,code"),
-      supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,stage,group_name,finished,is_friendly").order("kickoff"),
+      supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,stage,group_name,finished,is_friendly,featured,bonus_prize").order("kickoff"),
       supabase.from("profiles").select("id,display_name,phone"),
       supabase.from("bets").select("user_id,match_id"),
       supabase.from("payments").select("user_id,mode,status").eq("mode", "points").eq("status", "confirmed"),
