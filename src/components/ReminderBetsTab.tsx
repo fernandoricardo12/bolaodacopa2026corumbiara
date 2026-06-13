@@ -19,6 +19,8 @@ type Match = {
   group_name: string | null;
   finished: boolean;
   is_friendly?: boolean;
+  featured?: boolean;
+  bonus_prize?: number | null;
 };
 type Profile = { id: string; display_name: string; phone?: string | null };
 type Bet = { user_id: string; match_id: string };
@@ -27,10 +29,44 @@ function fmtKickoff(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
-function buildReminderMessage(name: string, homeName: string, awayName: string, kickoff: string) {
+function buildReminderMessage(
+  name: string,
+  homeName: string,
+  awayName: string,
+  kickoff: string,
+  opts: { featured?: boolean; bonus?: number } = {},
+) {
   const first = name?.split(" ")[0] ?? "";
   const hora = new Date(kickoff).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   const dia = new Date(kickoff).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+  const bonus = Number(opts.bonus ?? 0);
+
+  if (opts.featured) {
+    return [
+      `Eaí ${first}! 👋⚽`,
+      "",
+      `🔥 *JOGO EM DESTAQUE no Bolão Copa 2026* 🏆`,
+      `*${homeName} × ${awayName}* — ${dia} às ${hora}.`,
+      "",
+      "🪙 *Bolão Individual liberado!* Aposte *R$ 2 ou R$ 5* no placar exato:",
+      "• 80% do bolo (proporcional) p/ quem cravar o placar",
+      "• 60% p/ quem só acertar o vencedor",
+      bonus > 0
+        ? `• 🎁 *Bônus extra de R$ ${bonus.toFixed(2).replace(".", ",")}* dividido entre quem apostou R$ 5 e cravou`
+        : "",
+      "⚖️ Havendo mais de um ganhador, a premiação é sempre dividida.",
+      "",
+      "⏰ Palpites fecham *10 minutos antes* do jogo. Não fica de fora!",
+      "",
+      "👉 Manda seu palpite agora na aba *Individual*:",
+      "https://bolaodacopa2026corumbiara.lovable.app",
+      "",
+      "Boa sorte! 🍀🇧🇷",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
   return [
     `Eaí ${first}! 👋⚽`,
     "",
@@ -45,6 +81,7 @@ function buildReminderMessage(name: string, homeName: string, awayName: string, 
     "Boa sorte! 🍀🇧🇷",
   ].join("\n");
 }
+
 
 export function ReminderBetsTab() {
   const [matches, setMatches] = useState<Match[]>([]);
