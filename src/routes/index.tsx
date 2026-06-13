@@ -19,6 +19,7 @@ import heroCup from "@/assets/hero-cup.jpg";
 import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
 import { WhatsAppPromptDialog } from "@/components/WhatsAppPromptDialog";
+import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 
 
 
@@ -76,6 +77,8 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-4">
+        <FeaturedMatchCard onGoIndividual={() => setActiveTab("individual")} />
+
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-5 sm:grid-cols-10 w-full gap-1 p-1 h-auto">
