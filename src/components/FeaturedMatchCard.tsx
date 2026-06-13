@@ -115,10 +115,10 @@ export function FeaturedMatchCard({
         <Button
           size="lg"
           onClick={onGoIndividual}
-          disabled={closed}
+          disabled={variant === "logged" && closed}
           className="w-full bg-yellow-400 hover:bg-yellow-300 text-emerald-950 font-bold shadow"
         >
-          {closed ? "Palpites encerrados" : "🪙 Palpitar agora no Individual"}
+          {ctaLabel ?? (closed ? "Palpites encerrados" : "🪙 Palpitar agora no Individual")}
         </Button>
         <p className="text-[11px] text-center text-yellow-100/80">
           Palpites fecham 10 minutos antes do início.
