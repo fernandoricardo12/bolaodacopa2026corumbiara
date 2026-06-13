@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react";
 import heroCup from "@/assets/hero-cup.jpg";
+import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 
 export function AuthScreen() {
   const [loading, setLoading] = useState(false);
