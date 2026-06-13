@@ -73,6 +73,8 @@ export function AuthScreen() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-700 via-emerald-600 to-yellow-500 dark:from-slate-950 dark:via-emerald-950 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-700 via-emerald-600 to-yellow-500 dark:from-slate-950 dark:via-emerald-950 dark:to-slate-900">
+      <FeaturedWelcomeBanner />
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 grid lg:grid-cols-2 gap-8 items-center min-h-screen">
         {/* Coluna esquerda: propaganda / temática */}
         <div className="text-white space-y-6 order-2 lg:order-1">
