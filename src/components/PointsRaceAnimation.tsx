@@ -78,63 +78,54 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
   const display = rows.slice(0, 12);
 
   return (
-    <Card className="overflow-hidden border-2 border-yellow-400 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2 text-yellow-200">
-          <Trophy className="h-4 w-4" /> 🏃‍⚽ Corrida pelos pontos — ao vivo
+    <Card className="overflow-hidden border border-yellow-400 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white">
+      <CardHeader className="py-1.5 px-3">
+        <CardTitle className="text-[11px] flex items-center gap-1 text-yellow-200">
+          <Trophy className="h-3 w-3" /> 🏃‍⚽ Corrida pelos pontos
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="relative">
-          <div className="absolute inset-y-0 left-10 right-12 pointer-events-none">
+          <div className="absolute inset-y-0 left-7 right-8 pointer-events-none">
             <div className="absolute inset-y-0 left-0 w-px bg-yellow-300/40" />
-            <div className="absolute inset-y-0 right-0 w-1 bg-yellow-300 shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
-            <div className="absolute -top-1 right-0 text-sm leading-none -translate-x-full pr-1">🏁</div>
+            <div className="absolute inset-y-0 right-0 w-0.5 bg-yellow-300 shadow-[0_0_4px_rgba(250,204,21,0.8)]" />
           </div>
-          <div className="divide-y divide-emerald-500/40">
+          <div className="divide-y divide-emerald-500/30">
             {display.map((r, i) => {
               const pct = (r.points / maxPoints) * 100;
               const isMe = r.user_id === currentUserId;
               return (
-                <div key={r.user_id} className="relative h-16 flex items-center">
-                  <div className="w-10 text-center text-xs font-bold text-yellow-200 shrink-0">
+                <div key={r.user_id} className="relative h-7 flex items-center">
+                  <div className="w-7 text-center text-[9px] font-bold text-yellow-200 shrink-0">
                     {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`}
                   </div>
-                  <div className="relative flex-1 h-full mr-12">
-                    {/* dashed track */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-dashed border-yellow-300/30" />
-                    {/* runner */}
+                  <div className="relative flex-1 h-full mr-8">
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-dashed border-yellow-300/25" />
                     <div
                       className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-out"
-                      style={{ left: `calc(${pct}% - 24px)` }}
+                      style={{ left: `calc(${pct}% - 11px)` }}
                     >
                       <div
-                        className={`relative ${isMe ? "drop-shadow-[0_0_6px_rgba(253,224,71,0.9)]" : ""} animate-bounce`}
+                        className={`${isMe ? "drop-shadow-[0_0_4px_rgba(253,224,71,0.9)]" : ""} animate-bounce`}
                         style={{ animationDuration: `${0.7 + (i % 4) * 0.15}s` }}
                       >
                         <PlayerAvatar
                           userId={r.user_id}
                           gender={r.gender ?? inferGender(r.display_name)}
-                          size={44}
+                          size={22}
                           hasBall
                         />
                       </div>
-                      <div className="text-[9px] text-yellow-100 whitespace-nowrap mt-0.5 truncate max-w-[70px] text-center font-semibold">
-                        {r.display_name.split(" ")[0]}
-                      </div>
                     </div>
                   </div>
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col items-center text-yellow-200">
-                    <span className="text-sm font-extrabold leading-none">{r.points}</span>
-                    <span className="text-[8px] font-normal opacity-80">pts</span>
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-baseline gap-0.5 text-yellow-200">
+                    <span className="text-[10px] font-extrabold leading-none">{r.points}</span>
+                    <span className="text-[7px] opacity-70">pts</span>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-        <div className="px-3 py-1.5 text-[10px] text-yellow-100/80 bg-black/20 text-center">
-          🟢 Atualiza em tempo real conforme os jogos rolam
         </div>
       </CardContent>
     </Card>
