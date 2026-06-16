@@ -11,12 +11,14 @@ import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react"
 import heroCup from "@/assets/hero-cup.jpg";
 import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 import { FeaturedWelcomeBanner } from "@/components/FeaturedWelcomeBanner";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 
 export function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [gender, setGender] = useState<"male" | "female">("male");
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -41,7 +43,7 @@ export function AuthScreen() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName.trim() },
+        data: { display_name: displayName.trim(), gender },
       },
     });
     setLoading(false);
@@ -221,6 +223,27 @@ export function AuthScreen() {
                 <div className="space-y-1">
                   <Label htmlFor="su-name">Seu nome</Label>
                   <Input id="su-name" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Avatar do jogador</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGender("male")}
+                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition ${gender === "male" ? "border-primary bg-primary/10" : "border-muted hover:border-primary/50"}`}
+                    >
+                      <PlayerAvatar userId={(displayName || "preview") + "-m"} gender="male" size={48} />
+                      <span className="text-xs font-medium">Homem ⚽</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender("female")}
+                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition ${gender === "female" ? "border-primary bg-primary/10" : "border-muted hover:border-primary/50"}`}
+                    >
+                      <PlayerAvatar userId={(displayName || "preview") + "-f"} gender="female" size={48} />
+                      <span className="text-xs font-medium">Mulher ⚽</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="su-email">Email</Label>
