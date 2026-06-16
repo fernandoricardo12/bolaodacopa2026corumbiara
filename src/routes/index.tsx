@@ -20,6 +20,7 @@ import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
 import { WhatsAppPromptDialog } from "@/components/WhatsAppPromptDialog";
 import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
+import { PointsRaceAnimation } from "@/components/PointsRaceAnimation";
 
 
 
@@ -79,6 +80,9 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
       <main className="max-w-4xl mx-auto px-4 py-4">
         <FeaturedMatchCard onGoIndividual={() => setActiveTab("individual")} />
 
+        <div className="my-3">
+          <PointsRaceAnimation currentUserId={userId} />
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-5 sm:grid-cols-10 w-full gap-1 p-1 h-auto">
