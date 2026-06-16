@@ -20,6 +20,7 @@ import { MyBetsTab } from "@/components/MyBetsTab";
 import { RulesTab } from "@/components/RulesTab";
 import { WhatsAppPromptDialog } from "@/components/WhatsAppPromptDialog";
 import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
+import { PointsRaceAnimation } from "@/components/PointsRaceAnimation";
 
 
 
