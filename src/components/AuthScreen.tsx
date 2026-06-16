@@ -11,6 +11,7 @@ import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react"
 import heroCup from "@/assets/hero-cup.jpg";
 import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 import { FeaturedWelcomeBanner } from "@/components/FeaturedWelcomeBanner";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 
 export function AuthScreen() {
   const [loading, setLoading] = useState(false);
