@@ -224,6 +224,27 @@ export function AuthScreen() {
                   <Input id="su-name" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                 </div>
                 <div className="space-y-1">
+                  <Label>Avatar do jogador</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGender("male")}
+                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition ${gender === "male" ? "border-primary bg-primary/10" : "border-muted hover:border-primary/50"}`}
+                    >
+                      <PlayerAvatar userId={(displayName || "preview") + "-m"} gender="male" size={48} />
+                      <span className="text-xs font-medium">Homem ⚽</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender("female")}
+                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition ${gender === "female" ? "border-primary bg-primary/10" : "border-muted hover:border-primary/50"}`}
+                    >
+                      <PlayerAvatar userId={(displayName || "preview") + "-f"} gender="female" size={48} />
+                      <span className="text-xs font-medium">Mulher ⚽</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1">
                   <Label htmlFor="su-email">Email</Label>
                   <Input id="su-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
