@@ -42,7 +42,7 @@ export function AuthScreen() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: displayName.trim() },
+        data: { display_name: displayName.trim(), gender },
       },
     });
     setLoading(false);
