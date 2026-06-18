@@ -228,7 +228,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         const pool = poolByMatch[m.id] ?? { total: 0, paid: 0, count: 0 };
         const bonus = Number(m.bonus_prize ?? 0);
         const prizeExact = pool.paid * 0.8 + bonus;
-        const prizeWinner = pool.paid * 0.6;
+
         const showFeatured = m.featured && !m.finished;
         const prev = sortedVisible[idx - 1];
         const showFinishedDivider = m.finished && (!prev || !prev.finished);
