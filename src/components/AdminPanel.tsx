@@ -235,12 +235,8 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(`Bônus extra: R$ ${num.toFixed(2)}`); load(); }
   }
 
-  async function toggleAllowTwo(m: Match) {
-    const next = !(m.allow_two_bets ?? true);
-    const { error } = await supabase.from("matches").update({ allow_two_bets: next }).eq("id", m.id);
-    if (error) toast.error(error.message);
-    else { toast.success(next ? "Palpites de R$ 2 liberados" : "Apenas R$ 5 neste jogo"); load(); }
-  }
+
+
 
   async function exportImage() {
     if (!reportRef.current) return;
