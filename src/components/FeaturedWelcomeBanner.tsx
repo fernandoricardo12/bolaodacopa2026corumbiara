@@ -34,7 +34,7 @@ export function FeaturedWelcomeBanner() {
 
   return (
     <div className="w-full bg-yellow-400 text-emerald-950 px-3 py-2 text-center text-xs sm:text-sm font-semibold shadow-md border-b-2 border-yellow-500">
-      👋 Bem-vindo! 🔥 <strong>{dia}</strong> tem <strong>{home.flag} {home.name} × {away.name} {away.flag}</strong> às <strong>{hora}</strong> — jogo em destaque! Entre e palpite no <u>Bolão Individual</u> (R$ 2 ou R$ 5). 🪙
+      👋 Bem-vindo! 🔥 <strong>{dia}</strong> tem <strong>{home.flag} {home.name} × {away.name} {away.flag}</strong> às <strong>{hora}</strong> — jogo em destaque! Entre e palpite no <u>Bolão Individual</u> (R$ 5). 🪙
     </div>
   );
 }
