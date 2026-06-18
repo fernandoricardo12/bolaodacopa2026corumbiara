@@ -135,21 +135,20 @@ export function RulesTab() {
           <div className="rounded-md border-l-4 border-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">⭐ Só valem os jogos marcados como destaque pelo administrador</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Cada jogo destaque pode receber palpites de <strong>R$ 2</strong> ou <strong>R$ 5</strong>. O administrador pode, a qualquer momento,
-              liberar ou bloquear os palpites de R$ 2 e definir manualmente um <strong>bônus extra</strong> para a partida.
+              Cada jogo destaque recebe palpites de <strong>R$ 5</strong>. O administrador pode definir manualmente um <strong>bônus extra</strong> para a partida.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Os 80% são divididos <strong>proporcionalmente ao valor apostado</strong> entre quem cravou. Havendo mais de um ganhador, a premiação é
+              Os 80% são divididos <strong>igualmente</strong> entre quem cravou. Havendo mais de um ganhador, a premiação é
               <strong> sempre dividida</strong>.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
             <p className="font-semibold">⭐ Bônus extra (quando o admin define)</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>somente entre quem apostou R$ 5 e cravou o placar exato</strong>.
+              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>entre quem cravou o placar exato</strong>.
               Havendo mais de um, o bônus também é dividido.
             </p>
           </div>
