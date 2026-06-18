@@ -50,7 +50,7 @@ function buildReminderMessage(
       "",
       "🪙 *Bolão Individual liberado!* Aposte *R$ 5* no placar exato:",
       "• 80% do bolo p/ quem cravar o placar exato (dividido em caso de empate)",
-      "• 🚫 Sem ninguém cravando, não há prêmio (sem acúmulo)",
+      "• 🔄 Se ninguém cravar, os 80% acumulam pro próximo jogo em destaque",
       bonus > 0
         ? `• 🎁 *Bônus extra de R$ ${bonus.toFixed(2).replace(".", ",")}* dividido entre quem cravar o placar exato`
         : "",
