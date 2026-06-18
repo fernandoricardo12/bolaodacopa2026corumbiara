@@ -142,7 +142,7 @@ function PaymentTabInner({ userId, email }: { userId: string; email?: string }) 
             Pagamento do Bolão (R$ 50) {pointsConfirmed && <Badge className="bg-emerald-600">Pago</Badge>}
           </CardTitle>
           <CardDescription>
-            Pagamento único de R$ 50 para entrar no ranking acumulado da Copa. Os palpites individuais (R$ 2 / R$ 5) são pagos diretamente na aba <strong>Individuais</strong>, após registrar cada palpite.
+            Pagamento único de R$ 50 para entrar no ranking acumulado da Copa. Os palpites individuais (R$ 5) são pagos diretamente na aba <strong>Individuais</strong>, após registrar cada palpite.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
