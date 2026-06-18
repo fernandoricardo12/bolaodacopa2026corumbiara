@@ -146,13 +146,6 @@ export function RulesTab() {
               <strong> sempre dividida</strong>.
             </p>
           </div>
-          <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-3">
-            <p className="font-semibold">🏆 Acertou só o vencedor → 60% do bolo do jogo</p>
-            <p className="text-muted-foreground text-xs mt-1">
-              Se <strong>ninguém cravar o placar exato</strong>, os 60% são divididos proporcionalmente ao valor apostado entre quem acertou só o vencedor.
-              Havendo mais de um ganhador, a premiação é sempre dividida.
-            </p>
-          </div>
           <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
             <p className="font-semibold">⭐ Bônus extra (quando o admin define)</p>
             <p className="text-muted-foreground text-xs mt-1">
@@ -161,11 +154,12 @@ export function RulesTab() {
             </p>
           </div>
           <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
-            <p className="font-semibold">🚫 Ninguém acertou nem o vencedor</p>
+            <p className="font-semibold">🚫 Ninguém cravou o placar exato</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Caso ninguém acerte placar exato nem vencedor (ex.: empate inesperado), <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
+              Caso ninguém acerte o <strong>placar exato</strong>, <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
             </p>
           </div>
+
         </CardContent>
       </Card>
 
