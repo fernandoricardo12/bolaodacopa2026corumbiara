@@ -208,10 +208,11 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
             <div>
               🎯 <strong>Placar exato:</strong> 80% do bolo do jogo, dividido proporcional ao valor apostado.
               <br />
-              🏆 <strong>Só o vencedor:</strong> 60% do bolo proporcional ao valor — só vale se ninguém cravar o placar exato.
-              <br />
               👥 Havendo mais de um ganhador, a premiação é sempre dividida entre todos.
+              <br />
+              🚫 Se ninguém cravar o placar exato, não há prêmio neste jogo (sem acúmulo).
             </div>
+
           </div>
         </CardContent>
       </Card>
