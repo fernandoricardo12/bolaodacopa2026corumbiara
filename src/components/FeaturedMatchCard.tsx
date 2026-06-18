@@ -102,7 +102,8 @@ export function FeaturedMatchCard({
           </div>
           <ul className="text-xs sm:text-sm text-emerald-50 space-y-1 pl-1">
             <li>🪙 Aposte <strong>R$ 2 ou R$ 5</strong> no placar exato</li>
-            <li>🏆 <strong>80%</strong> do bolo (proporcional) p/ quem cravar · <strong>60%</strong> p/ quem só acertar o vencedor</li>
+            <li>🏆 <strong>80%</strong> do bolo (proporcional ao valor apostado) p/ quem cravar o placar exato</li>
+            <li className="text-yellow-100/90">🚫 Sem ninguém cravando, não há prêmio (sem acúmulo).</li>
             {bonus > 0 && (
               <li className="text-yellow-200">
                 🎁 <strong>Bônus extra de R$ {bonus.toFixed(2).replace(".", ",")}</strong> dividido entre quem apostou R$ 5 e cravou
