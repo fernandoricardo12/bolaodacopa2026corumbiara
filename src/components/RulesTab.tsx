@@ -176,7 +176,7 @@ export function RulesTab() {
           </p>
           <p className="text-muted-foreground text-xs">
             Apenas os <strong>jogos marcados como destaque</strong> aparecem na aba <strong>Individual</strong>. Cada palpite custa
-            <strong> R$ 2 ou R$ 5</strong> (à escolha do apostador, quando o admin liberar R$ 2). Premiação sempre dividida entre os ganhadores.
+            <strong> R$ 5</strong>. Premiação sempre dividida entre os ganhadores.
           </p>
         </CardContent>
       </Card>
