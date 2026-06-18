@@ -545,17 +545,8 @@ export function AdminPanel() {
                         onBlur={(e) => updateBonus(m, e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                       />
-                      <span className="text-[10px] text-muted-foreground">(só p/ quem apostar R$ 5 e cravar)</span>
+                      <span className="text-[10px] text-muted-foreground">(só p/ quem cravar o placar exato)</span>
                     </label>
-                    <Button
-                      size="sm"
-                      variant={(m.allow_two_bets ?? true) ? "default" : "outline"}
-                      disabled={m.finished}
-                      onClick={() => toggleAllowTwo(m)}
-                      className={(m.allow_two_bets ?? true) ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
-                    >
-                      {(m.allow_two_bets ?? true) ? "Palpites R$ 2 liberados" : "Somente R$ 5"}
-                    </Button>
                   </div>
                 )}
               </CardContent>
