@@ -235,12 +235,8 @@ export function AdminPanel() {
     if (error) toast.error(error.message); else { toast.success(`Bônus extra: R$ ${num.toFixed(2)}`); load(); }
   }
 
-  async function toggleAllowTwo(m: Match) {
-    const next = !(m.allow_two_bets ?? true);
-    const { error } = await supabase.from("matches").update({ allow_two_bets: next }).eq("id", m.id);
-    if (error) toast.error(error.message);
-    else { toast.success(next ? "Palpites de R$ 2 liberados" : "Apenas R$ 5 neste jogo"); load(); }
-  }
+
+
 
   async function exportImage() {
     if (!reportRef.current) return;
@@ -497,7 +493,7 @@ export function AdminPanel() {
           <CardContent className="p-3 text-xs flex items-start gap-2">
             <Flame className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
             <div>
-              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para liberá-los na aba <strong>Individual</strong>. Só jogos destaque aceitam palpites individuais (R$ 2 ou R$ 5 por palpite).
+              Marque jogos como <strong>"Jogo Top da Rodada"</strong> para liberá-los na aba <strong>Individual</strong>. Só jogos destaque aceitam palpites individuais (R$ 5 por palpite).
               Use o campo <strong>Bônus extra</strong> para adicionar prêmio (ex.: R$ 50) — esse bônus é pago apenas a quem apostou <strong>R$ 5</strong> e cravou o placar exato.
             </div>
           </CardContent>
@@ -549,17 +545,8 @@ export function AdminPanel() {
                         onBlur={(e) => updateBonus(m, e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                       />
-                      <span className="text-[10px] text-muted-foreground">(só p/ quem apostar R$ 5 e cravar)</span>
+                      <span className="text-[10px] text-muted-foreground">(só p/ quem cravar o placar exato)</span>
                     </label>
-                    <Button
-                      size="sm"
-                      variant={(m.allow_two_bets ?? true) ? "default" : "outline"}
-                      disabled={m.finished}
-                      onClick={() => toggleAllowTwo(m)}
-                      className={(m.allow_two_bets ?? true) ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
-                    >
-                      {(m.allow_two_bets ?? true) ? "Palpites R$ 2 liberados" : "Somente R$ 5"}
-                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -622,7 +609,7 @@ export function AdminPanel() {
       <TabsContent value="ipalpites" className="space-y-3">
         <Card className="bg-slate-50 dark:bg-slate-900/40">
           <CardContent className="p-3 text-xs text-muted-foreground">
-            Visão completa de todos os <strong>palpites individuais</strong> (R$ 2 ou R$ 5 por palpite, apenas em jogos destaque) por jogo.
+            Visão completa de todos os <strong>palpites individuais</strong> (R$ 5 por palpite, apenas em jogos destaque) por jogo.
           </CardContent>
         </Card>
         {matches.length === 0 && <p className="text-sm text-muted-foreground">Nenhum jogo cadastrado.</p>}

@@ -110,7 +110,7 @@ function Dashboard({ userId, email, isAdmin }: { userId: string; email: string; 
 
         </Tabs>
         <div className="mt-6 rounded-md border border-yellow-400/60 bg-gradient-to-r from-emerald-600/10 via-yellow-400/10 to-emerald-600/10 px-3 py-1.5 text-center text-[11px] leading-tight text-emerald-900 dark:text-yellow-100">
-          🏆 <strong>Bolão R$ 50</strong>: 20/15/10/5 pts · líder leva 80% + R$ 100 bônus · 🪙 <strong>Individual R$ 2 ou R$ 5</strong> (jogos destaque): placar exato 80% (proporcional) · R$ 5 cravando exato = bônus extra
+          🏆 <strong>Bolão R$ 50</strong>: 20/15/10/5 pts · líder leva 80% + R$ 100 bônus · 🪙 <strong>Individual R$ 5</strong> (jogos destaque): placar exato leva 80% · bônus extra quando o admin definir
         </div>
 
         <div className="mt-6 relative rounded-xl overflow-hidden shadow border-2 border-yellow-400">

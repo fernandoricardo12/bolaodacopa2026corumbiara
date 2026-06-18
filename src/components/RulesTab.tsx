@@ -44,10 +44,10 @@ export function RulesTab() {
           </div>
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 p-3">
             <div className="flex items-center gap-2 font-semibold flex-wrap">
-              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 2 ou R$ 5 por palpite</Badge>
+              <Coins className="h-4 w-4" /> Palpite individual <Badge className="bg-yellow-500 text-yellow-950">R$ 5 por palpite</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
-              Valem somente os <strong>jogos marcados como destaque pelo administrador</strong>. Cada palpite avulso custa <strong>R$ 2 ou R$ 5</strong> (você escolhe).
+              Valem somente os <strong>jogos marcados como destaque pelo administrador</strong>. Cada palpite avulso custa <strong>R$ 5</strong>.
               Pode fazer <strong>quantos palpites quiser</strong>, inclusive vários no mesmo jogo. Cada jogo tem o seu próprio bolo —
               quem acertar divide o prêmio daquela partida (sempre dividido em caso de mais de um ganhador).
             </p>
@@ -135,21 +135,20 @@ export function RulesTab() {
           <div className="rounded-md border-l-4 border-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">⭐ Só valem os jogos marcados como destaque pelo administrador</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Cada jogo destaque pode receber palpites de <strong>R$ 2</strong> ou <strong>R$ 5</strong>. O administrador pode, a qualquer momento,
-              liberar ou bloquear os palpites de R$ 2 e definir manualmente um <strong>bônus extra</strong> para a partida.
+              Cada jogo destaque recebe palpites de <strong>R$ 5</strong>. O administrador pode definir manualmente um <strong>bônus extra</strong> para a partida.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3">
             <p className="font-semibold">🎯 Acertou o placar exato → 80% do bolo do jogo</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Os 80% são divididos <strong>proporcionalmente ao valor apostado</strong> entre quem cravou. Havendo mais de um ganhador, a premiação é
+              Os 80% são divididos <strong>igualmente</strong> entre quem cravou. Havendo mais de um ganhador, a premiação é
               <strong> sempre dividida</strong>.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
             <p className="font-semibold">⭐ Bônus extra (quando o admin define)</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>somente entre quem apostou R$ 5 e cravou o placar exato</strong>.
+              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>entre quem cravou o placar exato</strong>.
               Havendo mais de um, o bônus também é dividido.
             </p>
           </div>
@@ -177,7 +176,7 @@ export function RulesTab() {
           </p>
           <p className="text-muted-foreground text-xs">
             Apenas os <strong>jogos marcados como destaque</strong> aparecem na aba <strong>Individual</strong>. Cada palpite custa
-            <strong> R$ 2 ou R$ 5</strong> (à escolha do apostador, quando o admin liberar R$ 2). Premiação sempre dividida entre os ganhadores.
+            <strong> R$ 5</strong>. Premiação sempre dividida entre os ganhadores.
           </p>
         </CardContent>
       </Card>
@@ -209,7 +208,7 @@ export function RulesTab() {
               <p className="font-semibold">Como pagar — passo a passo</p>
               <ol className="text-muted-foreground text-xs list-decimal list-inside space-y-1 mt-1">
                 <li>Vá na aba <strong>Pagar</strong> e copie a chave PIX.</li>
-                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 2 por palpite).</li>
+                <li>Faça o PIX no valor da modalidade escolhida (R$ 50 ou R$ 5 por palpite individual).</li>
                 <li>Clique em <strong>"1. Registrar pagamento"</strong> informando valor e observação.</li>
                 <li>Clique em <strong>"2. Enviar comprovante"</strong> para abrir o WhatsApp e anexar o print.</li>
                 <li>Aguarde o administrador confirmar — o status muda para <Badge className="bg-emerald-600 text-[10px]">Confirmado</Badge>.</li>
@@ -269,7 +268,7 @@ export function RulesTab() {
             <AccordionItem value="quantos">
               <AccordionTrigger>Quantos palpites posso fazer por jogo?</AccordionTrigger>
               <AccordionContent className="text-sm text-muted-foreground">
-                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong> (somente jogos destaque): quantos você quiser — cada um custa R$ 2 ou R$ 5 e concorre separadamente.
+                No <strong>bolão de pontos</strong>: 1 palpite por jogo. No <strong>palpite individual</strong> (somente jogos destaque): quantos você quiser — cada um custa R$ 5 e concorre separadamente.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="desempate">
@@ -293,7 +292,7 @@ export function RulesTab() {
         <CardContent className="space-y-2 text-sm">
           {[
             { icon: <Target className="h-4 w-4" />, name: "Bolão", desc: "Faça 1 palpite por jogo. Pontuação acumulada vale para o ranking geral (R$ 50)." },
-            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Só jogos marcados como destaque. Faça quantos palpites quiser (R$ 2 ou R$ 5 cada). Premiação sempre dividida em caso de mais de um ganhador." },
+            { icon: <Coins className="h-4 w-4" />, name: "Individual", desc: "Só jogos marcados como destaque. Faça quantos palpites quiser (R$ 5 cada). Premiação sempre dividida em caso de mais de um ganhador." },
             { icon: <CheckCircle2 className="h-4 w-4" />, name: "Minhas", desc: "Veja, edite ou exclua todos os seus palpites em um só lugar (enquanto o jogo não começou)." },
             { icon: <Users className="h-4 w-4" />, name: "Grupos", desc: "Acompanhe a fase de grupos da Copa, classificação e jogos por grupo." },
             { icon: <Trophy className="h-4 w-4" />, name: "Mata-mata", desc: "Veja o chaveamento das oitavas em diante e palpite nos classificados." },

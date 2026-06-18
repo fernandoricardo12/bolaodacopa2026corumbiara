@@ -204,7 +204,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         <CardContent className="p-3 text-xs flex items-start gap-2">
           <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
           <div className="space-y-1">
-            <div><strong>Palpite Individual — escolha R$ 2 ou R$ 5 por palpite.</strong> Só valem os jogos marcados como destaque pelo administrador. Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
+            <div><strong>Palpite Individual — R$ 5 por palpite.</strong> Só valem os jogos marcados como destaque pelo administrador. Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
             <div>
               🎯 <strong>Placar exato:</strong> 80% do bolo do jogo, dividido proporcional ao valor apostado.
               <br />
@@ -300,11 +300,6 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
 
               {!locked && (
                 <div className="flex flex-wrap justify-end gap-2">
-                  {(m.allow_two_bets ?? true) && (
-                    <Button size="sm" variant="outline" onClick={() => addBet(m.id, 2)}>
-                      <Plus className="h-3 w-3 mr-1" /> Apostar R$ 2
-                    </Button>
-                  )}
                   <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
                     <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
                   </Button>
