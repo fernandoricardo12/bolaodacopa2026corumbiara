@@ -703,7 +703,7 @@ export function AdminPanel() {
           const m = matches.find((x) => x.id === b.match_id);
           const h = m ? teamMap[m.home_team_id] : null;
           const a = m ? teamMap[m.away_team_id] : null;
-          const prizeRule = m && b.home_score === m.home_score && b.away_score === m.away_score ? "Placar exato · 80%" : "Só vencedor · 60%";
+          const prizeRule = "Placar exato · 80%";
           return (
             <Card key={b.id}>
               <CardContent className="p-3 flex items-center justify-between gap-2 flex-wrap">
