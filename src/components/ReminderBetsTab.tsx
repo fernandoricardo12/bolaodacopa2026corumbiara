@@ -48,11 +48,11 @@ function buildReminderMessage(
       `🔥 *JOGO EM DESTAQUE no Bolão Copa 2026* 🏆`,
       `*${homeName} × ${awayName}* — ${dia} às ${hora}.`,
       "",
-      "🪙 *Bolão Individual liberado!* Aposte *R$ 2 ou R$ 5* no placar exato:",
-      "• 80% do bolo (proporcional ao valor apostado) p/ quem cravar o placar exato",
+      "🪙 *Bolão Individual liberado!* Aposte *R$ 5* no placar exato:",
+      "• 80% do bolo p/ quem cravar o placar exato (dividido em caso de empate)",
       "• 🚫 Sem ninguém cravando, não há prêmio (sem acúmulo)",
       bonus > 0
-        ? `• 🎁 *Bônus extra de R$ ${bonus.toFixed(2).replace(".", ",")}* dividido entre quem apostou R$ 5 e cravou`
+        ? `• 🎁 *Bônus extra de R$ ${bonus.toFixed(2).replace(".", ",")}* dividido entre quem cravar o placar exato`
         : "",
       "⚖️ Havendo mais de um ganhador, a premiação é sempre dividida.",
       "",
