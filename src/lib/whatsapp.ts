@@ -35,7 +35,7 @@ export function defaultWelcomeMessage(name?: string): string {
     "",
     "📌 *Como funciona:*",
     "• Bolão de Pontos (inscrição única R$ 50,00) — palpite em TODOS os jogos da Copa.",
-    "• Palpite Individual (R$ 2,00 por jogo) — opcional, para incrementar a diversão.",
+    "• Palpite Individual (R$ 5,00 por jogo, somente jogos destaque) — opcional, para incrementar a diversão.",
     "",
     "🎯 *Pontuação do bolão:*",
     "• 20 pts — placar exato",
