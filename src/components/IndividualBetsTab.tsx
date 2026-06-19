@@ -119,12 +119,14 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     if (!d || d.h === "" || d.a === "") return toast.error("Preencha o placar");
     const h = parseInt(d.h), a = parseInt(d.a);
     if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
-    const dup = (betsByMatch[matchId] ?? []).some((b) => b.home_score === h && b.away_score === a && Number(b.amount) === price);
-    if (dup) return toast.error(`Você já tem um palpite ${h}×${a} de R$ ${price} neste jogo`);
+    const dup = (betsByMatch[matchId] ?? []).some((b) => b.home_score === h && b.away_score === a);
+    if (dup) return toast.error(`Você já tem um palpite ${h}×${a} neste jogo`);
     const { error } = await supabase.from("individual_bets")
       .insert({ user_id: userId, match_id: matchId, home_score: h, away_score: a, amount: price });
-    if (error) toast.error(error.message);
-    else {
+    if (error) {
+      if ((error as { code?: string }).code === "23505") toast.error(`Você já tem um palpite ${h}×${a} neste jogo`);
+      else toast.error(error.message);
+    } else {
       toast.success(`Palpite de R$ ${price} registrado (pagar no PIX)`);
       setDrafts((p) => ({ ...p, [matchId]: { h: "", a: "", price } }));
     }
@@ -142,14 +144,16 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
     if (d.h === "" || d.a === "") return toast.error("Preencha o placar");
     const h = parseInt(d.h), a = parseInt(d.a);
     if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast.error("Placar inválido");
-    const dup = (betsByMatch[bet.match_id] ?? []).some((b) => b.id !== bet.id && b.home_score === h && b.away_score === a && Number(b.amount) === Number(bet.amount));
-    if (dup) return toast.error("Você já tem outro palpite com esse placar e valor neste jogo");
+    const dup = (betsByMatch[bet.match_id] ?? []).some((b) => b.id !== bet.id && b.home_score === h && b.away_score === a);
+    if (dup) return toast.error("Você já tem outro palpite com esse placar neste jogo");
     const { error } = await supabase.from("individual_bets")
       .update({ home_score: h, away_score: a })
       .eq("id", bet.id)
       .eq("user_id", userId);
-    if (error) toast.error(error.message);
-    else toast.success("Palpite atualizado!");
+    if (error) {
+      if ((error as { code?: string }).code === "23505") toast.error("Você já tem outro palpite com esse placar neste jogo");
+      else toast.error(error.message);
+    } else toast.success("Palpite atualizado!");
   }
 
   async function registerPayment(matchId: string, unpaid: IBet[], label: string) {
