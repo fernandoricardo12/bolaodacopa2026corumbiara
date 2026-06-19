@@ -346,7 +346,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
                 return (
                   <div className="rounded-md border border-muted bg-muted/40 px-3 py-2 text-xs">
                     <div className="font-semibold">Ninguém cravou o placar exato {m.finished ? "" : "ainda"}</div>
-                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém cravar até o fim, não há prêmio neste jogo (o prêmio não acumula).{bonus > 0 && !m.finished ? ` O bônus de R$ ${bonus.toFixed(2)} acumula pro próximo jogo da Seleção Brasileira.` : ""}</div>
+                    <div className="text-[11px] text-muted-foreground">Bolão de R$ {pool.paid.toFixed(2)} — se ninguém cravar até o fim, os 80% (R$ {(pool.paid * 0.8).toFixed(2)}) acumulam para o próximo jogo em destaque.{bonus > 0 && !m.finished ? ` O bônus de R$ ${bonus.toFixed(2)} também acumula.` : ""}</div>
                   </div>
                 );
               })()}
