@@ -106,7 +106,7 @@ export function FeaturedMatchCard({
             <li className="text-yellow-100/90">🔄 Se ninguém cravar, os 80% acumulam para o próximo jogo em destaque.</li>
             {bonus > 0 && (
               <li className="text-yellow-200">
-                🎁 <strong>Bônus extra de R$ {bonus.toFixed(2).replace(".", ",")}</strong> dividido entre quem cravar o placar exato
+                🎁 <strong>+ R$ {bonus.toFixed(2).replace(".", ",")} de bônus do admin</strong> somados ao prêmio
               </li>
             )}
             <li className="text-yellow-100/90">⚖️ Havendo mais de um ganhador, a premiação é sempre dividida.</li>

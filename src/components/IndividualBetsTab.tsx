@@ -257,24 +257,12 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 {locked && <Lock className="h-3 w-3" />}
               </div>
 
-              {bonus > 0 && (
-                <div className="rounded-md border-2 border-amber-400 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-950/40 dark:to-yellow-950/40 px-3 py-2 text-xs flex items-center gap-2 animate-pulse">
-                  <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-300">Premiação extra</div>
-                    <div className="font-extrabold text-amber-900 dark:text-amber-100">+ R$ {bonus.toFixed(2)} para quem cravar o placar exato!</div>
-                  </div>
-                </div>
-              )}
-
               <div className="rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
                 <div className="font-semibold text-emerald-800 dark:text-emerald-200 inline-flex items-center gap-1">
                   💰 Valendo agora
                 </div>
-                <div className="tabular-nums">🎯 Placar exato (80% do bolo, proporcional ao valor apostado): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8).toFixed(2)}</strong></div>
-                {bonus > 0 && <div className="tabular-nums">⭐ Bônus extra (só para quem apostar R$ 5 e cravar): <strong className="text-amber-700 dark:text-amber-300">R$ {bonus.toFixed(2)}</strong></div>}
-                <div className="text-[10px] text-muted-foreground">* Sem ninguém cravando, os 80% acumulam para o próximo jogo em destaque.</div>
-
+                <div className="tabular-nums">🎯 Placar exato: <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8 + bonus).toFixed(2)}</strong>{bonus > 0 && <span className="text-[10px] text-muted-foreground"> (80% do bolo + R$ {bonus.toFixed(2)} de bônus do admin)</span>}</div>
+                <div className="text-[10px] text-muted-foreground">* Sem ninguém cravando, o prêmio acumula para o próximo jogo em destaque.</div>
               </div>
 
 
@@ -305,7 +293,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               {!locked && (
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
-                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
+                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5
                   </Button>
                 </div>
               )}
@@ -318,14 +306,11 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 const winnerPaid = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))) : [];
                 const exactAmountTotal = exactPaid.reduce((s, b) => s + Number(b.amount), 0);
                 const winnerAmountTotal = winnerPaid.reduce((s, b) => s + Number(b.amount), 0);
-                const premiumExactCount = exactPaid.filter((b) => Number(b.amount) >= 5).length;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
                   const amt = Number(bet.amount);
                   if (bet.home_score === lh && bet.away_score === la && exactAmountTotal > 0) {
-                    const base = (pool.paid * 0.8) * (amt / exactAmountTotal);
-                    const bonusShare = amt >= 5 && premiumExactCount > 0 ? bonus / premiumExactCount : 0;
-                    return base + bonusShare;
+                    return (pool.paid * 0.8 + bonus) * (amt / exactAmountTotal);
                   }
                   if (exactAmountTotal === 0 && winnerAmountTotal > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
                     return (pool.paid * 0.6) * (amt / winnerAmountTotal);
