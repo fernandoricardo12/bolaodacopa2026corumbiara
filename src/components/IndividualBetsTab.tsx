@@ -299,23 +299,10 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               </div>
 
               {!locked && (
-                <div className="space-y-2 pt-1">
-                  <div className="rounded-md border-2 border-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs flex items-start gap-2 animate-pulse">
-                    <span className="text-base leading-none">⚠️</span>
-                    <div className="font-semibold text-red-800 dark:text-red-200 leading-snug">
-                      ATENÇÃO! Preencher o placar acima <u>NÃO registra</u> seu palpite.
-                      Você precisa clicar no botão amarelo abaixo para confirmar.
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => addBet(m.id, 5)}
-                    className="w-full h-14 text-base sm:text-lg font-extrabold bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-yellow-950 shadow-lg ring-2 ring-yellow-300 animate-pulse uppercase tracking-wide"
-                  >
-                    <Plus className="h-5 w-5 mr-1" /> Registrar palpite — R$ 5 {bonus > 0 ? "★" : ""}
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
+                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
                   </Button>
-                  <p className="text-[11px] text-center text-muted-foreground">
-                    👆 Clique para confirmar. Sem isso, seu palpite não conta!
-                  </p>
                 </div>
               )}
 
