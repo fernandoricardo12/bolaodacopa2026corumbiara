@@ -421,6 +421,30 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
         }
         return card;
       })}
+
+      <Card className="bg-gradient-to-r from-emerald-500 to-yellow-400 border-0 text-white shadow-md">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
+          <p className="text-sm leading-snug">{settings.about_text}</p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-300">
+        <CardContent className="p-3 text-xs flex items-start gap-2">
+          <Coins className="h-4 w-4 mt-0.5 text-amber-600" />
+          <div className="space-y-1">
+            <div><strong>Palpite Individual — R$ 5 por palpite.</strong> Só valem os jogos marcados como destaque pelo administrador. Você pode fazer <strong>vários palpites no mesmo jogo</strong> (cada um vira um PIX separado).</div>
+            <div>
+              🎯 <strong>Placar exato:</strong> 80% do bolo do jogo, dividido proporcional ao valor apostado.
+              <br />
+              👥 Havendo mais de um ganhador, a premiação é sempre dividida entre todos.
+              <br />
+              🔄 Se ninguém cravar o placar exato, os 80% acumulam para o próximo jogo em destaque. A administração mantém 20%.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
