@@ -210,7 +210,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               <br />
               👥 Havendo mais de um ganhador, a premiação é sempre dividida entre todos.
               <br />
-              🚫 Se ninguém cravar o placar exato, não há prêmio neste jogo (sem acúmulo).
+              🔄 Se ninguém cravar o placar exato, os 80% acumulam para o próximo jogo em destaque. A administração mantém 20%.
             </div>
 
           </div>
