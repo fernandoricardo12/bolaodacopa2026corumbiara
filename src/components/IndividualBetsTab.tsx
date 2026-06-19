@@ -409,24 +409,29 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={isPaying || wasRegistered}
-                        onClick={() => registerPayment(m.id, unpaid, label)}
-                      >
-                        {isPaying ? "Registrando…" : wasRegistered ? "✓ Registrado" : `1. Registrar R$ ${total.toFixed(2)}`}
-                      </Button>
-                      <Button
-                        size="sm"
-                        disabled={!hasPhone}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => sendWhatsApp(m.id, unpaid, label)}
-                      >
-                        <MessageCircle className="h-3.5 w-3.5 mr-1" /> 2. Enviar comprovante
-                      </Button>
+                    <div className="rounded-md border-2 border-red-400 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs flex items-start gap-2 animate-pulse">
+                      <span className="text-base leading-none">⚠️</span>
+                      <div className="font-semibold text-red-800 dark:text-red-200 leading-snug">
+                        ATENÇÃO! Depois de fazer o PIX, clique no botão grande abaixo para <u>avisar o administrador</u> do seu pagamento. Sem isso, seu palpite não é confirmado!
+                      </div>
                     </div>
+
+                    <Button
+                      disabled={isPaying || wasRegistered}
+                      onClick={() => registerPayment(m.id, unpaid, label)}
+                      className={`w-full h-14 text-base sm:text-lg font-extrabold uppercase tracking-wide shadow-lg ${wasRegistered ? "bg-emerald-600 hover:bg-emerald-600 text-white" : "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white ring-2 ring-red-300 animate-pulse"}`}
+                    >
+                      {isPaying ? "Registrando…" : wasRegistered ? "✓ Pagamento registrado" : `1️⃣ Registrar pagamento de R$ ${total.toFixed(2)}`}
+                    </Button>
+
+                    <Button
+                      disabled={!hasPhone}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                      onClick={() => sendWhatsApp(m.id, unpaid, label)}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" /> 2️⃣ Enviar comprovante no WhatsApp
+                    </Button>
+
                     <p className="text-[10px] text-emerald-900/70 dark:text-emerald-100/70 text-center">
                       Faça o PIX, registre aqui e envie o comprovante pelo WhatsApp. O admin confirma manualmente.
                     </p>
