@@ -222,7 +222,7 @@ export function FriendlyTab({ userId }: { userId: string }) {
             <br />
             🎯 <strong>Placar exato:</strong> leva 80% do bolo (dividido entre quem cravou).
             <br />
-            🚫 Se ninguém cravar o placar exato, não há prêmio neste jogo (sem acúmulo).
+            🔄 Se ninguém cravar o placar exato, os 80% acumulam para o próximo jogo em destaque.
             <br />
             Sincronização automática do placar ao vivo.
           </p>
