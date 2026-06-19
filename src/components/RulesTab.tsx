@@ -152,10 +152,10 @@ export function RulesTab() {
               Havendo mais de um, o bônus também é dividido.
             </p>
           </div>
-          <div className="rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-3">
-            <p className="font-semibold">🚫 Ninguém cravou o placar exato</p>
+          <div className="rounded-md border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/20 p-3">
+            <p className="font-semibold">🔄 Ninguém cravou? O prêmio acumula!</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Caso ninguém acerte o <strong>placar exato</strong>, <strong>não há prêmio</strong> neste jogo — o prêmio <strong>não acumula</strong> para a próxima partida.
+              Se ninguém acertar o <strong>placar exato</strong>, os <strong>80% do bolo acumulam</strong> para o <strong>próximo jogo em destaque</strong>. A administração mantém os 20%. Quando alguém finalmente cravar, leva o bolo atual + tudo o que foi acumulado.
             </p>
           </div>
 
