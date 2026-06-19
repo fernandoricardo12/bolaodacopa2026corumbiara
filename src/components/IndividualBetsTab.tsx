@@ -306,14 +306,11 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
                 const winnerPaid = hasScore ? matchPaid.filter((b) => Math.sign(b.home_score - b.away_score) === Math.sign((lh as number) - (la as number))) : [];
                 const exactAmountTotal = exactPaid.reduce((s, b) => s + Number(b.amount), 0);
                 const winnerAmountTotal = winnerPaid.reduce((s, b) => s + Number(b.amount), 0);
-                const premiumExactCount = exactPaid.filter((b) => Number(b.amount) >= 5).length;
                 const projectedPayout = (bet: typeof userBets[number]) => {
                   if (!hasScore || !bet.paid) return 0;
                   const amt = Number(bet.amount);
                   if (bet.home_score === lh && bet.away_score === la && exactAmountTotal > 0) {
-                    const base = (pool.paid * 0.8) * (amt / exactAmountTotal);
-                    const bonusShare = amt >= 5 && premiumExactCount > 0 ? bonus / premiumExactCount : 0;
-                    return base + bonusShare;
+                    return (pool.paid * 0.8 + bonus) * (amt / exactAmountTotal);
                   }
                   if (exactAmountTotal === 0 && winnerAmountTotal > 0 && Math.sign(bet.home_score - bet.away_score) === Math.sign((lh as number) - (la as number))) {
                     return (pool.paid * 0.6) * (amt / winnerAmountTotal);
