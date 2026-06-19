@@ -314,8 +314,8 @@ export function FriendlyTab({ userId }: { userId: string }) {
                   return (
                     <div className="rounded-md border border-emerald-300 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-xs space-y-1">
                       <div className="font-semibold text-emerald-800 dark:text-emerald-200">💰 Valendo agora</div>
-                      <div className="tabular-nums">🎯 Placar exato (80%{bonus > 0 ? ` + R$ ${bonus.toFixed(2)} de bônus` : ""}): <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8 + bonus).toFixed(2)}</strong></div>
-                      <div className="text-[10px] text-muted-foreground">* Só quem cravar o placar exato leva o prêmio.{bonus > 0 ? " O bônus de R$ " + bonus.toFixed(2) + " é exclusivo para quem cravar o placar exato." : ""}</div>
+                      <div className="tabular-nums">🎯 Placar exato: <strong className="text-emerald-700 dark:text-emerald-300">R$ {(pool.paid * 0.8 + bonus).toFixed(2)}</strong>{bonus > 0 ? <span className="text-[10px] text-muted-foreground"> (80% do bolo + R$ {bonus.toFixed(2)} de bônus do admin)</span> : null}</div>
+                      <div className="text-[10px] text-muted-foreground">* Só quem cravar o placar exato leva o prêmio.</div>
                     </div>
                   );
                 }
