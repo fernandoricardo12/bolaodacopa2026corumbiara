@@ -148,8 +148,7 @@ export function RulesTab() {
           <div className="rounded-md border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-3">
             <p className="font-semibold">⭐ Bônus extra (quando o admin define)</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é distribuído <strong>entre quem cravou o placar exato</strong>.
-              Havendo mais de um, o bônus também é dividido.
+              Quando o administrador adicionar um <strong>bônus extra</strong> para um jogo destaque, ele é <strong>somado automaticamente ao bolo</strong> e dividido entre quem cravou o placar exato.
             </p>
           </div>
           <div className="rounded-md border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/20 p-3">
