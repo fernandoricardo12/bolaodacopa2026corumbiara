@@ -293,7 +293,7 @@ export function IndividualBetsTab({ userId }: { userId: string }) {
               {!locked && (
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button size="sm" onClick={() => addBet(m.id, 5)} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-950">
-                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5 {bonus > 0 ? "★" : ""}
+                    <Plus className="h-3 w-3 mr-1" /> Apostar R$ 5
                   </Button>
                 </div>
               )}
