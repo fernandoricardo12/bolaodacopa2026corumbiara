@@ -11,6 +11,7 @@ import { Trophy, Radio, BarChart3, Users, Wallet, Sparkles } from "lucide-react"
 import heroCup from "@/assets/hero-cup.jpg";
 import { FeaturedMatchCard } from "@/components/FeaturedMatchCard";
 import { FeaturedWelcomeBanner } from "@/components/FeaturedWelcomeBanner";
+import { NextBrazilMatchCard } from "@/components/NextBrazilMatchCard";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 
 export function AuthScreen() {
@@ -181,6 +182,9 @@ export function AuthScreen() {
 
         {/* Coluna direita: card de login */}
         <div className="order-1 lg:order-2 flex flex-col items-center gap-4">
+          <div className="w-full max-w-md">
+            <NextBrazilMatchCard />
+          </div>
           <div className="w-full max-w-md">
             <FeaturedMatchCard
               variant="public"
