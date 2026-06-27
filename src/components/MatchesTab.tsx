@@ -40,10 +40,10 @@ type Standing = {
   realPj: number; // games actually finished (not projected)
 };
 
-const KNOCKOUT_STAGES = ["R32", "R16", "QF", "SF", "THIRD", "FINAL"];
+const KNOCKOUT_STAGES = ["r32", "r16", "qf", "sf", "third", "final"];
 const STAGE_LABEL: Record<string, string> = {
-  group: "Fase de Grupos", R32: "32 avos", R16: "Oitavas", QF: "Quartas",
-  SF: "Semifinais", THIRD: "Disputa 3º", FINAL: "Final",
+  group: "Fase de Grupos", r32: "32 avos", r16: "Oitavas", qf: "Quartas",
+  sf: "Semifinais", third: "Disputa 3º", final: "Final",
 };
 
 function hasScore(m: Match): m is Match & { home_score: number; away_score: number } {
