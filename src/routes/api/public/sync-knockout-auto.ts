@@ -156,7 +156,7 @@ async function handle() {
     const results: any[] = [];
 
     for (const row of r32 ?? []) {
-      const patch: Record<string, string> = {};
+      const patch: { home_team_id?: string; away_team_id?: string } = {};
 
       if (!row.home_team_id) {
         const code = resolveSource(row.home_source);

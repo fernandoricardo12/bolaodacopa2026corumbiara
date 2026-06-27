@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSyncScoresAutoRouteImport } from './routes/api/public/sync-scores-auto'
 import { Route as ApiPublicSyncScoresRouteImport } from './routes/api/public/sync-scores'
+import { Route as ApiPublicSyncKnockoutAutoRouteImport } from './routes/api/public/sync-knockout-auto'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -34,16 +35,24 @@ const ApiPublicSyncScoresRoute = ApiPublicSyncScoresRouteImport.update({
   path: '/api/public/sync-scores',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncKnockoutAutoRoute =
+  ApiPublicSyncKnockoutAutoRouteImport.update({
+    id: '/api/public/sync-knockout-auto',
+    path: '/api/public/sync-knockout-auto',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/api/public/sync-knockout-auto': typeof ApiPublicSyncKnockoutAutoRoute
   '/api/public/sync-scores': typeof ApiPublicSyncScoresRoute
   '/api/public/sync-scores-auto': typeof ApiPublicSyncScoresAutoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/api/public/sync-knockout-auto': typeof ApiPublicSyncKnockoutAutoRoute
   '/api/public/sync-scores': typeof ApiPublicSyncScoresRoute
   '/api/public/sync-scores-auto': typeof ApiPublicSyncScoresAutoRoute
 }
@@ -51,6 +60,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/api/public/sync-knockout-auto': typeof ApiPublicSyncKnockoutAutoRoute
   '/api/public/sync-scores': typeof ApiPublicSyncScoresRoute
   '/api/public/sync-scores-auto': typeof ApiPublicSyncScoresAutoRoute
 }
@@ -59,18 +69,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/api/public/sync-knockout-auto'
     | '/api/public/sync-scores'
     | '/api/public/sync-scores-auto'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
+    | '/api/public/sync-knockout-auto'
     | '/api/public/sync-scores'
     | '/api/public/sync-scores-auto'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/api/public/sync-knockout-auto'
     | '/api/public/sync-scores'
     | '/api/public/sync-scores-auto'
   fileRoutesById: FileRoutesById
@@ -78,6 +91,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ApiPublicSyncKnockoutAutoRoute: typeof ApiPublicSyncKnockoutAutoRoute
   ApiPublicSyncScoresRoute: typeof ApiPublicSyncScoresRoute
   ApiPublicSyncScoresAutoRoute: typeof ApiPublicSyncScoresAutoRoute
 }
@@ -112,12 +126,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSyncScoresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync-knockout-auto': {
+      id: '/api/public/sync-knockout-auto'
+      path: '/api/public/sync-knockout-auto'
+      fullPath: '/api/public/sync-knockout-auto'
+      preLoaderRoute: typeof ApiPublicSyncKnockoutAutoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ApiPublicSyncKnockoutAutoRoute: ApiPublicSyncKnockoutAutoRoute,
   ApiPublicSyncScoresRoute: ApiPublicSyncScoresRoute,
   ApiPublicSyncScoresAutoRoute: ApiPublicSyncScoresAutoRoute,
 }
