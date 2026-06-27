@@ -42,7 +42,7 @@ type Standing = {
 
 const KNOCKOUT_STAGES = ["r32", "r16", "qf", "sf", "third", "final"];
 const STAGE_LABEL: Record<string, string> = {
-  group: "Fase de Grupos", r32: "32 avos", r16: "Oitavas", qf: "Quartas",
+  group: "Fase de Grupos", r32: "16 avos", r16: "Oitavas", qf: "Quartas",
   sf: "Semifinais", third: "Disputa 3º", final: "Final",
 };
 
