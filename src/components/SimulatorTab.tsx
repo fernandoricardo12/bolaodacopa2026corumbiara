@@ -56,7 +56,7 @@ function pairings(slots: SlotKey[]): [SlotKey, SlotKey][] {
 
 const ROUNDS = ["R32", "R16", "QF", "SF", "FINAL"] as const;
 const ROUND_LABEL: Record<typeof ROUNDS[number], string> = {
-  R32: "32 avos", R16: "Oitavas", QF: "Quartas", SF: "Semifinais", FINAL: "Final",
+  R32: "16 avos", R16: "Oitavas", QF: "Quartas", SF: "Semifinais", FINAL: "Final",
 };
 
 export function SimulatorTab({ userId }: { userId: string }) {

@@ -14,7 +14,7 @@ type KO = {
 };
 
 const ROUND_LABEL: Record<string, string> = {
-  R32: "32 avos de final", R16: "Oitavas de final", QF: "Quartas de final",
+  R32: "16 avos de final", R16: "Oitavas de final", QF: "Quartas de final",
   SF: "Semifinais", THIRD: "Disputa de 3º", FINAL: "Final",
 };
 const ORDER = ["R32", "R16", "QF", "SF", "THIRD", "FINAL"];

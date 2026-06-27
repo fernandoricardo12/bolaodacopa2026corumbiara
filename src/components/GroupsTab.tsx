@@ -101,7 +101,7 @@ export function GroupsTab() {
         </Card>
       ))}
       <p className="text-[11px] text-muted-foreground sm:col-span-2 text-center">
-        Os 2 primeiros de cada grupo + 8 melhores 3º colocados avançam para a fase de 32 avos.
+        Os 2 primeiros de cada grupo + 8 melhores 3º colocados avançam para a fase de 16 avos.
       </p>
     </div>
   );
