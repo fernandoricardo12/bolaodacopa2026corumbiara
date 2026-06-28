@@ -112,10 +112,19 @@ async function handle() {
         null;
 
       const competitors = comp.competitors ?? [];
+      // Mata-mata: se foi para prorrogação/pênaltis, só contam os 90 minutos.
+      // Soma os períodos 1 e 2 do linescores (tempo regulamentar).
+      const useRegulationOnly =
+        statusName === "STATUS_AET" || statusName === "STATUS_PEN";
       const findScore = (code: string) => {
         const c = competitors.find(
           (x: any) => (x?.team?.abbreviation ?? "").toUpperCase() === code,
         );
+        if (useRegulationOnly && Array.isArray(c?.linescores) && c.linescores.length >= 2) {
+          const p1 = Number(c.linescores[0]?.value ?? c.linescores[0]?.displayValue);
+          const p2 = Number(c.linescores[1]?.value ?? c.linescores[1]?.displayValue);
+          if (Number.isFinite(p1) && Number.isFinite(p2)) return p1 + p2;
+        }
         const s = c?.score;
         const n = s === undefined || s === null || s === "" ? null : Number(s);
         return Number.isFinite(n as number) ? (n as number) : null;
@@ -123,6 +132,7 @@ async function handle() {
       const h = findScore(homeCode);
       const a = findScore(awayCode);
       if (h === null || a === null) continue;
+
 
       const { error: uerr } = await supabaseAdmin
         .from("matches")
