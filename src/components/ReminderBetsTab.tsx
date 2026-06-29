@@ -25,6 +25,20 @@ type Match = {
 type Profile = { id: string; display_name: string; phone?: string | null };
 type Bet = { user_id: string; match_id: string };
 
+const PAGE_SIZE = 1000;
+
+async function fetchAllRows<T>(buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await buildQuery(from, to);
+    if (error) throw new Error(error.message);
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 function fmtKickoff(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
@@ -93,18 +107,22 @@ export function ReminderBetsTab() {
   const [now, setNow] = useState(() => new Date());
 
   async function load() {
-    const [t, m, pr, b, pay] = await Promise.all([
-      supabase.from("teams").select("id,name,flag,code"),
-      supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,stage,group_name,finished,is_friendly,featured,bonus_prize").order("kickoff"),
-      supabase.from("profiles").select("id,display_name,phone"),
-      supabase.from("bets").select("user_id,match_id"),
-      supabase.from("payments").select("user_id,mode,status").eq("mode", "points").eq("status", "confirmed"),
-    ]);
-    if (t.data) setTeams(Object.fromEntries(t.data.map((x: any) => [x.id, x])));
-    if (m.data) setMatches((m.data as Match[]).filter((x) => !x.is_friendly));
-    if (pr.data) setProfiles(Object.fromEntries(pr.data.map((x: any) => [x.id, x])));
-    if (b.data) setBets(b.data as Bet[]);
-    if (pay.data) setPaidUsers(new Set(pay.data.map((x: any) => x.user_id)));
+    try {
+      const [t, m, pr, b, pay] = await Promise.all([
+        fetchAllRows<Team>((from, to) => supabase.from("teams").select("id,name,flag,code").range(from, to)),
+        fetchAllRows<Match>((from, to) => supabase.from("matches").select("id,home_team_id,away_team_id,kickoff,stage,group_name,finished,is_friendly,featured,bonus_prize").order("kickoff").range(from, to)),
+        fetchAllRows<Profile>((from, to) => supabase.from("profiles").select("id,display_name,phone").range(from, to)),
+        fetchAllRows<Bet>((from, to) => supabase.from("bets").select("user_id,match_id").range(from, to)),
+        fetchAllRows<{ user_id: string; mode: string; status: string }>((from, to) => supabase.from("payments").select("user_id,mode,status").eq("mode", "points").eq("status", "confirmed").range(from, to)),
+      ]);
+      setTeams(Object.fromEntries(t.map((x: any) => [x.id, x])));
+      setMatches(m.filter((x) => !x.is_friendly));
+      setProfiles(Object.fromEntries(pr.map((x: any) => [x.id, x])));
+      setBets(b);
+      setPaidUsers(new Set(pay.map((x) => x.user_id)));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao carregar lembretes");
+    }
   }
 
   useEffect(() => {
