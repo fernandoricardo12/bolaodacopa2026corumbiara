@@ -89,16 +89,16 @@ export const getPointsRankingData = createServerFn({ method: "GET" })
         supabaseAdmin.from("payments").select("user_id,status,created_at").eq("mode", "points").in("status", ["confirmed", "pending"]).order("created_at", { ascending: false }).range(from, to),
       ),
       fetchAllPages<{ id: string; user_id: string; match_id: string; home_score: number; away_score: number; points: number }>((from, to) =>
-        supabaseAdmin.from("bets").select("id,user_id,match_id,home_score,away_score,points").range(from, to),
+        supabaseAdmin.from("bets").select("id,user_id,match_id,home_score,away_score,points").order("id", { ascending: true }).range(from, to),
       ),
       fetchAllPages<PointsRankingData["matches"][number]>((from, to) =>
-        supabaseAdmin.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail").range(from, to),
+        supabaseAdmin.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail").order("id", { ascending: true }).range(from, to),
       ),
       fetchAllPages<PointsRankingData["teams"][number]>((from, to) =>
-        supabaseAdmin.from("teams").select("id,name,code").range(from, to),
+        supabaseAdmin.from("teams").select("id,name,code").order("id", { ascending: true }).range(from, to),
       ),
       fetchAllPages<PointsRankingData["profiles"][number]>((from, to) =>
-        supabaseAdmin.from("profiles").select("id,display_name,avatar_url").range(from, to),
+        supabaseAdmin.from("profiles").select("id,display_name,avatar_url").order("id", { ascending: true }).range(from, to),
       ),
     ]);
 
