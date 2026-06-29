@@ -64,10 +64,6 @@ const OFFICIAL_BRACKET: BracketMatch[] = [
   { round: "FINAL", position: 1, label: "Jogo 104", fifaMatch: 104, espnId: "760517", kickoff: "2026-07-19T19:00:00Z", home_source: "W:SF-1", away_source: "W:SF-2", venue: "East Rutherford" },
 ];
 
-const POSITION_BY_FIFA_MATCH = new Map(
-  OFFICIAL_BRACKET.map((m) => [m.fifaMatch, { round: m.round, position: m.position }]),
-);
-
 const ESPN_TO_OURS: Record<string, string> = {
   // ESPN usa algumas siglas/nomes diferentes das cadastradas no banco.
   DZA: "ALG",
@@ -195,13 +191,14 @@ async function handle() {
       }
       upserted++;
 
-      // O trigger só cria partida em `matches` quando os dois times estão definidos.
-      // Mesmo assim, atualizamos o external_match_id para a ESPN e o horário oficial.
+      // O trigger cria/atualiza `matches` usando external_match_id ko:ROUND-POSITION.
+      // Mantemos esse identificador interno para que a sincronização de placares
+      // consiga refletir o resultado de volta em `knockout_matches` e avançar a chave.
       if (patch.home_team_id && patch.away_team_id && patch.home_team_id !== patch.away_team_id) {
         const koExternalId = `ko:${spec.round}-${spec.position}`;
         const { error: matchError } = await supabaseAdmin
           .from("matches")
-          .update({ external_match_id: spec.espnId, kickoff: spec.kickoff, venue: spec.venue ?? null })
+          .update({ kickoff: spec.kickoff, venue: spec.venue ?? null })
           .eq("external_match_id", koExternalId);
         if (!matchError) syncedMatches++;
       }
