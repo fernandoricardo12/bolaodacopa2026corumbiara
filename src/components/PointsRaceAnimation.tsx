@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { getAllPointsPaymentStatuses, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
+import { getPointsRankingData, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Row = { user_id: string; display_name: string; gender: "male" | "female" | null; points: number };
 type Bet = { user_id: string; match_id: string; points: number };
@@ -31,20 +31,17 @@ function inferGender(name: string): "male" | "female" {
 
 export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string }) {
   const [rows, setRows] = useState<Row[]>([]);
-  const fetchPayments = useServerFn(getAllPointsPaymentStatuses);
+  const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
-    const [{ data: bets }, { data: profiles }, pays, { data: matches }] = await Promise.all([
-      supabase.from("bets").select("user_id,match_id,points"),
-      supabase.from("profiles").select("id,display_name,gender"),
-      fetchPayments(),
-      supabase.from("matches").select("id,kickoff,home_score,away_score,finished,live_status_detail"),
-    ]);
-    if (!bets || !profiles) return;
-    const matchMap = Object.fromEntries(((matches ?? []) as Match[]).map((m) => [m.id, m]));
-    const paidUsers = new Set(((pays ?? []) as PointsPaymentStatus[]).filter((p) => p.status === "confirmed").map((p) => p.user_id));
+    const data = await fetchRanking();
+    const bets = data.bets as Bet[];
+    const profiles = data.profiles as { id: string; display_name: string; gender?: "male" | "female" | null }[];
+    const pays = data.payments as PointsPaymentStatus[];
+    const matchMap = Object.fromEntries(((data.matches ?? []) as Match[]).map((m) => [m.id, m]));
+    const paidUsers = new Set(pays.filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const profMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
-    const payMap = Object.fromEntries(((pays ?? []) as PointsPaymentStatus[]).map((p) => [p.user_id, p]));
+    const payMap = Object.fromEntries(pays.map((p) => [p.user_id, p]));
     const agg: Record<string, number> = {};
     for (const uid of paidUsers) agg[uid] = 0;
     for (const b of bets as Bet[]) {
