@@ -181,9 +181,9 @@ export function AdminPanel() {
   async function syncNow() {
     setSyncing(true);
     try {
-      const r = await fetch("/api/public/sync-scores", { method: "POST" });
+      const r = await fetch("/api/public/sync-scores-auto", { method: "POST" });
       const j = await r.json().catch(() => ({}));
-      if (r.ok) { toast.success(`Sincronização: ${j.updated ?? 0}/${j.total ?? 0} atualizados`); load(); }
+      if (r.ok) { toast.success(`Sincronização: ${j.updated ?? 0}/${j.candidates ?? j.total ?? 0} atualizados`); load(); }
       else toast.error(j.error ?? "Falha");
     } finally { setSyncing(false); }
   }
