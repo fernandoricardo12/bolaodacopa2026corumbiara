@@ -8,6 +8,9 @@ const ESPN_URLS = [
   "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly.w/scoreboard",
 ];
 
+const ESPN_SUMMARY_URL =
+  "https://site.web.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=";
+
 const FINISHED_STATUSES = new Set([
   "STATUS_FINAL",
   "STATUS_FULL_TIME",
@@ -24,6 +27,36 @@ const PRE_GAME_STATUSES = new Set([
   "STATUS_CANCELED",
   "STATUS_CANCELLED",
 ]);
+
+const KNOCKOUT_STAGES = new Set(["r32", "r16", "qf", "sf", "third", "final"]);
+const EXTRA_TIME_STATUSES = new Set([
+  "STATUS_OVERTIME",
+  "STATUS_EXTRA_TIME",
+  "STATUS_AET",
+  "STATUS_PEN",
+  "STATUS_SHOOTOUT",
+]);
+
+async function fetchEspnSummary(eventId: string) {
+  try {
+    const res = await fetch(`${ESPN_SUMMARY_URL}${encodeURIComponent(eventId)}`, {
+      headers: { "user-agent": "Mozilla/5.0 BolaoCopa2026" },
+    });
+    if (!res.ok) return null;
+    const json: any = await res.json();
+    return json?.header?.competitions?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function regulationScoreFromLinescores(competitor: any) {
+  if (!Array.isArray(competitor?.linescores) || competitor.linescores.length < 2) return null;
+  const firstHalf = Number(competitor.linescores[0]?.value ?? competitor.linescores[0]?.displayValue);
+  const secondHalf = Number(competitor.linescores[1]?.value ?? competitor.linescores[1]?.displayValue);
+  if (!Number.isFinite(firstHalf) || !Number.isFinite(secondHalf)) return null;
+  return firstHalf + secondHalf;
+}
 
 export const Route = createFileRoute("/api/public/sync-scores-auto")({
   server: {
@@ -56,7 +89,7 @@ async function handle() {
     const { data: matches, error } = await supabaseAdmin
       .from("matches")
       .select(
-        "id, external_match_id, kickoff, finished, home_team_id, away_team_id, home_score, away_score",
+        "id, external_match_id, stage, kickoff, finished, home_team_id, away_team_id, home_score, away_score",
       )
       .eq("finished", false);
     if (error) {
@@ -112,18 +145,30 @@ async function handle() {
         null;
 
       const competitors = comp.competitors ?? [];
-      // Mata-mata: se foi para prorrogação/pênaltis, só contam os 90 minutos.
-      // Soma os períodos 1 e 2 do linescores (tempo regulamentar).
+      const isKnockoutMatch =
+        String(m.external_match_id ?? "").startsWith("ko:") ||
+        KNOCKOUT_STAGES.has(String(m.stage ?? "").toLowerCase());
+
+      // Mata-mata: a regra do bolão conta SOMENTE o tempo regulamentar.
+      // O endpoint de placar ao vivo nem sempre traz parciais; quando é mata-mata,
+      // buscamos o resumo detalhado e somamos apenas 1º + 2º tempo.
+      const summaryComp = isKnockoutMatch && ev?.id ? await fetchEspnSummary(String(ev.id)) : null;
+      const scoreCompetitors = summaryComp?.competitors ?? competitors;
       const useRegulationOnly =
-        statusName === "STATUS_AET" || statusName === "STATUS_PEN";
+        isKnockoutMatch ||
+        EXTRA_TIME_STATUSES.has(statusName) ||
+        Number(period ?? 0) > 2;
       const findScore = (code: string) => {
-        const c = competitors.find(
+        const c = scoreCompetitors.find(
           (x: any) => (x?.team?.abbreviation ?? "").toUpperCase() === code,
         );
-        if (useRegulationOnly && Array.isArray(c?.linescores) && c.linescores.length >= 2) {
-          const p1 = Number(c.linescores[0]?.value ?? c.linescores[0]?.displayValue);
-          const p2 = Number(c.linescores[1]?.value ?? c.linescores[1]?.displayValue);
-          if (Number.isFinite(p1) && Number.isFinite(p2)) return p1 + p2;
+        if (useRegulationOnly) {
+          const regulationScore = regulationScoreFromLinescores(c);
+          if (regulationScore !== null) return regulationScore;
+
+          // Em prorrogação/pênaltis sem parciais, não atualizamos para evitar
+          // gravar gols da prorrogação como se fossem do tempo regulamentar.
+          if (Number(period ?? 0) > 2 || EXTRA_TIME_STATUSES.has(statusName)) return null;
         }
         const s = c?.score;
         const n = s === undefined || s === null || s === "" ? null : Number(s);

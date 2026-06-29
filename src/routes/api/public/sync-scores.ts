@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const RAPIDAPI_HOST = "free-api-live-football-data.p.rapidapi.com";
+const KNOCKOUT_STAGES = new Set(["r32", "r16", "qf", "sf", "third", "final"]);
 
 async function fetchMatchScore(eventId: string, apiKey: string) {
   const url = `https://${RAPIDAPI_HOST}/football-get-match-stats?eventid=${encodeURIComponent(eventId)}`;
@@ -39,7 +40,7 @@ async function handle() {
 
   const { data: matches, error } = await supabaseAdmin
     .from("matches")
-    .select("id, external_match_id, finished")
+    .select("id, external_match_id, stage, finished")
     .eq("finished", false)
     .not("external_match_id", "is", null);
 
@@ -49,6 +50,10 @@ async function handle() {
   const results: any[] = [];
   for (const m of matches ?? []) {
     if (!m.external_match_id) continue;
+    if (String(m.external_match_id).startsWith("ko:") || KNOCKOUT_STAGES.has(String(m.stage ?? "").toLowerCase())) {
+      results.push({ id: m.id, skipped: true, reason: "knockout_uses_regulation_time_sync" });
+      continue;
+    }
     const score = await fetchMatchScore(m.external_match_id, apiKey);
     if (!score) { results.push({ id: m.id, skipped: true }); continue; }
     const { error: uerr } = await supabaseAdmin
