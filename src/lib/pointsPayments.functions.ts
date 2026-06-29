@@ -10,11 +10,27 @@ export type PointsPaymentStatus = {
 
 export type PointsRankingData = {
   payments: PointsPaymentStatus[];
-  bets: { user_id: string; match_id: string; home_score: number; away_score: number; points: number }[];
+  bets: { id: string; user_id: string; match_id: string; home_score: number; away_score: number; points: number }[];
   matches: { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null }[];
   teams: { id: string; name: string; code: string }[];
   profiles: { id: string; display_name: string; avatar_url: string | null }[];
 };
+
+const PAGE_SIZE = 1000;
+
+async function fetchAllPages<T>(
+  buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+) {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await buildQuery(from, to);
+    if (error) throw new Error(error.message);
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
 
 function summarizePointPayments(payments: { user_id: string; status: string }[], profiles: { id: string; display_name: string | null; avatar_url: string | null }[]) {
   const byUser = new Map<string, "confirmed" | "pending">();
@@ -43,23 +59,24 @@ export const getAllPointsPaymentStatuses = createServerFn({ method: "GET" })
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data, error } = await supabaseAdmin
-      .from("payments")
-      .select("user_id,status,created_at")
-      .eq("mode", "points")
-      .in("status", ["confirmed", "pending"])
-      .order("created_at", { ascending: false });
+    const data = await fetchAllPages<{ user_id: string; status: string; created_at: string }>((from, to) =>
+      supabaseAdmin
+        .from("payments")
+        .select("user_id,status,created_at")
+        .eq("mode", "points")
+        .in("status", ["confirmed", "pending"])
+        .order("created_at", { ascending: false })
+        .range(from, to),
+    );
 
-    if (error) throw new Error(error.message);
-
-    const userIds = Array.from(new Set((data ?? []).map((payment) => payment.user_id)));
+    const userIds = Array.from(new Set(data.map((payment) => payment.user_id)));
     const { data: profiles, error: profilesError } = userIds.length
       ? await supabaseAdmin.from("profiles").select("id,display_name,avatar_url").in("id", userIds)
       : { data: [], error: null };
 
     if (profilesError) throw new Error(profilesError.message);
 
-    return summarizePointPayments(data ?? [], profiles ?? []);
+    return summarizePointPayments(data, profiles ?? []);
   });
 
 export const getPointsRankingData = createServerFn({ method: "GET" })
@@ -67,22 +84,29 @@ export const getPointsRankingData = createServerFn({ method: "GET" })
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [paymentsRes, betsRes, matchesRes, teamsRes, profilesRes] = await Promise.all([
-      supabaseAdmin.from("payments").select("user_id,status,created_at").eq("mode", "points").in("status", ["confirmed", "pending"]).order("created_at", { ascending: false }),
-      supabaseAdmin.from("bets").select("user_id,match_id,home_score,away_score,points"),
-      supabaseAdmin.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail"),
-      supabaseAdmin.from("teams").select("id,name,code"),
-      supabaseAdmin.from("profiles").select("id,display_name,avatar_url"),
+    const [payments, bets, matches, teams, profiles] = await Promise.all([
+      fetchAllPages<{ user_id: string; status: string; created_at: string }>((from, to) =>
+        supabaseAdmin.from("payments").select("user_id,status,created_at").eq("mode", "points").in("status", ["confirmed", "pending"]).order("created_at", { ascending: false }).range(from, to),
+      ),
+      fetchAllPages<{ id: string; user_id: string; match_id: string; home_score: number; away_score: number; points: number }>((from, to) =>
+        supabaseAdmin.from("bets").select("id,user_id,match_id,home_score,away_score,points").range(from, to),
+      ),
+      fetchAllPages<PointsRankingData["matches"][number]>((from, to) =>
+        supabaseAdmin.from("matches").select("id,kickoff,home_team_id,away_team_id,home_score,away_score,finished,live_status_detail").range(from, to),
+      ),
+      fetchAllPages<PointsRankingData["teams"][number]>((from, to) =>
+        supabaseAdmin.from("teams").select("id,name,code").range(from, to),
+      ),
+      fetchAllPages<PointsRankingData["profiles"][number]>((from, to) =>
+        supabaseAdmin.from("profiles").select("id,display_name,avatar_url").range(from, to),
+      ),
     ]);
 
-    const firstError = paymentsRes.error ?? betsRes.error ?? matchesRes.error ?? teamsRes.error ?? profilesRes.error;
-    if (firstError) throw new Error(firstError.message);
-
     return {
-      payments: summarizePointPayments(paymentsRes.data ?? [], profilesRes.data ?? []),
-      bets: betsRes.data ?? [],
-      matches: matchesRes.data ?? [],
-      teams: teamsRes.data ?? [],
-      profiles: profilesRes.data ?? [],
+      payments: summarizePointPayments(payments, profiles),
+      bets,
+      matches,
+      teams,
+      profiles,
     } satisfies PointsRankingData;
   });
