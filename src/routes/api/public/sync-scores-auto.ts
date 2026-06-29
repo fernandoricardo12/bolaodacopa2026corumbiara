@@ -151,7 +151,7 @@ async function handle() {
         await supabaseAdmin
           .from("knockout_matches")
           .update({ home_score: h, away_score: a, finished: isFinished })
-          .eq("round", knockoutRef[1].toUpperCase())
+          .eq("round", knockoutRef[1].toUpperCase() as any)
           .eq("position", Number(knockoutRef[2]));
       }
 
