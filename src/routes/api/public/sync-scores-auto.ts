@@ -56,7 +56,7 @@ async function handle() {
     const { data: matches, error } = await supabaseAdmin
       .from("matches")
       .select(
-        "id, kickoff, finished, home_team_id, away_team_id, home_score, away_score",
+        "id, external_match_id, kickoff, finished, home_team_id, away_team_id, home_score, away_score",
       )
       .eq("finished", false);
     if (error) {
@@ -145,6 +145,15 @@ async function handle() {
           live_status_detail: isFinished ? null : detail,
         })
         .eq("id", m.id);
+
+      const knockoutRef = String(m.external_match_id ?? "").match(/^ko:([A-Z0-9]+)-(\d+)$/i);
+      if (!uerr && knockoutRef) {
+        await supabaseAdmin
+          .from("knockout_matches")
+          .update({ home_score: h, away_score: a, finished: isFinished })
+          .eq("round", knockoutRef[1].toUpperCase() as any)
+          .eq("position", Number(knockoutRef[2]));
+      }
 
       if (uerr) {
         results.push({ id: m.id, error: uerr.message });
