@@ -32,6 +32,20 @@ function countsForPointsRanking(m?: Match) {
   return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
 }
 
+const PAGE_SIZE = 1000;
+
+async function fetchAllRows<T>(buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await buildQuery(from, to);
+    if (error) throw new Error(error.message);
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 export function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -43,20 +57,24 @@ export function AdminPanel() {
   const reportRef = useRef<HTMLDivElement>(null);
 
   async function load() {
-    const [t, m, p, pr, ib, b] = await Promise.all([
-      supabase.from("teams").select("id,name,flag,group_name").order("name"),
-      supabase.from("matches").select("*").order("kickoff"),
-      supabase.from("payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,display_name,phone,pix_key,whatsapp_confirmed_at"),
-      supabase.from("individual_bets").select("*"),
-      supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score"),
-    ]);
-    if (t.data) setTeams(t.data);
-    if (m.data) setMatches(m.data as Match[]);
-    if (p.data) setPayments(p.data as Payment[]);
-    if (pr.data) setProfiles(Object.fromEntries(pr.data.map((x) => [x.id, x])));
-    if (ib.data) setIbets(ib.data as IBet[]);
-    if (b.data) setBets(b.data as Bet[]);
+    try {
+      const [t, m, p, pr, ib, b] = await Promise.all([
+        fetchAllRows<Team>((from, to) => supabase.from("teams").select("id,name,flag,group_name").order("name").range(from, to)),
+        fetchAllRows<Match>((from, to) => supabase.from("matches").select("*").order("kickoff").range(from, to)),
+        fetchAllRows<Payment>((from, to) => supabase.from("payments").select("*").order("created_at", { ascending: false }).range(from, to)),
+        fetchAllRows<Profile>((from, to) => supabase.from("profiles").select("id,display_name,phone,pix_key,whatsapp_confirmed_at").range(from, to)),
+        fetchAllRows<IBet>((from, to) => supabase.from("individual_bets").select("*").range(from, to)),
+        fetchAllRows<Bet>((from, to) => supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score").range(from, to)),
+      ]);
+      setTeams(t);
+      setMatches(m);
+      setPayments(p);
+      setProfiles(Object.fromEntries(pr.map((x) => [x.id, x])));
+      setIbets(ib);
+      setBets(b);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao carregar dados do painel");
+    }
   }
   useEffect(() => { load(); }, []);
 
