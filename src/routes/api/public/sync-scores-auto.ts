@@ -193,9 +193,29 @@ async function handle() {
 
       const knockoutRef = String(m.external_match_id ?? "").match(/^ko:([A-Z0-9]+)-(\d+)$/i);
       if (!uerr && knockoutRef) {
+        // Quando o jogo terminou (inclusive em prorrogação ou pênaltis), tentamos
+        // descobrir o vencedor real para avançar a chave mesmo com empate no tempo
+        // regulamentar. A ESPN marca `winner: true` no competidor vencedor.
+        let winnerTeamId: string | null = null;
+        if (isFinished) {
+          const winnerComp = (scoreCompetitors as any[]).find((c) => c?.winner === true)
+            ?? (competitors as any[]).find((c) => c?.winner === true);
+          const winnerCode = (winnerComp?.team?.abbreviation ?? "").toUpperCase();
+          if (winnerCode === homeCode) winnerTeamId = m.home_team_id;
+          else if (winnerCode === awayCode) winnerTeamId = m.away_team_id;
+          // Fallback: se não houver flag de vencedor, usa diferença no placar regulamentar
+          if (!winnerTeamId && h !== a) {
+            winnerTeamId = h > a ? m.home_team_id : m.away_team_id;
+          }
+        }
         await supabaseAdmin
           .from("knockout_matches")
-          .update({ home_score: h, away_score: a, finished: isFinished })
+          .update({
+            home_score: h,
+            away_score: a,
+            finished: isFinished,
+            ...(winnerTeamId ? { winner_team_id: winnerTeamId } : {}),
+          })
           .eq("round", knockoutRef[1].toUpperCase() as any)
           .eq("position", Number(knockoutRef[2]));
       }
