@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,15 +7,24 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { getPointsRankingData, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Row = { user_id: string; display_name: string; gender: "male" | "female" | null; points: number };
-type Bet = { user_id: string; match_id: string; points: number };
+type Bet = { user_id: string; match_id: string; home_score?: number; away_score?: number; points: number };
 type Match = { id: string; kickoff: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
-  if (m.finished) return true;
-  if (new Date(m.kickoff).getTime() > Date.now()) return false;
-  const status = (m.live_status_detail ?? "").trim().toLowerCase();
-  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+  return true;
+}
+
+function calculateBolaoPoints(b: Bet, m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return 0;
+  if (b.home_score === undefined || b.away_score === undefined) return b.points ?? 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
 }
 
 function inferGender(name: string): "male" | "female" {
@@ -31,10 +40,13 @@ function inferGender(name: string): "male" | "female" {
 
 export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string }) {
   const [rows, setRows] = useState<Row[]>([]);
+  const loadSeq = useRef(0);
   const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
+    const seq = ++loadSeq.current;
     const data = await fetchRanking();
+    if (seq !== loadSeq.current) return;
     const bets = data.bets as Bet[];
     const profiles = data.profiles as { id: string; display_name: string; gender?: "male" | "female" | null }[];
     const pays = data.payments as PointsPaymentStatus[];
@@ -46,7 +58,7 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
     for (const uid of paidUsers) agg[uid] = 0;
     for (const b of bets as Bet[]) {
       if (!paidUsers.has(b.user_id)) continue;
-      if (countsForRanking(matchMap[b.match_id])) agg[b.user_id] = (agg[b.user_id] ?? 0) + (b.points ?? 0);
+      if (countsForRanking(matchMap[b.match_id])) agg[b.user_id] = (agg[b.user_id] ?? 0) + calculateBolaoPoints(b, matchMap[b.match_id]);
     }
     const arr: Row[] = Object.entries(agg).map(([uid, points]) => {
       const name = profMap[uid]?.display_name ?? payMap[uid]?.display_name ?? "Jogador";
@@ -59,6 +71,7 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
 
   useEffect(() => {
     load();
+    const interval = window.setInterval(load, 15000);
     const ch = supabase
       .channel(`points-race-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -66,7 +79,7 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); supabase.removeChannel(ch); };
   }, []);
 
   if (rows.length === 0) return null;

@@ -43,6 +43,17 @@ function hasScore(m: Match): m is Match & { home_score: number; away_score: numb
   return m.home_score !== null && m.away_score !== null;
 }
 
+function calculateBetPoints(b: Bet, m?: Match) {
+  if (!m || !hasScore(m)) return 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
+}
+
 function matchStatusLabel(m: Match) {
   if (m.finished) return "Encerrado";
   if (hasScore(m)) return m.live_status_detail || m.live_clock || "Ao vivo";
@@ -84,10 +95,10 @@ export function MyBetsTab({ userId }: { userId: string }) {
   }, [userId]);
 
   const totals = useMemo(() => {
-    const pts = bets.reduce((s, b) => s + (b.points ?? 0), 0);
+    const pts = bets.reduce((s, b) => s + calculateBetPoints(b, matches[b.match_id]), 0);
     const ganhoIndividual = ibets.reduce((s, b) => s + Number(b.payout ?? 0), 0);
     const acertos = bets.filter((b) => {
-      const m = matches[b.match_id]; return !!m && hasScore(m) && (b.points ?? 0) > 0;
+      const m = matches[b.match_id]; return !!m && hasScore(m) && calculateBetPoints(b, m) > 0;
     }).length;
     const finalizados = bets.filter((b) => {
       const m = matches[b.match_id]; return !!m && hasScore(m);
@@ -158,7 +169,8 @@ export function MyBetsTab({ userId }: { userId: string }) {
             const home = teams[m!.home_team_id]; const away = teams[m!.away_team_id];
             if (!home || !away) return null;
             const scoreAvailable = hasScore(m!);
-            const fb = scoreAvailable ? feedbackPontos(b.points ?? 0) : null;
+            const livePoints = calculateBetPoints(b, m!);
+            const fb = scoreAvailable ? feedbackPontos(livePoints) : null;
             return (
               <div key={b.match_id} className="p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -188,7 +200,7 @@ export function MyBetsTab({ userId }: { userId: string }) {
                 {fb && (
                   <div className="flex items-center justify-between">
                     <span className={`text-xs px-2 py-1 rounded font-medium ${fb.tone}`}>{fb.label}</span>
-                    <span className="text-sm font-bold">+{b.points ?? 0} pts{!m!.finished ? " parciais" : ""}</span>
+                    <span className="text-sm font-bold">+{livePoints} pts{!m!.finished ? " parciais" : ""}</span>
                   </div>
                 )}
               </div>
