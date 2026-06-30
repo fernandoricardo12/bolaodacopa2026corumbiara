@@ -13,10 +13,24 @@ export type PointsRankingData = {
   bets: { id: string; user_id: string; match_id: string; home_score: number; away_score: number; points: number }[];
   matches: { id: string; kickoff: string; home_team_id: string; away_team_id: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null }[];
   teams: { id: string; name: string; code: string }[];
-  profiles: { id: string; display_name: string; avatar_url: string | null }[];
+  profiles: { id: string; display_name: string; avatar_url: string | null; gender?: string | null }[];
 };
 
 const PAGE_SIZE = 1000;
+
+function calculateBolaoPoints(bHome: number, bAway: number, rHome: number | null, rAway: number | null) {
+  if (rHome === null || rAway === null) return 0;
+  const exactScore = bHome === rHome && bAway === rAway;
+  if (exactScore) return 20;
+
+  const winnerOk = Math.sign(bHome - bAway) === Math.sign(rHome - rAway);
+  const oneScoreOk = bHome === rHome || bAway === rAway;
+
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
+}
 
 async function fetchAllPages<T>(
   buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
@@ -79,7 +93,7 @@ export const getAllPointsPaymentStatuses = createServerFn({ method: "GET" })
     return summarizePointPayments(data, profiles ?? []);
   });
 
-export const getPointsRankingData = createServerFn({ method: "GET" })
+export const getPointsRankingData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -98,13 +112,22 @@ export const getPointsRankingData = createServerFn({ method: "GET" })
         supabaseAdmin.from("teams").select("id,name,code").order("id", { ascending: true }).range(from, to),
       ),
       fetchAllPages<PointsRankingData["profiles"][number]>((from, to) =>
-        supabaseAdmin.from("profiles").select("id,display_name,avatar_url").order("id", { ascending: true }).range(from, to),
+        supabaseAdmin.from("profiles").select("id,display_name,avatar_url,gender").order("id", { ascending: true }).range(from, to),
       ),
     ]);
 
+    const matchById = new Map(matches.map((match) => [match.id, match]));
+    const liveBets = bets.map((bet) => {
+      const match = matchById.get(bet.match_id);
+      return {
+        ...bet,
+        points: calculateBolaoPoints(bet.home_score, bet.away_score, match?.home_score ?? null, match?.away_score ?? null),
+      };
+    });
+
     return {
       payments: summarizePointPayments(payments, profiles),
-      bets,
+      bets: liveBets,
       matches,
       teams,
       profiles,

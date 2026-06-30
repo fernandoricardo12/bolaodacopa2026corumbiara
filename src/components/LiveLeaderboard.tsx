@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,23 +7,35 @@ import { Trophy, Medal } from "lucide-react";
 import { getPointsRankingData, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
 type Row = { user_id: string; display_name: string; avatar_url: string | null; points: number; bets: number };
-type Bet = { user_id: string; match_id: string; points: number };
+type Bet = { user_id: string; match_id: string; home_score?: number; away_score?: number; points: number };
 type Match = { id: string; kickoff: string; home_score: number | null; away_score: number | null; finished: boolean; live_status_detail: string | null };
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
-  if (m.finished) return true;
-  if (new Date(m.kickoff).getTime() > Date.now()) return false;
-  const status = (m.live_status_detail ?? "").trim().toLowerCase();
-  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+  return true;
+}
+
+function calculateBolaoPoints(b: Bet, m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return 0;
+  if (b.home_score === undefined || b.away_score === undefined) return b.points ?? 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
 }
 
 export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Ranking ao vivo" }: { currentUserId?: string; limit?: number; title?: string }) {
   const [rows, setRows] = useState<Row[]>([]);
+  const loadSeq = useRef(0);
   const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
+    const seq = ++loadSeq.current;
     const data = await fetchRanking();
+    if (seq !== loadSeq.current) return;
     const bets = data.bets as Bet[];
     const profiles = data.profiles;
     const pays = data.payments as PointsPaymentStatus[];
@@ -35,7 +47,7 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
     for (const b of bets as Bet[]) {
       if (!paidUsers.has(b.user_id)) continue;
       agg[b.user_id] ??= { points: 0, bets: 0 };
-      agg[b.user_id].points += countsForRanking(matchMap[b.match_id]) ? b.points : 0;
+      agg[b.user_id].points += countsForRanking(matchMap[b.match_id]) ? calculateBolaoPoints(b, matchMap[b.match_id]) : 0;
       agg[b.user_id].bets += 1;
     }
     for (const uid of paidUsers) agg[uid] ??= { points: 0, bets: 0 };
@@ -46,12 +58,18 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
       points: v.points,
       bets: v.bets,
     }));
-    arr.sort((a, b) => b.points - a.points || b.bets - a.bets || a.display_name.localeCompare(b.display_name, "pt-BR"));
+    arr.sort((a, b) => b.points - a.points || a.display_name.localeCompare(b.display_name, "pt-BR") || b.bets - a.bets);
     setRows(arr);
   }
 
   useEffect(() => {
     load();
+    const interval = window.setInterval(load, 15000);
+    const syncLiveScores = () => {
+      fetch("/api/public/sync-scores-auto", { method: "POST", cache: "no-store" }).catch(() => {}).finally(load);
+    };
+    syncLiveScores();
+    const syncInterval = window.setInterval(syncLiveScores, 45000);
     const ch = supabase
       .channel(`live-leaderboard-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -59,7 +77,7 @@ export function LiveLeaderboard({ currentUserId, limit = 5, title = "🏆 Rankin
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); window.clearInterval(syncInterval); supabase.removeChannel(ch); };
   }, []);
 
   const top = rows.slice(0, limit);

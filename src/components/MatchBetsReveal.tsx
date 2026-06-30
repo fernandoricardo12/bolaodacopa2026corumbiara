@@ -26,6 +26,17 @@ export function MatchBetsReveal({
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [open, setOpen] = useState(false);
 
+  function displayPoints(r: Row) {
+    if (finalHome === null || finalAway === null) return 0;
+    if (r.home_score === finalHome && r.away_score === finalAway) return 20;
+    const winnerOk = Math.sign(r.home_score - r.away_score) === Math.sign(finalHome - finalAway);
+    const oneScoreOk = r.home_score === finalHome || r.away_score === finalAway;
+    if (winnerOk && oneScoreOk) return 15;
+    if (winnerOk) return 10;
+    if (oneScoreOk) return 5;
+    return 0;
+  }
+
   useEffect(() => {
     if (!matchStarted) return;
     let alive = true;
@@ -55,7 +66,7 @@ export function MatchBetsReveal({
 
   if (!matchStarted) return null;
 
-  const sorted = [...rows].sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
+  const sorted = [...rows].sort((a, b) => displayPoints(b) - displayPoints(a));
   const hasFinal = finalHome !== null && finalAway !== null;
 
   return (
@@ -79,14 +90,15 @@ export function MatchBetsReveal({
           {sorted.map((r) => {
             const name = profiles[r.user_id]?.display_name || "Participante";
             const exact = hasFinal && r.home_score === finalHome && r.away_score === finalAway;
+            const points = displayPoints(r);
             return (
               <div key={r.user_id} className="px-3 py-1.5 flex items-center gap-2 text-xs">
                 <span className="flex-1 truncate">{name}</span>
                 <span className="tabular-nums font-semibold">{r.home_score} × {r.away_score}</span>
                 {hasFinal && (
-                  <Badge variant={exact ? "default" : r.points > 0 ? "secondary" : "outline"} className="text-[10px] gap-1">
+                  <Badge variant={exact ? "default" : points > 0 ? "secondary" : "outline"} className="text-[10px] gap-1">
                     <Trophy className="h-2.5 w-2.5" />
-                    {r.points} pts
+                    {points} pts
                   </Badge>
                 )}
               </div>

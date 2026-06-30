@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPointsRankingData, type PointsPaymentStatus } from "@/lib/pointsPayments.functions";
 
-type Bet = { user_id: string; match_id: string; points: number };
+type Bet = { user_id: string; match_id: string; home_score?: number; away_score?: number; points: number };
 type IBet = { user_id: string; match_id: string; paid: boolean; payout: number };
 type Match = { id: string; kickoff?: string; home_score?: number | null; away_score?: number | null; finished: boolean; live_status_detail?: string | null };
 type Profile = { id: string; display_name: string };
@@ -25,10 +25,19 @@ async function fetchAllRows<T>(buildQuery: (from: number, to: number) => Promise
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.home_score === undefined || m.away_score === null || m.away_score === undefined) return false;
-  if (m.finished) return true;
-  if (m.kickoff && new Date(m.kickoff).getTime() > Date.now()) return false;
-  const status = (m.live_status_detail ?? "").trim().toLowerCase();
-  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+  return true;
+}
+
+function calculateBolaoPoints(b: Bet, m?: Match) {
+  if (!m || m.home_score === null || m.home_score === undefined || m.away_score === null || m.away_score === undefined) return 0;
+  if (b.home_score === undefined || b.away_score === undefined) return b.points ?? 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
 }
 
 export function HighlightsSection() {
@@ -37,13 +46,16 @@ export function HighlightsSection() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [payments, setPayments] = useState<PointsPaymentStatus[]>([]);
+  const loadSeq = useRef(0);
   const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
+    const seq = ++loadSeq.current;
     const [ranking, ib] = await Promise.all([
       fetchRanking(),
       fetchAllRows<IBet>((from, to) => supabase.from("individual_bets").select("user_id,match_id,paid,payout").range(from, to)),
     ]);
+    if (seq !== loadSeq.current) return;
     setBets(ranking.bets as Bet[]);
     setIbets(ib);
     setMatches(ranking.matches as Match[]);
@@ -53,6 +65,7 @@ export function HighlightsSection() {
 
   useEffect(() => {
     load();
+    const interval = window.setInterval(load, 15000);
     const ch = supabase
       .channel("highlights-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -60,10 +73,11 @@ export function HighlightsSection() {
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); supabase.removeChannel(ch); };
   }, []);
 
   const destaques = useMemo(() => {
+    const matchMap = Object.fromEntries(matches.map((m) => [m.id, m]));
     const validMatches = new Set(matches.filter(countsForRanking).map((m) => m.id));
     const paidUsers = new Set(payments.filter((p) => p.status === "confirmed").map((p) => p.user_id));
     const paymentMap = Object.fromEntries(payments.map((p) => [p.user_id, p]));
@@ -76,10 +90,11 @@ export function HighlightsSection() {
       if (!validMatches.has(b.match_id)) continue;
       if (!paidUsers.has(b.user_id)) continue;
       const s = ensure(b.user_id);
-      s.pts += b.points || 0;
+      const points = calculateBolaoPoints(b, matchMap[b.match_id]);
+      s.pts += points;
       s.total += 1;
-      if (b.points > 0) s.hits += 1;
-      if (b.points === 20) s.exact += 1;
+      if (points > 0) s.hits += 1;
+      if (points === 20) s.exact += 1;
     }
     for (const ib of ibets) {
       if (!validMatches.has(ib.match_id) || !ib.paid) continue;

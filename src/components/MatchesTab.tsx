@@ -50,6 +50,17 @@ function hasScore(m: Match): m is Match & { home_score: number; away_score: numb
   return m.home_score !== null && m.away_score !== null;
 }
 
+function calculateBetPoints(b: Bet, m: Match) {
+  if (!hasScore(m)) return 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
+}
+
 function matchStatusLabel(m: Match) {
   if (m.finished) return "Encerrado";
   if (hasScore(m)) return m.live_status_detail || m.live_clock || "Ao vivo";
@@ -310,6 +321,7 @@ export function MatchesTab({ userId }: { userId: string }) {
               const locked = m.finished || new Date(m.kickoff).getTime() - Date.now() <= 10 * 60 * 1000;
               const d = drafts[m.id] ?? { h: bet?.home_score?.toString() ?? "", a: bet?.away_score?.toString() ?? "" };
               const scoreAvailable = hasScore(m);
+              const liveBetPoints = bet && scoreAvailable ? calculateBetPoints(bet, m) : 0;
               const statusLabel = matchStatusLabel(m);
               return (
                 <Card key={m.id} className={locked ? "opacity-95" : ""}>
@@ -360,7 +372,7 @@ export function MatchesTab({ userId }: { userId: string }) {
                           Seu palpite: <strong>{bet.home_score}×{bet.away_score}</strong>
                           {scoreAvailable && (
                             <span className="ml-2 inline-flex items-center gap-1">
-                              <Trophy className="h-3 w-3 text-amber-500" /> {bet.points} pts{!m.finished ? " parciais" : ""}
+                              <Trophy className="h-3 w-3 text-amber-500" /> {liveBetPoints} pts{!m.finished ? " parciais" : ""}
                             </span>
                           )}
                         </div>

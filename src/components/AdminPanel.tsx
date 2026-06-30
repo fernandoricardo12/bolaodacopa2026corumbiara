@@ -26,10 +26,18 @@ type Bet = { id: string; user_id: string; match_id: string; points: number; home
 
 function countsForPointsRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
-  if (m.finished) return true;
-  if (new Date(m.kickoff).getTime() > Date.now()) return false;
-  const status = (m.live_status_detail ?? "").trim().toLowerCase();
-  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+  return true;
+}
+
+function calculateBolaoPoints(b: Bet, m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
 }
 
 const PAGE_SIZE = 1000;
@@ -55,9 +63,11 @@ export function AdminPanel() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [syncing, setSyncing] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const loadSeq = useRef(0);
 
   async function load() {
     try {
+      const seq = ++loadSeq.current;
       const [t, m, p, pr, ib, b] = await Promise.all([
         fetchAllRows<Team>((from, to) => supabase.from("teams").select("id,name,flag,group_name").order("name").range(from, to)),
         fetchAllRows<Match>((from, to) => supabase.from("matches").select("*").order("kickoff").range(from, to)),
@@ -66,6 +76,7 @@ export function AdminPanel() {
         fetchAllRows<IBet>((from, to) => supabase.from("individual_bets").select("*").range(from, to)),
         fetchAllRows<Bet>((from, to) => supabase.from("bets").select("id,user_id,match_id,points,home_score,away_score").range(from, to)),
       ]);
+      if (seq !== loadSeq.current) return;
       setTeams(t);
       setMatches(m);
       setPayments(p);
@@ -76,7 +87,17 @@ export function AdminPanel() {
       toast.error(e?.message ?? "Falha ao carregar dados do painel");
     }
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const interval = window.setInterval(load, 15000);
+    const ch = supabase
+      .channel("admin-panel-live-ranking")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
+      .subscribe();
+    return () => { window.clearInterval(interval); supabase.removeChannel(ch); };
+  }, []);
 
   const teamMap = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
 
@@ -110,14 +131,14 @@ export function AdminPanel() {
       .map((uid) => {
         const userBets = bets.filter((b) => b.user_id === uid);
         const validBets = userBets.filter((b) => countsForPointsRanking(matchMap[b.match_id]));
-        const pontos = validBets.reduce((sum, b) => sum + (b.points ?? 0), 0);
+        const pontos = validBets.reduce((sum, b) => sum + calculateBolaoPoints(b, matchMap[b.match_id]), 0);
         const status = confirmedUsers.has(uid) ? "confirmed" : pendingUsers.has(uid) ? "pending" : "none";
         return {
           user: profiles[uid]?.display_name ?? "—",
           pontos: status === "confirmed" ? pontos : 0,
           pontosPendentes: status === "confirmed" ? 0 : pontos,
           palpites: userBets.length,
-          jogosPontuados: validBets.filter((b) => (b.points ?? 0) > 0).length,
+          jogosPontuados: validBets.filter((b) => calculateBolaoPoints(b, matchMap[b.match_id]) > 0).length,
           status,
           user_id: uid,
         };
@@ -151,9 +172,10 @@ export function AdminPanel() {
   const lucroAdmin = taxaAdminPontos - pointsPrize.bonus + sobraIndividual;
 
 
-  // Destaques de participantes (com base em jogos finalizados)
+  // Destaques de participantes (com base em jogos com placar, inclusive ao vivo)
   const destaques = useMemo(() => {
-    const finishedMatchIds = new Set(matches.filter((m) => m.finished).map((m) => m.id));
+    const matchMap = Object.fromEntries(matches.map((m) => [m.id, m]));
+    const scoredMatchIds = new Set(matches.filter((m) => countsForPointsRanking(m)).map((m) => m.id));
     const confirmedUsers = new Set(payments.filter((p) => p.mode === "points" && p.status === "confirmed").map((p) => p.user_id));
 
     // Pontos por usuário (bolão de pontos)
@@ -164,16 +186,17 @@ export function AdminPanel() {
     };
 
     for (const b of bets) {
-      if (!finishedMatchIds.has(b.match_id)) continue;
+      if (!scoredMatchIds.has(b.match_id)) continue;
       if (!confirmedUsers.has(b.user_id)) continue;
       const s = ensure(b.user_id);
-      s.pts += b.points || 0;
+      const points = calculateBolaoPoints(b, matchMap[b.match_id]);
+      s.pts += points;
       s.total += 1;
-      if (b.points > 0) s.hits += 1;
-      if (b.points === 20) s.exact += 1;
+      if (points > 0) s.hits += 1;
+      if (points === 20) s.exact += 1;
     }
     for (const ib of ibets) {
-      if (!finishedMatchIds.has(ib.match_id) || !ib.paid) continue;
+      if (!scoredMatchIds.has(ib.match_id) || !ib.paid) continue;
       const s = ensure(ib.user_id);
       s.iCount += 1;
       if (Number(ib.payout) > 0) s.iwins += 1;
@@ -585,7 +608,9 @@ export function AdminPanel() {
         {matches.map((m) => {
           const home = teamMap[m.home_team_id]; const away = teamMap[m.away_team_id];
           if (!home || !away) return null;
-          const matchBets = bets.filter((b) => b.match_id === m.id);
+          const matchBets = bets
+            .filter((b) => b.match_id === m.id)
+            .sort((a, b) => calculateBolaoPoints(b, m) - calculateBolaoPoints(a, m));
 
           return (
             <Card key={m.id}>
@@ -611,7 +636,7 @@ export function AdminPanel() {
                         <span className="font-medium truncate">{profiles[b.user_id]?.display_name ?? "—"}</span>
                         <span className="flex items-center gap-2 shrink-0">
                           <span className="tabular-nums font-bold">{b.home_score}×{b.away_score}</span>
-                          {m.finished && <Badge variant="secondary" className="text-[9px]">{b.points} pts</Badge>}
+                          {countsForPointsRanking(m) && <Badge variant="secondary" className="text-[9px]">{calculateBolaoPoints(b, m)} pts</Badge>}
                         </span>
                       </div>
                     ))}
@@ -743,7 +768,8 @@ export function AdminPanel() {
         </p>
         {Object.values(profiles).length === 0 && <p className="text-sm text-muted-foreground">Nenhum participante.</p>}
         {Object.values(profiles).map((p) => {
-          const totalPts = bets.filter((b) => b.user_id === p.id).reduce((s, b) => s + (b.points ?? 0), 0);
+          const matchMap = Object.fromEntries(matches.map((m) => [m.id, m]));
+          const totalPts = bets.filter((b) => b.user_id === p.id).reduce((s, b) => s + calculateBolaoPoints(b, matchMap[b.match_id]), 0);
           const totalInd = ibets.filter((b) => b.user_id === p.id).length;
           return (
             <Card key={p.id}>

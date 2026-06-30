@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,10 +25,18 @@ type Row = {
 
 function countsForRanking(m?: Match) {
   if (!m || m.home_score === null || m.away_score === null) return false;
-  if (m.finished) return true;
-  if (new Date(m.kickoff).getTime() > Date.now()) return false;
-  const status = (m.live_status_detail ?? "").trim().toLowerCase();
-  return !["scheduled", "not started", "pre-game", "pre game"].includes(status);
+  return true;
+}
+
+function calculateBolaoPoints(b: Bet, m?: Match) {
+  if (!m || m.home_score === null || m.away_score === null) return 0;
+  if (b.home_score === m.home_score && b.away_score === m.away_score) return 20;
+  const winnerOk = Math.sign(b.home_score - b.away_score) === Math.sign(m.home_score - m.away_score);
+  const oneScoreOk = b.home_score === m.home_score || b.away_score === m.away_score;
+  if (winnerOk && oneScoreOk) return 15;
+  if (winnerOk) return 10;
+  if (oneScoreOk) return 5;
+  return 0;
 }
 
 function matchStarted(m?: Match) {
@@ -45,10 +53,13 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [payments, setPayments] = useState<PointsPaymentStatus[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const loadSeq = useRef(0);
   const fetchRanking = useServerFn(getPointsRankingData);
 
   async function load() {
+    const seq = ++loadSeq.current;
     const data = await fetchRanking();
+    if (seq !== loadSeq.current) return;
     setBets(data.bets as Bet[]);
     setMatches(Object.fromEntries((data.matches as Match[]).map((x) => [x.id, x])));
     setTeams(Object.fromEntries((data.teams as Team[]).map((x) => [x.id, x])));
@@ -58,6 +69,12 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
 
   useEffect(() => {
     load();
+    const interval = window.setInterval(load, 15000);
+    const syncLiveScores = () => {
+      fetch("/api/public/sync-scores-auto", { method: "POST", cache: "no-store" }).catch(() => {}).finally(load);
+    };
+    syncLiveScores();
+    const syncInterval = window.setInterval(syncLiveScores, 45000);
     const ch = supabase
       .channel("ranking-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -65,7 +82,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); window.clearInterval(syncInterval); supabase.removeChannel(ch); };
   }, []);
 
   const { rows, currentUserHasBets, currentUserPaymentStatus } = useMemo(() => {
@@ -79,7 +96,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
     }
     for (const b of bets) {
       agg[b.user_id] ??= { points: 0, bets: 0 };
-      agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? b.points || 0 : 0;
+      agg[b.user_id].points += countsForRanking(matches[b.match_id]) ? calculateBolaoPoints(b, matches[b.match_id]) : 0;
       agg[b.user_id].bets += 1;
     }
     const paymentByUser = Object.fromEntries(payments.map((p) => [p.user_id, p]));
@@ -93,7 +110,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
         bets: v.bets,
         paid: paidUsers.has(uid),
       }));
-    arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || b.bets - a.bets || a.display_name.localeCompare(b.display_name, "pt-BR"));
+    arr.sort((a, b) => Number(b.paid) - Number(a.paid) || b.points - a.points || a.display_name.localeCompare(b.display_name, "pt-BR") || b.bets - a.bets);
     const hasBets = bets.some((b) => b.user_id === currentUserId);
     const status: "confirmed" | "pending" | "none" = paidUsers.has(currentUserId)
       ? "confirmed"
@@ -255,7 +272,8 @@ function RowItem({
                 const home = m ? teams[m.home_team_id]?.code ?? "—" : "—";
                 const away = m ? teams[m.away_team_id]?.code ?? "—" : "—";
                 const hasResult = m && m.home_score !== null && m.away_score !== null;
-                const exact = hasResult && b.home_score === m!.home_score && b.away_score === m!.away_score;
+                const points = calculateBolaoPoints(b, m);
+                const exact = hasResult && points === 20;
                 return (
                   <div key={`${b.user_id}-${b.match_id}`} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
                     <div className="flex items-center gap-2 min-w-0">
@@ -269,7 +287,7 @@ function RowItem({
                     <div className="flex items-center gap-2">
                       <span className="font-bold">{b.home_score} × {b.away_score}</span>
                       {exact && <Badge className="text-[9px] bg-amber-500 hover:bg-amber-500">EXATO</Badge>}
-                      <Badge variant={b.points > 0 ? "default" : "secondary"} className="text-[10px]">{b.points} pts</Badge>
+                      <Badge variant={points > 0 ? "default" : "secondary"} className="text-[10px]">{points} pts</Badge>
                     </div>
                   </div>
                 );
