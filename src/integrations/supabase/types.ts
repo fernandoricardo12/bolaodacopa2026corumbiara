@@ -135,6 +135,7 @@ export type Database = {
           round: Database["public"]["Enums"]["ko_round"]
           updated_at: string
           venue: string | null
+          winner_team_id: string | null
         }
         Insert: {
           away_score?: number | null
@@ -152,6 +153,7 @@ export type Database = {
           round: Database["public"]["Enums"]["ko_round"]
           updated_at?: string
           venue?: string | null
+          winner_team_id?: string | null
         }
         Update: {
           away_score?: number | null
@@ -169,8 +171,17 @@ export type Database = {
           round?: Database["public"]["Enums"]["ko_round"]
           updated_at?: string
           venue?: string | null
+          winner_team_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "knockout_matches_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {
