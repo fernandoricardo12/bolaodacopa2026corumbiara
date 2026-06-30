@@ -38,6 +38,9 @@ const EXTRA_TIME_STATUSES = new Set([
   "STATUS_AET",
   "STATUS_PEN",
   "STATUS_SHOOTOUT",
+  "STATUS_FINAL_AET",
+  "STATUS_FINAL_PEN",
+  "STATUS_FINAL_OT",
 ]);
 
 async function fetchEspnSummary(eventId: string) {
