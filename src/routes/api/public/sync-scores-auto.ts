@@ -17,6 +17,9 @@ const FINISHED_STATUSES = new Set([
   "STATUS_ENDED",
   "STATUS_AET",
   "STATUS_PEN",
+  "STATUS_FINAL_PEN",
+  "STATUS_FINAL_AET",
+  "STATUS_FINAL_OT",
 ]);
 
 const PRE_GAME_STATUSES = new Set([
