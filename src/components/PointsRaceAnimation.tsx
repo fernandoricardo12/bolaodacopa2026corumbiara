@@ -72,6 +72,11 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
   useEffect(() => {
     load();
     const interval = window.setInterval(load, 15000);
+    const syncLiveScores = () => {
+      fetch("/api/public/sync-scores-auto", { method: "POST", cache: "no-store" }).catch(() => {}).finally(load);
+    };
+    syncLiveScores();
+    const syncInterval = window.setInterval(syncLiveScores, 45000);
     const ch = supabase
       .channel(`points-race-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -79,7 +84,7 @@ export function PointsRaceAnimation({ currentUserId }: { currentUserId?: string 
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .subscribe();
-    return () => { window.clearInterval(interval); supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); window.clearInterval(syncInterval); supabase.removeChannel(ch); };
   }, []);
 
   if (rows.length === 0) return null;

@@ -70,6 +70,11 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
   useEffect(() => {
     load();
     const interval = window.setInterval(load, 15000);
+    const syncLiveScores = () => {
+      fetch("/api/public/sync-scores-auto", { method: "POST", cache: "no-store" }).catch(() => {}).finally(load);
+    };
+    syncLiveScores();
+    const syncInterval = window.setInterval(syncLiveScores, 45000);
     const ch = supabase
       .channel("ranking-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, load)
@@ -77,7 +82,7 @@ export function RankingTab({ currentUserId }: { currentUserId: string }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, load)
       .subscribe();
-    return () => { window.clearInterval(interval); supabase.removeChannel(ch); };
+    return () => { window.clearInterval(interval); window.clearInterval(syncInterval); supabase.removeChannel(ch); };
   }, []);
 
   const { rows, currentUserHasBets, currentUserPaymentStatus } = useMemo(() => {
